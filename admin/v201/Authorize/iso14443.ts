@@ -6,7 +6,7 @@ sendAdminCommand({
   messageId: uuid.v4(),
   payload: {
     idToken: {
-      idToken: "0F9A312A",
+      idToken: "AABBCCDD",
       type: "ISO14443",
     },
   },

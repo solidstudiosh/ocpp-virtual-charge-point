@@ -6,7 +6,7 @@ sendAdminCommand({
   action: "StopTransaction",
   messageId: uuid.v4(),
   payload: {
-    transactionId: 656851249,
+    transactionId: 1,
     timestamp: new Date(),
     meterStop: 2000
   }

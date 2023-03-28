@@ -17,7 +17,7 @@ sendAdminCommand({
     },
     evse: { id: 1 },
     idToken: {
-      idToken: "DD71237A",
+      idToken: "AABBCCDD",
       type: "ISO14443",
     },
     meterValue: [

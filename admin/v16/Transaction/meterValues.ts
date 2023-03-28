@@ -1,8 +1,8 @@
 import * as uuid from "uuid";
 import { sendAdminCommand } from "../../admin";
 
-const POWER = parseFloat(process.env["POWER"] ?? "5");
-const transactionId = parseInt(process.env["TRANSACTION_ID"] ?? "1555122493");
+const POWER = parseFloat(process.env["POWER"] ?? "1");
+const transactionId = parseInt(process.env["TRANSACTION_ID"] ?? "1");
 
 sendAdminCommand({
   action: "MeterValues",
@@ -15,7 +15,7 @@ sendAdminCommand({
         timestamp: new Date(),
         sampledValue: [
           {
-            value: "5",
+            value: POWER,
             measurand: "Power.Active.Import",
             unit: "kW",
           },

@@ -1,0 +1,20 @@
+{
+    "title": "DiagnosticsStatusNotificationRequest",
+    "type": "object",
+    "properties": {
+        "status": {
+            "type": "string",
+            "additionalProperties": false,
+            "enum": [
+                "Idle",
+                "Uploaded",
+                "UploadFailed",
+                "Uploading"
+            ]
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "status"
+    ]
+}

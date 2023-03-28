@@ -1,0 +1,6 @@
+{
+    "title": "FirmwareStatusNotificationResponse",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+}

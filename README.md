@@ -77,7 +77,7 @@ npx ts-node admin/v16/Authorize/authorize.ts
 
 ### Bug Reports & Feature Requests
 
-Please use the [issue tracker](https://github.com/solidstudiosh/ocpp-201-starter/issues) to report any bugs or file feature requests.
+Please use the [issue tracker](https://github.com/solidstudiosh/ocpp-virtual-charge-point/issues) to report any bugs or file feature requests.
 
 ### Developing
 

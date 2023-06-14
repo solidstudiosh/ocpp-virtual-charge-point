@@ -1,4 +1,4 @@
-import { call as callFactory, callResult } from "../messageFactory";
+import { call as callFactory, callError, callResult } from "../messageFactory";
 import { OcppCall, OcppCallError, OcppCallResult } from "../ocppMessage";
 import {
   CallHandler,
@@ -7,6 +7,7 @@ import {
 } from "../ocppMessageHandler";
 import { delay, NOOP } from "../utils";
 import { VCP } from "../vcp";
+import { transactionManager } from "./transactionManager";
 import {
   GetConfigurationReq,
   RemoteStartTransactionReq,
@@ -47,7 +48,7 @@ const callHandlers: { [key: string]: CallHandler } = {
             value: "99",
           },
         ],
-      }),
+      })
     );
   },
   Reset: async (vcp: VCP, call: OcppCall) => {
@@ -63,7 +64,7 @@ const callHandlers: { [key: string]: CallHandler } = {
   },
   RemoteStartTransaction: (
     vcp: VCP,
-    call: OcppCall<RemoteStartTransactionReq>,
+    call: OcppCall<RemoteStartTransactionReq>
   ) => {
     if (!call.payload.connectorId) {
       vcp.respond(callResult(call, { status: "Rejected" }));
@@ -76,23 +77,23 @@ const callHandlers: { [key: string]: CallHandler } = {
         idTag: call.payload.idTag,
         meterStart: 0,
         timestamp: new Date(),
-      }),
+      })
     );
     vcp.send(
       callFactory("StatusNotification", {
         connectorId: call.payload.connectorId,
         errorCode: "NoError",
         status: "Charging",
-      }),
+      })
     );
   },
   RemoteStopTransaction: (
     vcp: VCP,
-    call: OcppCall<RemoteStopTransactionReq>,
+    call: OcppCall<RemoteStopTransactionReq>
   ) => {
     const transactionId = call.payload.transactionId;
-    const transaction = vcp.transactionManager.transactions.get(
-      transactionId.toString(),
+    const transaction = transactionManager.transactions.get(
+      transactionId.toString()
     );
     if (!transaction) {
       vcp.respond(callResult(call, { status: "Rejected" }));
@@ -102,17 +103,18 @@ const callHandlers: { [key: string]: CallHandler } = {
     vcp.send(
       callFactory("StopTransaction", {
         transactionId: transactionId,
-        meterStop:
-          Math.floor(vcp.transactionManager.getMeterValue(transactionId)) * 100,
+        meterStop: Math.floor(
+          transactionManager.getMeterValue(transactionId)
+        ),
         timestamp: new Date(),
-      }),
+      })
     );
     vcp.send(
       callFactory("StatusNotification", {
         connectorId: transaction.connectorId,
         errorCode: "NoError",
         status: "Available",
-      }),
+      })
     );
   },
   ReserveNow: (vcp: VCP, call: OcppCall<any>) => {
@@ -143,7 +145,7 @@ const callResultHandlers: { [key: string]: CallResultHandler } = {
   BootNotification: (
     vcp: VCP,
     _call: OcppCall<any>,
-    _result: OcppCallResult<any>,
+    _result: OcppCallResult<any>
   ) => {
     vcp.configureHeartbeat(60_000);
   },
@@ -153,20 +155,20 @@ const callResultHandlers: { [key: string]: CallResultHandler } = {
   StartTransaction: (
     vcp: VCP,
     call: OcppCall<any>,
-    result: OcppCallResult<any>,
+    result: OcppCallResult<any>
   ) => {
-    vcp.transactionManager.startTransaction(
-      1, // hard-coded EVSE ID = 1
-      call.payload.connectorId,
+    transactionManager.startTransaction(
+      vcp,
       result.payload.transactionId,
+      call.payload.connectorId
     );
   },
   StopTransaction: (
-    vcp: VCP,
+    _vcp: VCP,
     call: OcppCall<any>,
-    _result: OcppCallResult<any>,
+    _result: OcppCallResult<any>
   ) => {
-    vcp.transactionManager.stopTransaction(call.payload.transactionId);
+    transactionManager.stopTransaction(call.payload.transactionId);
   },
   Authorize: NOOP,
   DataTransfer: NOOP,
@@ -183,12 +185,12 @@ export const messageHandlerV16: OcppMessageHandler = {
   handleCallResult: function (
     vcp: VCP,
     call: OcppCall<any>,
-    result: OcppCallResult<any>,
+    result: OcppCallResult<any>
   ): void {
     const handler = callResultHandlers[result.action];
     if (!handler) {
       throw new Error(
-        `CallResult handler not implemented for ${result.action}`,
+        `CallResult handler not implemented for ${result.action}`
       );
     }
     handler(vcp, call, result);

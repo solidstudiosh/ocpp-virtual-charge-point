@@ -8,6 +8,7 @@ import {
 } from "../ocppMessageHandler";
 import { delay } from "../utils";
 import { VCP } from "../vcp";
+import { transactionManager } from "./transactionManager";
 import { RequestStartTransactionReq, TransactionEventReq } from "./types";
 
 const callHandlers: { [key: string]: CallHandler } = {
@@ -112,7 +113,7 @@ const callHandlers: { [key: string]: CallHandler } = {
             },
           },
         ],
-      }),
+      })
     );
   },
   SetVariables: (vcp: VCP, call: OcppCall<any>) => {
@@ -129,14 +130,14 @@ const callHandlers: { [key: string]: CallHandler } = {
             },
           },
         ],
-      }),
+      })
     );
   },
   GetVariables: (vcp: VCP, call: OcppCall<any>) => {
     vcp.respond(
       callResult(call, {
         getVariableResult: [],
-      }),
+      })
     );
   },
   Reset: async (vcp: VCP, call: OcppCall<any>) => {
@@ -149,18 +150,19 @@ const callHandlers: { [key: string]: CallHandler } = {
   },
   RequestStartTransaction: (
     vcp: VCP,
-    call: OcppCall<RequestStartTransactionReq>,
+    call: OcppCall<RequestStartTransactionReq>
   ) => {
     const transactionId = uuid.v4();
-    vcp.transactionManager.startTransaction(
-      call.payload.evseId ?? 1,
-      call.payload.connectorId ?? 1,
+    transactionManager.startTransaction(
+      vcp,
       transactionId,
+      call.payload.evseId ?? 1,
+      call.payload.connectorId ?? 1
     );
     vcp.respond(
       callResult(call, {
         status: "Accepted",
-      }),
+      })
     );
     vcp.send(
       callFactory("StatusNotification", {
@@ -168,7 +170,7 @@ const callHandlers: { [key: string]: CallHandler } = {
         connectorId: call.payload.connectorId ?? 1,
         connectorStatus: "Occupied",
         timestamp: new Date(),
-      }),
+      })
     );
     vcp.send(
       callFactory<TransactionEventReq>("TransactionEvent", {
@@ -184,14 +186,14 @@ const callHandlers: { [key: string]: CallHandler } = {
           id: call.payload.evseId ?? 1,
           connectorId: call.payload.connectorId ?? 1,
         },
-      }),
+      })
     );
   },
   RequestStopTransaction: (vcp: VCP, call: OcppCall<any>) => {
     vcp.respond(
       callResult(call, {
         status: "Accepted",
-      }),
+      })
     );
     vcp.send(
       callFactory<TransactionEventReq>("TransactionEvent", {
@@ -206,7 +208,7 @@ const callHandlers: { [key: string]: CallHandler } = {
           id: 1,
           connectorId: 1,
         },
-      }),
+      })
     );
     vcp.send(
       callFactory("StatusNotification", {
@@ -214,20 +216,20 @@ const callHandlers: { [key: string]: CallHandler } = {
         connectorId: 1,
         connectorStatus: "Available",
         timestamp: new Date(),
-      }),
+      })
     );
-    vcp.transactionManager.stopTransaction(call.payload.transactionId);
+    transactionManager.stopTransaction(call.payload.transactionId);
   },
   DataTransfer: (vcp: VCP, call: OcppCall<any>) => {
     vcp.respond(callResult(call, { status: "Accepted" }));
-  }
+  },
 };
 
 const callResultHandlers: { [key: string]: CallResultHandler } = {
   BootNotification: (
     vcp: VCP,
     call: OcppCall<any>,
-    result: OcppCallResult<any>,
+    result: OcppCallResult<any>
   ) => {
     vcp.configureHeartbeat(result.payload.interval * 1000);
   },
@@ -244,7 +246,7 @@ export const messageHandlerV201: OcppMessageHandler = {
   handleCallResult: function (
     vcp: VCP,
     call: OcppCall<any>,
-    result: OcppCallResult<any>,
+    result: OcppCallResult<any>
   ): void {
     const handler = callResultHandlers[result.action];
     if (!handler) {

@@ -14,7 +14,6 @@ import {
   validateOcppRequest,
   validateOcppResponse,
 } from "./jsonSchemaValidator";
-import { TransactionManager } from "./transactionManager";
 
 interface VCPOptions {
   ocppVersion: OcppVersion;
@@ -30,7 +29,6 @@ export class VCP {
   private messageHandler: OcppMessageHandler;
 
   private isFinishing: boolean = false;
-  transactionManager: TransactionManager = new TransactionManager();
 
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);

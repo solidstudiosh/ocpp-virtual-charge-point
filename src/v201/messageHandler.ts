@@ -186,6 +186,20 @@ const callHandlers: { [key: string]: CallHandler } = {
           id: call.payload.evseId ?? 1,
           connectorId: call.payload.connectorId ?? 1,
         },
+        meterValue: [
+          {
+            timestamp: new Date(),
+            sampledValue: [
+              {
+                value: 0,
+                measurand: "Energy.Active.Import.Register",
+                unitOfMeasure: {
+                  unit: "kWh",
+                },
+              },
+            ],
+          },
+        ],
       })
     );
   },

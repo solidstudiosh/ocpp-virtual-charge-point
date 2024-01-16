@@ -8,7 +8,7 @@ sendAdminCommand({
   payload: {
     connectorId: 1,
     idTag: 'AABBCCDD',
-    meterStart: 0,
+    meterStart: parseInt(process.env["INITIAL_METER_READINGS"] ?? '0'),
     timestamp: new Date(),
   }
 });

@@ -1,25 +1,25 @@
 import * as uuid from "uuid";
-import { call as callFactory, callResult } from "../messageFactory";
-import { OcppCall, OcppCallError, OcppCallResult } from "../ocppMessage";
+import {call as callFactory, callResult} from "../messageFactory";
+import {OcppCall, OcppCallError, OcppCallResult} from "../ocppMessage";
 import {
   CallHandler,
   CallResultHandler,
   OcppMessageHandler,
 } from "../ocppMessageHandler";
-import { delay } from "../utils";
-import { VCP } from "../vcp";
-import { transactionManager } from "./transactionManager";
-import { RequestStartTransactionReq, TransactionEventReq } from "./types";
+import {delay} from "../utils";
+import {VCP} from "../vcp";
+import {transactionManager} from "./transactionManager";
+import {RequestStartTransactionReq, TransactionEventReq} from "./types";
 
 const callHandlers: { [key: string]: CallHandler } = {
   ChangeConfiguration: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
+    vcp.respond(callResult(call, {status: "Accepted"}));
   },
   GetConfiguration: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { configurationKey: [] }));
+    vcp.respond(callResult(call, {configurationKey: []}));
   },
   GetBaseReport: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
+    vcp.respond(callResult(call, {status: "Accepted"}));
     vcp.send(
       callFactory("NotifyReport", {
         requestId: call.payload.requestId,
@@ -141,12 +141,27 @@ const callHandlers: { [key: string]: CallHandler } = {
     );
   },
   Reset: async (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
+    vcp.respond(callResult(call, {status: "Accepted"}));
     await delay(3_000);
     process.exit(1);
   },
   UnlockConnector: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Unlocked" }));
+    vcp.respond(callResult(call, {status: "Unlocked"}));
+  },
+  TriggerMessage: (vcp: VCP, call: OcppCall<any>) => {
+    if (call.payload.requestedMessage === "StatusNotification") {
+      vcp.respond(callResult(call, {status: "Accepted"}));
+      vcp.send(
+        callFactory("StatusNotification", {
+          evseId: 1,
+          connectorId: 1,
+          connectorStatus: "Occupied",
+          timestamp: new Date(),
+        })
+      );
+    } else {
+      vcp.respond(callResult(call, {status: "NotImplemented"}));
+    }
   },
   RequestStartTransaction: (
     vcp: VCP,
@@ -186,6 +201,20 @@ const callHandlers: { [key: string]: CallHandler } = {
           id: call.payload.evseId ?? 1,
           connectorId: call.payload.connectorId ?? 1,
         },
+        meterValue: [
+          {
+            timestamp: new Date(),
+            sampledValue: [
+              {
+                value: 0,
+                measurand: "Energy.Active.Import.Register",
+                unitOfMeasure: {
+                  unit: "kWh",
+                },
+              },
+            ],
+          },
+        ],
       })
     );
   },
@@ -208,6 +237,20 @@ const callHandlers: { [key: string]: CallHandler } = {
           id: 1,
           connectorId: 1,
         },
+        meterValue: [
+          {
+            timestamp: new Date(),
+            sampledValue: [
+              {
+                value: 0,
+                measurand: "Energy.Active.Import.Register",
+                unitOfMeasure: {
+                  unit: "kWh",
+                },
+              },
+            ],
+          },
+        ],
       })
     );
     vcp.send(
@@ -221,7 +264,7 @@ const callHandlers: { [key: string]: CallHandler } = {
     transactionManager.stopTransaction(call.payload.transactionId);
   },
   DataTransfer: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
+    vcp.respond(callResult(call, {status: "Accepted"}));
   },
 };
 
@@ -239,7 +282,7 @@ export const messageHandlerV201: OcppMessageHandler = {
   handleCall: function (vcp: VCP, call: OcppCall<any>): void {
     const handler = callHandlers[call.action];
     if (!handler) {
-      throw new Error("Function not implemented.");
+      throw new Error(`Call handler not implemented for ${call.action}`);
     }
     handler(vcp, call);
   },

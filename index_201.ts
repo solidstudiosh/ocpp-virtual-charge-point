@@ -20,8 +20,9 @@ const vcp = new VCP({
     payload: {
       reason: "PowerUp",
       chargingStation: {
-        model: "VirtualChargePoint",
-        vendorName: "Solidstudio",
+        model: "EVA-07S-SE",
+        vendorName: "EVIQ",
+        firmwareVersion: "1.0.1"
       },
     },
   });

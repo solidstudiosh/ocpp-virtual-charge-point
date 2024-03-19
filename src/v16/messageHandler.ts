@@ -75,7 +75,7 @@ const callHandlers: { [key: string]: CallHandler } = {
       callFactory("StartTransaction", {
         connectorId: call.payload.connectorId,
         idTag: call.payload.idTag,
-        meterStart: 0,
+        meterStart: parseInt(process.env["INITIAL_METER_READINGS"] ?? '0'),
         timestamp: new Date(),
       })
     );

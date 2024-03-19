@@ -21,7 +21,7 @@ const vcp = new VCP({
     action: "BootNotification",
     payload: {
       chargePointVendor: "Solidstudio",
-      chargePointModel: "VirtualChargePoint",
+      chargePointModel: "EVA-07S-SE",
       chargePointSerialNumber: "S001",
       firmwareVersion: "1.0.0",
     },

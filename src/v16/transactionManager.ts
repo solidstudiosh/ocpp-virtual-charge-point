@@ -39,9 +39,10 @@ export class TransactionManager {
         })
       );
     }, METER_VALUES_INTERVAL_SEC * 1000);
+    console.log(parseInt(process.env["INITIAL_METER_READINGS"] ?? '0'));
     this.transactions.set(transactionId.toString(), {
       transactionId: transactionId,
-      meterValue: 0,
+      meterValue: parseInt(process.env["INITIAL_METER_READINGS"] ?? '0'),
       startedAt: new Date(),
       connectorId: connectorId,
       meterValuesTimer: meterValuesTimer,
@@ -61,7 +62,7 @@ export class TransactionManager {
     if (!transaction) {
       return 0;
     }
-    return (new Date().getTime() - transaction.startedAt.getTime()) / 100;
+    return transaction.meterValue + (new Date().getTime() - transaction.startedAt.getTime()) / 100;
   }
 }
 

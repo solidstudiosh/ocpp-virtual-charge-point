@@ -20,6 +20,7 @@ Configure env variables:
 WS_URL - websocket endpoint
 CP_ID - ID of this VCP
 PASSWORD - if used for OCPP Authentication, otherwise can be left blank
+INITIAL_METER_READINGS - Initial meter readings (passed in Wats)
 ```
 
 Run OCPP 1.6:
@@ -37,7 +38,7 @@ npx ts-node index_201.ts
 ## Example
 
 ```bash
-> WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npx ts-node index_16.ts
+> WS_URL=ws://localhost:9000 INITIAL_METER_READINGS=50000 CP_ID=vcp_11_test npx ts-node index_16.ts
 
 2023-03-27 13:09:17 info: Connecting... | {
   endpoint: 'ws://localhost:3000',

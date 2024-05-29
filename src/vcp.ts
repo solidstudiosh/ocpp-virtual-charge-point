@@ -27,8 +27,9 @@ export class VCP {
   private ws?: WebSocket;
   private adminWs?: WebSocketServer;
   private messageHandler: OcppMessageHandler;
-
   private isFinishing: boolean = false;
+  private isWaiting: boolean = false;
+  private lastAction: string = '';
 
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
@@ -62,7 +63,7 @@ export class VCP {
       this.ws.on("open", () => resolve());
       this.ws.on("message", (message: string) => this._onMessage(message));
       this.ws.on("ping", () => {
-        logger.info("Received PING");
+        //logger.info("Received PING");
       });
       this.ws.on("pong", () => {
         logger.info("Received PONG");
@@ -85,13 +86,36 @@ export class VCP {
       ocppCall.action,
       ocppCall.payload,
     ]);
-    logger.info(`Sending message ➡️  ${jsonMessage}`);
+
+    if (ocppCall.action !== "Heartbeat") {
+      logger.info(`Sending message ➡️ ${this.vcpOptions.chargePointId} ${jsonMessage}`);
+    }
     validateOcppRequest(
       this.vcpOptions.ocppVersion,
       ocppCall.action,
       JSON.parse(JSON.stringify(ocppCall.payload)),
     );
+    this.lastAction = ocppCall.action;
     this.ws.send(jsonMessage);
+  }
+
+  async sendAndWait(ocppCall: OcppCall<any>) {
+    if (this.isWaiting) {
+      // wait till isWaiting is false
+      const self = this;
+        await new Promise((resolve) => {
+            const interval = setInterval(() => {
+              //logger.info('waiting');
+              if (!self.isWaiting) {
+                  clearInterval(interval);
+                  this.sendAndWait(ocppCall);
+              }
+            }, 100);
+        });
+    } else {
+      this.isWaiting = true;
+      this.send(ocppCall);
+    }
   }
 
   respond(result: OcppCallResult<any>) {
@@ -144,7 +168,10 @@ export class VCP {
   }
 
   private _onMessage(message: string) {
-    logger.info(`Receive message ⬅️  ${message}`);
+    this.isWaiting = false;
+    if (this.lastAction !== 'Heartbeat') {
+      logger.info(`Receive message ⬅️ ${this.vcpOptions.chargePointId} ${message}`);
+    }
     const data = JSON.parse(message);
     const [type, ...rest] = data;
     if (type === 2) {

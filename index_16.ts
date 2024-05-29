@@ -20,7 +20,7 @@ const vcp = new VCP({
     messageId: uuid.v4(),
     action: "BootNotification",
     payload: {
-      chargePointVendor: "Solidstudio",
+      chargePointVendor: "ATESS",
       chargePointModel: "EVA-07S-SE",
       chargePointSerialNumber: "S001",
       firmwareVersion: "1.0.0",
@@ -32,7 +32,7 @@ const vcp = new VCP({
     payload: {
       connectorId: 1,
       errorCode: "NoError",
-      status: "Available",
+      status: "Preparing",
     },
   });
 })();

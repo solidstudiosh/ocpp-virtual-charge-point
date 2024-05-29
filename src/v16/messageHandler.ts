@@ -113,7 +113,7 @@ const callHandlers: { [key: string]: CallHandler } = {
       callFactory("StatusNotification", {
         connectorId: transaction.connectorId,
         errorCode: "NoError",
-        status: "Available",
+        status: "Finishing",
       })
     );
   },
@@ -147,7 +147,7 @@ const callResultHandlers: { [key: string]: CallResultHandler } = {
     _call: OcppCall<any>,
     _result: OcppCallResult<any>
   ) => {
-    vcp.configureHeartbeat(60_000);
+    vcp.configureHeartbeat(300_000);
   },
   MeterValues: NOOP,
   Heartbeat: NOOP,

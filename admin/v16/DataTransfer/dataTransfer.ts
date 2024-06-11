@@ -5,7 +5,7 @@ sendAdminCommand({
   action: "DataTransfer",
   messageId: uuid.v4(),
   payload: {
-    vendorId: "TEST",
+    vendorId: "ATESS",
     data: "TEST",
   },
 });

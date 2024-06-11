@@ -11,7 +11,7 @@
             "maxLength": 50
         },
         "data": {
-            "type": "string"
+            "type": ["string","object"]
         }
     },
     "additionalProperties": false,

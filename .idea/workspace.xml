@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fd0adcad-ff25-4727-b0f1-8ead1a8d03ee" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/admin/v16/DataTransfer/dataTransferCurrentRecord.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/admin/v16/DataTransfer/dataTransferElockstate.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/admin/v16/DataTransfer/dataTransfer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/admin/v16/DataTransfer/dataTransfer.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

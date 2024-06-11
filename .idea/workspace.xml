@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fd0adcad-ff25-4727-b0f1-8ead1a8d03ee" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/admin/v16/DataTransfer/dataTransferFrozenRecord.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin/v16/DataTransfer/dataTransfer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/admin/v16/DataTransfer/dataTransfer.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -89,6 +89,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="prep for load testing" />
-    <option name="LAST_COMMIT_MESSAGE" value="prep for load testing" />
+    <MESSAGE value="DataTransferRequest testing" />
+    <option name="LAST_COMMIT_MESSAGE" value="DataTransferRequest testing" />
   </component>
 </project>

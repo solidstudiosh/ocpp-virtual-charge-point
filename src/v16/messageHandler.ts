@@ -47,6 +47,11 @@ const callHandlers: { [key: string]: CallHandler } = {
             readonly: true,
             value: "99",
           },
+          {
+            key: "G_TimeZone",
+            readonly: false,
+            value: "UTC+00:00",
+          },
         ],
       })
     );

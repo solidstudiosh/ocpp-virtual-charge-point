@@ -36,6 +36,8 @@ for (let i = 1; i <= count; i++) {
         firmwareVersion: "1.0.0",
       },
     });
+    // ensure backend has registered the new charger - then send status notification
+    await sleep(500)
     await vcp.sendAndWait({
       messageId: uuid.v4(),
       action: "StatusNotification",

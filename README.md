@@ -60,6 +60,15 @@ npx ts-node index_201.ts
 2023-03-27 13:10:17 info: Receive message ⬅️  [3,"79a41b2e-2c4a-4a65-9d7e-417967a8f95f",{"currentTime":"2023-03-27T11:10:17.955Z"}]
 ```
 
+## Custom VCP scripts
+
+If you would like to customize the VCP startup script, any file whose name starts with `local_` will be ignored by git,
+so you can write a custom VCP script like `local_16.ts` and then run it like
+
+```bash
+WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npx ts-node local_16.ts
+```
+
 ## Executing Admin Commands
 
 Some messages are automatically sent by the VCP, for example, `BootNotification` or `StartTransaction` and `StopTransaction`.

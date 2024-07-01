@@ -19,6 +19,7 @@ interface VCPOptions {
   ocppVersion: OcppVersion;
   endpoint: string;
   chargePointId: string;
+  basicAuthUsername?: string;
   basicAuthPassword?: string;
   adminWsPort?: number;
 }
@@ -54,7 +55,7 @@ export class VCP {
       this.ws = new WebSocket(websocketUrl, [protocol], {
         rejectUnauthorized: false,
         auth: this.vcpOptions.basicAuthPassword
-          ? `${this.vcpOptions.chargePointId}:${this.vcpOptions.basicAuthPassword}`
+          ? `${this.vcpOptions.basicAuthUsername || this.vcpOptions.chargePointId}:${this.vcpOptions.basicAuthPassword}`
           : undefined,
         followRedirects: true,
       });

@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fd0adcad-ff25-4727-b0f1-8ead1a8d03ee" name="Changes" comment="">
+    <list default="true" id="fd0adcad-ff25-4727-b0f1-8ead1a8d03ee" name="Changes" comment="send stored transactionId in stopTransaction">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index_16.ts" beforeDir="false" afterPath="$PROJECT_DIR$/index_16.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index_16_load.ts" beforeDir="false" afterPath="$PROJECT_DIR$/index_16_load.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/v16/messageHandler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/v16/messageHandler.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/v16/transactionManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/v16/transactionManager.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +22,7 @@
     <branch-grouping />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="EMD-1785-updates-for-meter-values" />
+        <entry key="$PROJECT_DIR$" value="EMD-2104-Randomly-start-" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -55,20 +56,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/alan/data/code/ocpp-virtual-charge-point/admin/v16/DataTransfer&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/home/alan/data/code/ocpp-virtual-charge-point/node_modules/typescript/lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Node.js.index_16.ts.executor": "Debug",
+    "Node.js.index_16_load.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/home/alan/data/code/ocpp-virtual-charge-point/admin/v16/DataTransfer",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "/home/alan/data/code/ocpp-virtual-charge-point/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/admin/v16/DataTransfer" />
@@ -76,11 +79,36 @@
       <recent name="$PROJECT_DIR$/admin/v16/StatusNotification" />
     </key>
   </component>
+  <component name="RunManager" selected="Node.js.index_16_load">
+    <configuration name="index_16_load" type="NodeJSConfigurationType" path-to-js-file="index_16_load.ts" typescript-loader="bundled" working-dir="$PROJECT_DIR$">
+      <envs>
+        <env name="CP_PREFIX" value="ALAN_VCP_" />
+        <env name="START_CHANCE" value="500" />
+        <env name="TEST_CHARGE" value="true" />
+        <env name="WS_URL" value="ws://ocpp.test.electricmiles.io" />
+        <env name="COUNT" value="5" />
+      </envs>
+      <method v="2" />
+    </configuration>
+    <configuration name="index_16.ts" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="index_16.ts" typescript-loader="bundled" working-dir="$PROJECT_DIR$">
+      <envs>
+        <env name="WS_URL" value="ws://ocpp.test.electricmiles.io" />
+        <env name="CP_ID" value="ALAN_VCP01" />
+        <env name="START_CHANCE" value="500" />
+        <env name="TEST_CHARGE" value="true" />
+      </envs>
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Node.js.index_16.ts" />
+      <item itemvalue="Node.js.index_16_load" />
+    </list>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PS-241.18034.69" />
-        <option value="bundled-php-predefined-ba97393d7c68-48a1a656d44e-com.jetbrains.php.sharedIndexes-PS-241.18034.69" />
+        <option value="bundled-js-predefined-d6986cc7102b-410509235cf1-JavaScript-PS-242.20224.361" />
+        <option value="bundled-php-predefined-a98d8de5180a-d6acee4cb394-com.jetbrains.php.sharedIndexes-PS-242.20224.361" />
       </set>
     </attachedChunks>
   </component>
@@ -91,6 +119,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="prep for load testing" />
     <MESSAGE value="DataTransferRequest testing" />
-    <option name="LAST_COMMIT_MESSAGE" value="DataTransferRequest testing" />
+    <MESSAGE value="ensure backend has registered the new charger - then send status notification" />
+    <option name="LAST_COMMIT_MESSAGE" value="ensure backend has registered the new charger - then send status notification" />
   </component>
 </project>

@@ -10,14 +10,14 @@ import { VCP } from "./src/vcp";
 
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))
 
-const idPrefix: string = process.env["CP_PREFIX"] ?? "VCP_";
-const count: number = Number(process.env["COUNT"] ?? 5000);
+const idPrefix: string = process.env["CP_PREFIX"] ?? "MY_VCP_";
+const count: number = Number(process.env["COUNT"] ?? 5);
 // x ms between each VCP starting up
 const vcpTimeGap: number = 500;
 
 for (let i = 1; i <= count; i++) {
   const vcp = new VCP({
-    endpoint: process.env["WS_URL"] ?? "ws://localhost:3000",
+    endpoint: process.env["WS_URL"] ?? "ws://ocpp.stage2.electricmiles.io",
     chargePointId: idPrefix + i,
     ocppVersion: OcppVersion.OCPP_1_6,
   });

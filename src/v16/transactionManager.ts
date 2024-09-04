@@ -33,6 +33,11 @@ export class TransactionManager {
                   measurand: "Energy.Active.Import.Register",
                   unit: "kWh",
                 },
+                {
+                  value: 28.67,
+                  measurand: "Current.Import",
+                  unit: "A",
+                },
               ],
             },
           ],

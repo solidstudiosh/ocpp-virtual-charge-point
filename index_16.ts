@@ -5,8 +5,8 @@ import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
 
 const vcp = new VCP({
-  endpoint: process.env["WS_URL"] ?? "ws://localhost:3000",
-  chargePointId: process.env["CP_ID"] ?? "123456",
+  endpoint: process.env["WS_URL"] ?? "ws://ocpp.test.electricmiles.io",
+  chargePointId: process.env["CP_ID"] ?? "MY_CHARGER_SERIAL",
   ocppVersion: OcppVersion.OCPP_1_6,
   basicAuthPassword: process.env["PASSWORD"] ?? undefined,
   adminWsPort: parseInt(

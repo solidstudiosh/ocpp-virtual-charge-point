@@ -3,10 +3,20 @@ require("dotenv").config();
 
 import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
+import { getArgs } from './src/getArgs';
+
+const args:Record<string, any> = getArgs();
+
+const endpoint =
+    args["ENV"]
+    ? args["ENV"] === "local"
+        ? "ws://localhost:9000"
+        : `ws://ocpp.${args["ENV"]}.electricmiles.io`
+    : args["WS_URL"] ?? process.env["WS_URL"] ?? "ws://ocpp.test.electricmiles.io";
 
 const vcp = new VCP({
-  endpoint: process.env["WS_URL"] ?? "ws://ocpp.test.electricmiles.io",
-  chargePointId: process.env["CP_ID"] ?? "MY_CHARGER_SERIAL",
+  endpoint: endpoint,
+  chargePointId: args["CP_ID"] ?? process.env["CP_ID"] ?? "MY_CHARGER_SERIAL",
   ocppVersion: OcppVersion.OCPP_1_6,
   basicAuthPassword: process.env["PASSWORD"] ?? undefined,
   adminWsPort: parseInt(
@@ -36,3 +46,5 @@ const vcp = new VCP({
     },
   });
 })();
+
+

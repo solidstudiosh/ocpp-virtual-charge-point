@@ -10,7 +10,7 @@ const args:Record<string, any> = getArgs();
 const endpoint =
     args["ENV"]
     ? args["ENV"] === "local"
-        ? "ws://localhost:9000"
+        ? "ws://127.0.0.1:9000"
         : `ws://ocpp.${args["ENV"]}.electricmiles.io`
     : args["WS_URL"] ?? process.env["WS_URL"] ?? "ws://ocpp.test.electricmiles.io";
 

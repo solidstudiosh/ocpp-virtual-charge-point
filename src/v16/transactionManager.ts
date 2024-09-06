@@ -34,7 +34,7 @@ export class TransactionManager {
                   unit: "kWh",
                 },
                 {
-                  value: 28.67,
+                  value: "28.67",
                   measurand: "Current.Import",
                   unit: "A",
                 },
@@ -44,7 +44,7 @@ export class TransactionManager {
         })
       );
     }, METER_VALUES_INTERVAL_SEC * 1000);
-    console.log(parseInt(process.env["INITIAL_METER_READINGS"] ?? '0'));
+    //console.log(parseInt(process.env["INITIAL_METER_READINGS"] ?? '0'));
     this.transactions.set(transactionId.toString(), {
       transactionId: transactionId,
       meterValue: parseInt(process.env["INITIAL_METER_READINGS"] ?? '0'),

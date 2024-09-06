@@ -26,7 +26,7 @@ const vcp = new VCP({
 
 (async () => {
   await vcp.connect();
-  vcp.send({
+  await vcp.sendAndWait({
     messageId: uuid.v4(),
     action: "BootNotification",
     payload: {
@@ -36,7 +36,7 @@ const vcp = new VCP({
       firmwareVersion: "1.0.0",
     },
   });
-  vcp.send({
+  await vcp.sendAndWait({
     messageId: uuid.v4(),
     action: "StatusNotification",
     payload: {

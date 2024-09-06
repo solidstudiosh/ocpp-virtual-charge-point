@@ -88,7 +88,7 @@ export class VCP {
     ]);
 
     if (ocppCall.action !== "Heartbeat") {
-      logger.info(`Sending message ➡️ ${this.vcpOptions.chargePointId} ${jsonMessage}`);
+      logger.info(`➡️  Sending ${this.vcpOptions.chargePointId} ${ocppCall.action} ${jsonMessage}`);
     }
     validateOcppRequest(
       this.vcpOptions.ocppVersion,
@@ -123,7 +123,7 @@ export class VCP {
       throw new Error("Websocket not initialized. Call connect() first");
     }
     const jsonMessage = JSON.stringify([3, result.messageId, result.payload]);
-    logger.info(`Responding with ➡️  ${jsonMessage}`);
+    logger.info(`➡️  Responding ${jsonMessage}`);
     validateOcppResponse(
       this.vcpOptions.ocppVersion,
       result.action,
@@ -170,7 +170,7 @@ export class VCP {
   private _onMessage(message: string) {
     this.isWaiting = false;
     if (this.lastAction !== 'Heartbeat') {
-      logger.info(`Receive message ⬅️ ${this.vcpOptions.chargePointId} ${message}`);
+      logger.info(`⬅️  Receive ${this.vcpOptions.chargePointId} ${message}`);
     }
     const data = JSON.parse(message);
     const [type, ...rest] = data;

@@ -4,6 +4,7 @@ require("dotenv").config();
 import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
 import { getArgs } from './src/getArgs';
+import { sleep } from "./src/utils"
 
 const args:Record<string, any> = getArgs();
 
@@ -14,9 +15,6 @@ const endpoint =
         : `ws://ocpp.${args["ENV"]}.electricmiles.io`
     : args["WS_URL"] ?? process.env["WS_URL"] ?? "ws://ocpp.test.electricmiles.io";
 import { simulateCharge } from "./src/simulateCharge";
-
-const sleep = (delay: number) =>
-  new Promise((resolve) => setTimeout(resolve, delay));
 
 const startChance: number = Number(args["START_CHANCE"] ?? process.env["START_CHANCE"] ?? 500);
 const testCharge: boolean = args["TEST_CHARGE"] ?? process.env["TEST_CHARGE"] === "true" ?? false;

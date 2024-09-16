@@ -3,7 +3,8 @@ require("dotenv").config();
 
 import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
-import { simulateCharge } from "./src/simulateCharge";
+import { simulateCharge } from "./src/vcp_commands/simulateCharge";
+import { sleep } from "./src/utils"
 
 import { getArgs } from './src/getArgs';
 const args:Record<string, any> = getArgs();
@@ -15,7 +16,6 @@ const args:Record<string, any> = getArgs();
 // load test charge sessions with random start times command:
 // WS_URL=ws://ocpp.test.electricmiles.io CP_ID=VCP_ START_CHANCE=100 TEST_CHARGE=true COUNT=5000 RANDOM_START=true npx ts-node index_16_load.ts
 
-const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
 const idPrefix: string = args["CP_PREFIX"] ?? process.env["CP_PREFIX"] ?? "VCP_";
 const count: number = Number(args["COUNT"] ?? process.env["COUNT"] ?? 5000);
 // x ms between each VCP starting up
@@ -60,7 +60,7 @@ async function run() {
         },
       });
       // Ensure backend has registered the new charger - then send status notification
-      await sleep(100);
+      await sleep(500);
       await vcp.sendAndWait({
         messageId: uuid.v4(),
         action: "StatusNotification",

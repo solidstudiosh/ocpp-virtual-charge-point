@@ -28,7 +28,7 @@ const vcp = new VCP({
   ocppVersion: OcppVersion.OCPP_1_6,
   basicAuthPassword: process.env["PASSWORD"] ?? undefined,
   adminWsPort: parseInt(
-    process.env["ADMIN_PORT"] ?? "9999"
+      args["ADMIN_PORT"] ?? process.env["ADMIN_PORT"] ?? "9999"
   ),
 });
 

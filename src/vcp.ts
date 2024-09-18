@@ -21,6 +21,7 @@ interface VCPOptions {
   chargePointId: string;
   basicAuthPassword?: string;
   adminWsPort?: number;
+  isTwinGun?: boolean; // if VCP is twingun, based on cli param
 }
 
 export class VCP {
@@ -30,9 +31,16 @@ export class VCP {
   private isFinishing: boolean = false;
   private isWaiting: boolean = false;
   private lastAction: string = '';
+  public isTwinGun: boolean = false;
+  public connectorIDs: number[];
 
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
+    
+    this.vcpOptions.isTwinGun = this.vcpOptions.isTwinGun ?? false;
+    this.isTwinGun = this.vcpOptions.isTwinGun ?? false;
+    this.connectorIDs = this.initializeConnectorIDs();
+
     if (vcpOptions.adminWsPort) {
       this.adminWs = new WebSocketServer({
         port: vcpOptions.adminWsPort,
@@ -165,6 +173,14 @@ export class VCP {
     delete this.ws;
     delete this.adminWs;
     process.exit(1);
+  }
+
+  // sets array of connectorIDs
+  private initializeConnectorIDs(): number[] {
+    if (this.isTwinGun) {
+      return [1, 2];
+    }
+    return [1];
   }
 
   private _onMessage(message: string) {

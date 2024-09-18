@@ -4,6 +4,8 @@ import {transactionManager} from "../v16/transactionManager";
 import { sleep } from "../utils"
 
 export async function simulateCharge(vcp: VCP, duration: number,randomDelay: boolean = false) {
+  let connector = vcp.connectorIDs[0]
+
   await sleep(500); 
   for (let i = 1; i <= 2; i++) {
     console.log(`charge session count: ${i}`);
@@ -35,7 +37,7 @@ export async function simulateCharge(vcp: VCP, duration: number,randomDelay: boo
       action: "StatusNotification",
       messageId: uuid.v4(),
       payload: {
-        connectorId: 1,
+        connectorId: connector,
         errorCode: "NoError",
         status: "Charging",
       },
@@ -63,7 +65,7 @@ export async function simulateCharge(vcp: VCP, duration: number,randomDelay: boo
       action: "StatusNotification",
       messageId: uuid.v4(),
       payload: {
-        connectorId: 1,
+        connectorId: connector,
         errorCode: "NoError",
         status: "Finishing",
       },

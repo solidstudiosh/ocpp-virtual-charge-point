@@ -44,6 +44,7 @@ async function run() {
       endpoint: endpoint,
       chargePointId: idPrefix + i,
       ocppVersion: OcppVersion.OCPP_1_6,
+      isTwinGun: isTwinGun,
     });
   
     vcpList.push(vcp);
@@ -52,7 +53,7 @@ async function run() {
       // Start each VCP a second apart
       await sleep(i * vcpTimeGap);
       await vcp.connect();
-      bootVCP(vcp, isTwinGun, sleepTime);
+      bootVCP(vcp, sleepTime);
 
     })();
     tasks.push(task);

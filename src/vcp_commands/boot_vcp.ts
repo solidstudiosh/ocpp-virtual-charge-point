@@ -3,9 +3,11 @@ import { VCP } from "../vcp";
 // import {transactionManager} from "../v16/transactionManager";
 import { sleep } from "../utils"
 
-export async function bootVCP(vcp:VCP, isTwinGun: boolean=false, sleepTime: number = 100) {
-    if (isTwinGun) {
+export async function bootVCP(vcp:VCP, sleepTime: number = 100) {
+    if (vcp.isTwinGun) {
         console.log("loading twingun VCP...")
+        const connector1 = vcp.connectorIDs[0];
+        const connector2 = vcp.connectorIDs[1];
         await sleep(500);
         await vcp.sendAndWait({
             messageId: uuid.v4(),
@@ -22,7 +24,7 @@ export async function bootVCP(vcp:VCP, isTwinGun: boolean=false, sleepTime: numb
             messageId: uuid.v4(),
             action: "StatusNotification",
             payload: {
-              connectorId: 1,
+              connectorId: connector1,
               errorCode: "NoError",
               status: "Preparing",
             },
@@ -32,7 +34,7 @@ export async function bootVCP(vcp:VCP, isTwinGun: boolean=false, sleepTime: numb
             messageId: uuid.v4(),
             action: "StatusNotification",
             payload: {
-              connectorId: 2,
+              connectorId: connector2,
               errorCode: "NoError",
               status: "Preparing",
             },
@@ -56,7 +58,7 @@ export async function bootVCP(vcp:VCP, isTwinGun: boolean=false, sleepTime: numb
             messageId: uuid.v4(),
             action: "StatusNotification",
             payload: {
-              connectorId: 1,
+              connectorId: vcp.connectorIDs[0],
               errorCode: "NoError",
               status: "Preparing",
             },

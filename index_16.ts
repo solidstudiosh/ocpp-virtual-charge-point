@@ -36,7 +36,7 @@ const vcp = new VCP({
 (async () => {
   await vcp.connect();
   // boot twingun
-  bootVCP(vcp, isTwinGun, sleepTime);
+  bootVCP(vcp, sleepTime);
 
   // if TEST_CHARGE=true set in cli, start test charge
   console.log(`Test charge set: ${testCharge}`);

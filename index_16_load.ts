@@ -4,6 +4,7 @@ require("dotenv").config();
 import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
 import { simulateCharge } from "./src/vcp_commands/simulateCharge";
+import { bootVCP } from "./src/vcp_commands/boot_vcp"
 import { sleep } from "./src/utils"
 
 import { getArgs } from './src/getArgs';
@@ -17,13 +18,15 @@ const args:Record<string, any> = getArgs();
 // WS_URL=ws://ocpp.test.electricmiles.io CP_ID=VCP_ START_CHANCE=100 TEST_CHARGE=true COUNT=5000 RANDOM_START=true npx ts-node index_16_load.ts
 
 const idPrefix: string = args["CP_PREFIX"] ?? process.env["CP_PREFIX"] ?? "VCP_";
-const count: number = Number(args["COUNT"] ?? process.env["COUNT"] ?? 5000);
+const count: number = Number(args["COUNT"] ?? process.env["COUNT"] ?? 1);
 // x ms between each VCP starting up
 const vcpTimeGap: number = 500;
+const sleepTime: number = Number(args["SLEEP_TIME"] ?? process.env["SLEEP_TIME"] ?? 500);
 const startChance: number = Number(args["START_CHANCE"] ?? process.env["START_CHANCE"] ?? 100);
 const testCharge: boolean = args["TEST_CHARGE"] ?? process.env["TEST_CHARGE"] === "true" ?? false;
 const duration: number = Number(args["DURATION"] ?? process.env["DURATION"] ?? 60000);
 const randomDelay: boolean = args["RANDOM_DELAY"] ?? process.env["RANDOM_DELAY"] == "true" ?? false;
+const isTwinGun: boolean = args["TWIN_GUN"] ?? process.env["TWIN_GUN"] === "true" ?? false;
 
 const endpoint =
     args["ENV"]
@@ -49,27 +52,8 @@ async function run() {
       // Start each VCP a second apart
       await sleep(i * vcpTimeGap);
       await vcp.connect();
-      await vcp.sendAndWait({
-        messageId: uuid.v4(),
-        action: "BootNotification",
-        payload: {
-          chargePointVendor: "ATESS",
-          chargePointModel: "EVA-07S-SE",
-          chargePointSerialNumber: "S001",
-          firmwareVersion: "1.0.0",
-        },
-      });
-      // Ensure backend has registered the new charger - then send status notification
-      await sleep(500);
-      await vcp.sendAndWait({
-        messageId: uuid.v4(),
-        action: "StatusNotification",
-        payload: {
-          connectorId: 1,
-          errorCode: "NoError",
-          status: "Preparing",
-        },
-      });
+      bootVCP(vcp, isTwinGun, sleepTime);
+
     })();
     tasks.push(task);
   }

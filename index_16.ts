@@ -5,6 +5,7 @@ import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
 import { getArgs } from './src/getArgs';
 import { sleep } from "./src/utils"
+import { bootVCP } from "./src/vcp_commands/boot_vcp"
 
 const args:Record<string, any> = getArgs();
 
@@ -16,9 +17,11 @@ const endpoint =
     : args["WS_URL"] ?? process.env["WS_URL"] ?? "ws://ocpp.test.electricmiles.io";
 import { simulateCharge } from "./src/simulateCharge";
 
+const sleepTime: number = Number(args["SLEEP_TIME"] ?? process.env["SLEEP_TIME"] ?? 500);
 const startChance: number = Number(args["START_CHANCE"] ?? process.env["START_CHANCE"] ?? 500);
 const testCharge: boolean = args["TEST_CHARGE"] ?? process.env["TEST_CHARGE"] === "true" ?? false;
 const duration: number = Number(args["DURATION"] ?? process.env["DURATION"] ?? 60000);
+const isTwinGun: boolean = args["TWIN_GUN"] ?? process.env["TWIN_GUN"] === "true" ?? false;
 
 const vcp = new VCP({
   endpoint: endpoint,
@@ -32,26 +35,9 @@ const vcp = new VCP({
 
 (async () => {
   await vcp.connect();
-  await vcp.sendAndWait({
-    messageId: uuid.v4(),
-    action: "BootNotification",
-    payload: {
-      chargePointVendor: "ATESS",
-      chargePointModel: "EVA-07S-SE",
-      chargePointSerialNumber: "EM_VCP_TEST",
-      firmwareVersion: "V501.030.04",
-    },
-  });
-  await sleep(500);
-  await vcp.sendAndWait({
-    messageId: uuid.v4(),
-    action: "StatusNotification",
-    payload: {
-      connectorId: 1,
-      errorCode: "NoError",
-      status: "Preparing",
-    },
-  });
+  // boot twingun
+  bootVCP(vcp, isTwinGun, sleepTime);
+
   // if TEST_CHARGE=true set in cli, start test charge
   console.log(`Test charge set: ${testCharge}`);
   if (testCharge) {

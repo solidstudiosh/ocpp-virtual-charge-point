@@ -42,6 +42,9 @@ export class VCP {
           this.send(JSON.parse(data));
         });
       });
+      this.adminWs.on('error', (error) => {
+        logger.error("Admin WebSocketServer Error: "+error);
+      })
     }
   }
 

@@ -178,7 +178,7 @@ export class VCP {
   // sets array of connectorIDs
   private initializeConnectorIDs(): number[] {
     if (this.isTwinGun) {
-      return [1, 2];
+      return [0, 1, 2];
     }
     return [1];
   }

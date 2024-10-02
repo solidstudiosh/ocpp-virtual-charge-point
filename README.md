@@ -25,19 +25,19 @@ PASSWORD - if used for OCPP Authentication, otherwise can be left blank
 Run OCPP 1.6:
 
 ```bash
-npx ts-node index_16.ts
+npx tsx index_16.ts
 ```
 
 Run OCPP 2.0.1:
 
 ```bash
-npx ts-node index_201.ts
+npx tsx index_201.ts
 ```
 
 ## Example
 
 ```bash
-> WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npx ts-node index_16.ts
+> WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npx tsx index_16.ts
 
 2023-03-27 13:09:17 info: Connecting... | {
   endpoint: 'ws://localhost:3000',
@@ -68,7 +68,7 @@ VCP exposes a separate Websocket endpoint that will "proxy" all messages to Cent
 For example usage, see `admin/` folder.
 
 ```bash
-npx ts-node admin/v16/Authorize/authorize.ts
+npx tsx admin/v16/Authorize/authorize.ts
 ```
 
 ---

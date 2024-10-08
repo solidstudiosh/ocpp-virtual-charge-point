@@ -5,7 +5,7 @@ import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
 import { getArgs } from './src/getArgs';
 import { sleep } from "./src/utils"
-import { bootVCP } from "./src/vcp_commands/boot_vcp"
+import { bootVCP } from "./src/vcp_commands/bootVcp"
 
 const args:Record<string, any> = getArgs();
 

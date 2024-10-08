@@ -4,7 +4,7 @@ require("dotenv").config();
 import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
 import { simulateCharge } from "./src/vcp_commands/simulateCharge";
-import { bootVCP } from "./src/vcp_commands/boot_vcp"
+import { bootVCP } from "./src/vcp_commands/bootVcp"
 import { sleep } from "./src/utils"
 
 import { getArgs } from './src/getArgs';

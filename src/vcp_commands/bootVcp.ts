@@ -64,16 +64,16 @@ export async function bootVCP(vcp:VCP, sleepTime: number = 100) {
               firmwareVersion: "1.0.0",
             },
           });
-          // await sleep(100);
-          // await vcp.sendAndWait({
-          //   messageId: uuid.v4(),
-          //   action: "StatusNotification",
-          //   payload: {
-          //     connectorId: vcp.connectorIDs[0],
-          //     errorCode: "NoError",
-          //     status: "Preparing",
-          //   },
-          // });
+          await sleep(100);
+          await vcp.sendAndWait({
+            messageId: uuid.v4(),
+            action: "StatusNotification",
+            payload: {
+              connectorId: vcp.connectorIDs[0],
+              errorCode: "NoError",
+              status: "Preparing",
+            },
+          });
           console.log("single connector VCP successfully loaded...")
     }
 }

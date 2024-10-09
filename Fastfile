@@ -13,13 +13,13 @@ CP_PASSWORD =  ""
 
 goal start:
     - CP_ID "CS*SIMULATOR*1"
-    sh: docker run -d --rm -v $(pwd):/app  \
+    sh: docker run --rm -t -v $(pwd):/app  \
         --name $name \
         -e WS_URL=$CLOUD_WS_URL \
         -e CP_ID=$CP_ID \
         -e PASSWORD=$CP_PASSWORD \
         ${name}:latest \
-        npx tsx index_16.ts
+        npx tsx index_16.ts &
 
 
 goal stop:
@@ -54,10 +54,19 @@ goal notify:
     goal second:
         run("StatusNotification/second")
 
+goal transaction:
+    goal start:
+        run("Transaction/startTransaction")
+    goal start_reserved:
+        run("Transaction/startTransaction-reserved")
+    goal stop:
+        run("Transaction/stopTransaction")
+
+
 goal docker:
     goal build:
         sh: docker buildx build -f ./devops/Dockerfile \
             -t ${name}:latest .
 
 function run(cmd):
-    sh: docker exec ${name} npx tsx admin/v16/${cmd}
+    sh: docker exec -t ${name} npx tsx admin/v16/${cmd}

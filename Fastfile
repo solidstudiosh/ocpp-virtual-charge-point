@@ -1,4 +1,4 @@
-# CS Simulator
+# Charge Station Simulator
 
 # import global obornes.commons.docker
 
@@ -30,11 +30,11 @@ goal shell:
     - CP_ID "CS*SIMULATOR*1"
     sh: docker run -it --rm -v $(pwd):/app  \
         --name $name \
+        --entrypoint /bin/ash \
         -e WS_URL=$CLOUD_WS_URL \
         -e CP_ID=$CP_ID \
         -e PASSWORD=$CP_PASSWORD \
-        ${name}:latest \
-        /bin/bash
+        ${name}:latest
 
 goal notify:
     goal available:
@@ -60,5 +60,4 @@ goal docker:
             -t ${name}:latest .
 
 function run(cmd):
-    sh.bind("{{name}}:latest/bin/ash")
-    sh: npx tsx admin/v16/${cmd}
+    sh: docker exec ${name} npx tsx admin/v16/${cmd}

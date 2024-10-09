@@ -60,6 +60,16 @@ goal transaction:
     goal meter_values_pai:
         run("Transaction/meterValues_PowerActiveImport")
 
+goal authorize:
+    goal ok:
+        run("Authorize/authorize")
+    goal ko:
+        run("Authorize/authorize-non-existing")
+
+goal data:
+    goal transfer:
+        run("DataTransfer/dataTransfer")
+
 goal docker:
     goal build:
         sh: docker buildx build -f ./devops/Dockerfile \

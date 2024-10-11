@@ -17,10 +17,18 @@ npm install
 Configure env variables:
 
 ```
-WS_URL - websocket endpoint
-CP_ID - ID of this VCP
-PASSWORD - if used for OCPP Authentication, otherwise can be left blank
-INITIAL_METER_READINGS - Initial meter readings (passed in Wats)
+WS_URL: websocket endpoint
+CP_ID:  ID of this VCP
+PASSWORD: if used for OCPP Authentication, otherwise can be left blank
+INITIAL_METER_READINGS: Initial meter readings (passed in Wats)
+COUNT:   number of VCPs to load
+CP_PREFIX:  serial number prefix when loading multiple VCPs
+SLEP_TIME: time delay between OCPP commands
+TEST_CHARGE:  flags if test charge will start when program runs
+START_CHANCE: % chance of test charge starting
+DURATION: time of charge duration
+RANDOM_DELAY: random delay time
+TWIN_GUN: flags if VCP will have dual gun connectors
 ```
 
 Run OCPP 1.6:
@@ -33,6 +41,22 @@ Run OCPP 2.0.1:
 
 ```bash
 npx ts-node index_201.ts
+```
+
+Run multiple VCPs:
+
+By default, use ```index_16_load.ts```.  Count will be set to 1 as default. Adjust this figure as needed to load multiple VCPs
+
+```bash
+WS_URL=ws://127.0.0.1:9000 COUNT=100 SLEEP_TIME=1000 CP_PREFIX=TWINGUN_VCP START_CHANCE=100 TEST_CHARGE=false DURATION=2000 RANDOM_DELAY=false TWIN_GUN=false npx ts-node index_16_load.ts
+```
+
+Run Twingun VCP:
+
+please note - if running on local machine, SLEEP_TIME needs to be a longer (1000) otherwise StatusNotifications for both connectors may not come through
+
+```bash
+WS_URL=ws://127.0.0.1:9000 COUNT=1 SLEEP_TIME=1000 CP_PREFIX=TWINGUN_VCP START_CHANCE=100 TEST_CHARGE=false DURATION=2000 RANDOM_DELAY=false TWIN_GUN=true npx ts-node index_16_load.ts
 ```
 
 ## Example

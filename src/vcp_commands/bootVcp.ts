@@ -1,6 +1,5 @@
 import * as uuid from "uuid";
 import { VCP } from "../vcp";
-// import {transactionManager} from "../v16/transactionManager";
 import { sleep } from "../utils"
 
 export async function bootVCP(vcp:VCP, sleepTime: number = 100) {

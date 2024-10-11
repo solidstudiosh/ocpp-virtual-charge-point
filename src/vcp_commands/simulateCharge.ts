@@ -78,7 +78,6 @@ export async function simulateCharge(vcp: VCP, duration: number,randomDelay: boo
 }
 
 export async function singleTestCharge(vcp: VCP, duration: number,randomDelay: boolean = false, connector: number = 1) {
-  //   const validConnectors = vcp.connectorIDs.filter(connector => connector !== 0);  
   
       console.log(`Starting test charge for connector: ${connector}`);
       await sleep(500); 

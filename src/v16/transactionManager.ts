@@ -57,14 +57,14 @@ export class TransactionManager {
     // set vcp mapping for transactions
     this.vcpTransactionMap.set(vcp, transactionId);
 
-    console.log(`transactionID: ${transactionId}`)
+    console.log(`connectorID: ${connectorId}, transactionID: ${transactionId}`)
     // for (const [key, value] of this.transactions.entries()) {
     //   console.log(`Key: ${key}`);
     //   console.log('Value:');
     //   console.log(value);
     // }
     TransactionManager.transactionCount++;
-    console.log(`transaction counts: ${TransactionManager.transactionCount}`)
+    console.log(`connectorID: ${connectorId}, transaction counts: ${TransactionManager.transactionCount}`)
 
   return transactionId;
   }

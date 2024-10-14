@@ -1,6 +1,9 @@
 import * as uuid from "uuid";
 require("dotenv").config();
 
+const sleep = (delay: number) =>
+    new Promise((resolve) => setTimeout(resolve, delay));
+
 import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
 
@@ -14,25 +17,26 @@ const vcp = new VCP({
 
 (async () => {
   await vcp.connect();
-  vcp.send({
+  await vcp.sendAndWait({
     messageId: uuid.v4(),
     action: "BootNotification",
     payload: {
       reason: "PowerUp",
       chargingStation: {
-        model: "EVA-07S-SE",
-        vendorName: "EVIQ",
+        model: "default model",
+        vendorName: "EcoG",
         firmwareVersion: "1.0.1"
       },
     },
   });
-  vcp.send({
+  await sleep(500);
+  await vcp.sendAndWait({
     messageId: uuid.v4(),
     action: "StatusNotification",
     payload: {
       connectorId: 1,
       evseId: 1,
-      connectorStatus: "Available",
+      connectorStatus: "Occupied",
       timestamp: new Date(),
     },
   });

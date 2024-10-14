@@ -11,10 +11,14 @@ const args:Record<string, any> = getArgs();
 
 const endpoint =
     args["ENV"]
-    ? args["ENV"] === "local"
-        ? "ws://127.0.0.1:9000"
-        : `ws://ocpp.${args["ENV"]}.electricmiles.io`
-    : args["WS_URL"] ?? process.env["WS_URL"] ?? "ws://ocpp.test.electricmiles.io";
+        ? args["ENV"] === "local"
+            ? "ws://127.0.0.1:9000"
+            :
+            args["ENV"] === "prod"
+                ? "ws://ocpp.electricmiles.io"
+                :
+                `ws://ocpp.${args["ENV"]}.electricmiles.io`
+        : args["WS_URL"] ?? process.env["WS_URL"] ?? "ws://ocpp.test.electricmiles.io";
 import { simulateCharge } from "./src/simulateCharge";
 
 const sleepTime: number = Number(args["SLEEP_TIME"] ?? process.env["SLEEP_TIME"] ?? 500);

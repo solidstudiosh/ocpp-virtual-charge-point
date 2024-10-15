@@ -1,0 +1,20 @@
+{
+    "title": "SecurityEventNotification",
+    "type": "object",
+    "properties": {
+        "timestamp": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "type": {
+            "type": "string"
+        },
+        "techInfo": {
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "type"
+    ]
+}

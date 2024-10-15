@@ -1,0 +1,6 @@
+{
+    "title": "SecurityEventNotification",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+}

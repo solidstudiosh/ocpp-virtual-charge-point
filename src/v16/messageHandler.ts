@@ -175,6 +175,12 @@ const callResultHandlers: { [key: string]: CallResultHandler } = {
   ) => {
     transactionManager.stopTransaction(call.payload.transactionId);
   },
+  SecurityEventNotification: (
+      _vcp: VCP,
+      call: OcppCall<any>,
+      _result: OcppCallResult<any>
+  ) => {
+  },
   Authorize: NOOP,
   DataTransfer: NOOP,
 };

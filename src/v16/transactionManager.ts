@@ -40,6 +40,14 @@ export class TransactionManager {
                   measurand: "Current.Import",
                   unit: "A",
                 },
+                {
+                  measurand: "Voltage",
+                  unit: "V",
+                  phase: "L1",
+                  value: "247",
+                  context: "Sample.Periodic",
+                  location: "Outlet"
+                }
               ],
             },
           ],

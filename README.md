@@ -38,6 +38,12 @@ Run OCPP 2.0.1:
 npx tsx index_201.ts
 ```
 
+When testing different configurations, you can create multiple `.env` files and pass the env file as an argument, for example:
+
+```bash
+npm start -- --env-file=.env index_16.ts
+```
+
 ## Example
 
 ```bash

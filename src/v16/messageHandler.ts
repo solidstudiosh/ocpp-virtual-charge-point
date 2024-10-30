@@ -107,9 +107,7 @@ const callHandlers: { [key: string]: CallHandler } = {
     vcp.send(
       callFactory("StopTransaction", {
         transactionId: transactionId,
-        meterStop: Math.floor(
-          transactionManager.getMeterValue(transactionId)
-        ),
+        meterStop: Math.floor(transactionManager.getMeterValue(transactionId)),
         timestamp: new Date(),
       })
     );
@@ -149,9 +147,9 @@ const callResultHandlers: { [key: string]: CallResultHandler } = {
   BootNotification: (
     vcp: VCP,
     _call: OcppCall<any>,
-    _result: OcppCallResult<any>
+    result: OcppCallResult<any>
   ) => {
-    vcp.configureHeartbeat(60_000);
+    vcp.configureHeartbeat(result.payload.interval * 1000);
   },
   MeterValues: NOOP,
   Heartbeat: NOOP,

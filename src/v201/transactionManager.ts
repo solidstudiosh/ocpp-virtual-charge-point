@@ -9,6 +9,7 @@ interface TransactionState {
   startedAt: Date;
   evseId: number;
   connectorId: number;
+  targetEnergy: number;
   meterValuesTimer?: NodeJS.Timer;
 }
 
@@ -19,9 +20,11 @@ export class TransactionManager {
     vcp: VCP,
     transactionId: string,
     evseId: number,
-    connectorId: number
+    connectorId: number,
+    targetEnergy: number
   ) {
     const meterValuesTimer = setInterval(() => {
+    /*
       vcp.send(
         call("TransactionEvent", {
           eventType: "Updated",
@@ -51,6 +54,25 @@ export class TransactionManager {
           ],
         })
       );
+*/
+      vcp.send(
+          call("MeterValues", {
+            evseId: connectorId,
+            meterValue: [
+              {
+                timestamp: new Date(),
+                sampledValue: [
+                  {
+                    value: (this.getMeterValue(transactionId) / 1000),
+                    measurand: "Energy.Active.Import.Register",
+                    unitOfMeasure: { unit: "kWh" },
+                    context:"Sample.Clock"
+                  }
+                ],
+              },
+            ],
+          })
+      );
     }, METER_VALUES_INTERVAL_SEC * 1000);
     this.transactions.set(transactionId, {
       transactionId: transactionId,
@@ -59,6 +81,7 @@ export class TransactionManager {
       evseId: evseId,
       connectorId: connectorId,
       meterValuesTimer: meterValuesTimer,
+      targetEnergy: targetEnergy,
     });
   }
 
@@ -75,7 +98,14 @@ export class TransactionManager {
     if (!transaction) {
       return 0;
     }
-    return transaction.meterValue + (new Date().getTime() - transaction.startedAt.getTime()) / 100;
+    if (transaction.targetEnergy > 0) {
+      return transaction.meterValue + (new Date().getTime() - transaction.startedAt.getTime()) / 100;
+    } else {
+      // discharging via SetVariables message
+      return transaction.meterValue + -((new Date().getTime() - transaction.startedAt.getTime()) / 100);
+    }
+
+
   }
 }
 

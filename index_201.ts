@@ -25,7 +25,7 @@ const vcp = new VCP({
       chargingStation: {
         model: "default model",
         vendorName: "EcoG",
-        firmwareVersion: "1.0.1"
+        /*firmwareVersion: "1.0.1"*/
       },
     },
   });

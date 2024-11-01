@@ -132,6 +132,16 @@ const callHandlers: { [key: string]: CallHandler } = {
         ],
       })
     );
+
+    // start meter values timer
+    const transactionId = uuid.v4();
+    transactionManager.startTransaction(
+        vcp,
+        transactionId,
+        call.payload.evseId ?? 1,
+        call.payload.connectorId ?? 1,
+        call.payload.setVariableData[0].attributeValue ?? 1,
+    );
   },
   GetVariables: (vcp: VCP, call: OcppCall<any>) => {
     vcp.respond(
@@ -172,7 +182,8 @@ const callHandlers: { [key: string]: CallHandler } = {
       vcp,
       transactionId,
       call.payload.evseId ?? 1,
-      call.payload.connectorId ?? 1
+      call.payload.connectorId ?? 1,
+        1
     );
     vcp.respond(
       callResult(call, {

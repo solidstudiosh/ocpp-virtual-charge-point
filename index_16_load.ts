@@ -27,6 +27,9 @@ const testCharge: boolean = args["TEST_CHARGE"] ?? process.env["TEST_CHARGE"] ==
 const duration: number = Number(args["DURATION"] ?? process.env["DURATION"] ?? 60000);
 const randomDelay: boolean = args["RANDOM_DELAY"] ?? process.env["RANDOM_DELAY"] == "true" ?? false;
 const isTwinGun: boolean = args["TWIN_GUN"] ?? process.env["TWIN_GUN"] === "true" ?? false;
+const adminPort: string|undefined = args["ADMIN_PORT"] ?? process.env["ADMIN_PORT"] ?? undefined;
+const adminPortIncrement: boolean = args["ADMIN_PORT_INCREMENT"] ?? process.env["ADMIN_PORT_INCREMENT"] === "true" ?? false;
+
 
 const endpoint =
     args["ENV"]
@@ -42,13 +45,22 @@ const endpoint =
 async function run() {
   const vcpList: VCP[] = [];
   const tasks: Promise<void>[] = []; // Array to hold promises
-  
+  let adminWsPort = undefined;
+
   for (let i = 1; i <= count; i++) {
+
+    if ((i == 1 || adminPortIncrement) && adminPort != undefined) {
+      adminWsPort = parseInt(adminPort) + (i-1);
+    } else {
+      adminWsPort = undefined;
+    }
+
     let vcp = new VCP({
       endpoint: endpoint,
       chargePointId: idPrefix + i,
       ocppVersion: OcppVersion.OCPP_1_6,
       isTwinGun: isTwinGun,
+      adminWsPort: adminWsPort,
     });
   
     vcpList.push(vcp);

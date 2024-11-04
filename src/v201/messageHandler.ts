@@ -146,7 +146,18 @@ const callHandlers: { [key: string]: CallHandler } = {
   GetVariables: (vcp: VCP, call: OcppCall<any>) => {
     vcp.respond(
       callResult(call, {
-        getVariableResult: [],
+        getVariableResult: [
+            {
+                attributeStatus: "Accepted",
+                component: {
+                  name: "LocalAuthListCtrlr",
+                },
+                variable: {
+                  name: "Enabled",
+                },
+                attributeValue: "false",
+            },
+        ],
       })
     );
   },
@@ -268,7 +279,7 @@ const callHandlers: { [key: string]: CallHandler } = {
       callFactory("StatusNotification", {
         evseId: 1,
         connectorId: 1,
-        connectorStatus: "Available",
+        connectorStatus: "Occupied",
         timestamp: new Date(),
       })
     );

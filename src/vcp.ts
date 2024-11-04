@@ -189,7 +189,9 @@ export class VCP {
   private _onMessage(message: string) {
     this.isWaiting = false;
     if (this.lastAction !== 'Heartbeat') {
-      logger.info(`⬅️  Receive ${this.vcpOptions.chargePointId} ${message}`);
+      logger.info(`⬅️  Receive ${this .vcpOptions.chargePointId} ${message}`);
+    } else {
+      this.lastAction = '';
     }
     const data = JSON.parse(message);
     const [type, ...rest] = data;

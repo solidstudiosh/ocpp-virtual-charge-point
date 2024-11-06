@@ -9,12 +9,12 @@ interface TransactionState {
   startedAt: Date;
   evseId: number;
   connectorId: number;
-  targetEnergy: number;
   meterValuesTimer?: NodeJS.Timer;
 }
 
 export class TransactionManager {
   transactions: Map<string, TransactionState> = new Map();
+  targetEnergy: number = 1;
 
   startTransaction(
     vcp: VCP,
@@ -74,19 +74,18 @@ export class TransactionManager {
           })
       );
     }, METER_VALUES_INTERVAL_SEC * 1000);
-    this.transactions.set(transactionId, {
+    this.transactions.set(transactionId.toString(), {
       transactionId: transactionId,
       meterValue: parseInt(process.env["INITIAL_METER_READINGS"] ?? '0'),
       startedAt: new Date(),
       evseId: evseId,
       connectorId: connectorId,
-      meterValuesTimer: meterValuesTimer,
-      targetEnergy: targetEnergy,
+      meterValuesTimer: meterValuesTimer
     });
   }
 
   stopTransaction(transactionId: string) {
-    const transaction = this.transactions.get(transactionId);
+    const transaction = this.transactions.get(transactionId.toString())
     if (transaction && transaction.meterValuesTimer) {
       clearInterval(transaction.meterValuesTimer);
     }
@@ -98,11 +97,11 @@ export class TransactionManager {
     if (!transaction) {
       return 0;
     }
-    if (transaction.targetEnergy > 0) {
-      return transaction.meterValue + (new Date().getTime() - transaction.startedAt.getTime()) / 100;
+    if (this.targetEnergy > 0) {
+      return Math.floor(transaction.meterValue + (new Date().getTime() - transaction.startedAt.getTime()) / 100);
     } else {
       // discharging via SetVariables message
-      return transaction.meterValue + -((new Date().getTime() - transaction.startedAt.getTime()) / 100);
+      return Math.floor(transaction.meterValue + -((new Date().getTime() - transaction.startedAt.getTime()) / 100));
     }
 
 

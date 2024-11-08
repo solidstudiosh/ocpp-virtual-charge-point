@@ -8,7 +8,7 @@ export type CallHandler = (vcp: VCP, call: OcppCall<any>) => void;
 export type CallResultHandler = (
   vcp: VCP,
   call: OcppCall<any>,
-  result: OcppCallResult<any>
+  result: OcppCallResult<any>,
 ) => void;
 export type CallErrorHandler = (vcp: VCP, error: OcppCallError<any>) => void;
 
@@ -19,7 +19,7 @@ export interface OcppMessageHandler {
 }
 
 export const resolveMessageHandler = (
-  ocppVersion: OcppVersion
+  ocppVersion: OcppVersion,
 ): OcppMessageHandler => {
   if (ocppVersion === OcppVersion.OCPP_1_6) {
     return messageHandlerV16;

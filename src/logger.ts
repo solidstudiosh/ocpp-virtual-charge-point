@@ -10,8 +10,8 @@ export const logger = createLogger({
         format.colorize(),
         format.simple(),
         format.printf(
-          (info) => `${info.timestamp} ${info.level}: ${info.message}`
-        )
+          (info) => `${info.timestamp} ${info.level}: ${info.message}`,
+        ),
       ),
       level: process.env["LOG_LEVEL"] ?? "info",
     }),

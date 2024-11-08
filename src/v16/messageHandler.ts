@@ -1,20 +1,42 @@
-import { call as callFactory, callError, callResult } from "../messageFactory";
-import { OcppCall, OcppCallError, OcppCallResult } from "../ocppMessage";
+import { z } from "zod";
 import {
-  CallHandler,
-  CallResultHandler,
-  OcppMessageHandler,
-} from "../ocppMessageHandler";
-import { delay, NOOP } from "../utils";
+  OcppCall,
+  OcppCallError,
+  OcppCallResult,
+  OcppMessage,
+} from "../ocppMessage";
+import { OcppMessageHandler } from "../ocppMessageHandler";
 import { VCP } from "../vcp";
-import { transactionManager } from "./transactionManager";
-import {
-  GetConfigurationReq,
-  RemoteStartTransactionReq,
-  RemoteStopTransactionReq,
-  TriggerMessageReq,
-} from "./types";
+import { authorizeOcppMessage } from "./messages/authorize";
+import { bootNotificationOcppMessage } from "./messages/bootNotification";
+import { cancelReservationOcppMessage } from "./messages/cancelReservation";
+import { changeAvailabilityOcppMessage } from "./messages/changeAvailability";
+import { changeConfigurationOcppMessage } from "./messages/changeConfiguration";
+import { clearCacheOcppMessage } from "./messages/clearCache";
+import { clearChargingProfileOcppMessage } from "./messages/clearChargingProfile";
+import { dataTransferOcppMessage } from "./messages/dataTransfer";
+import { getConfigurationOcppMessage } from "./messages/getConfiguration";
+import { heartbeatOcppMessage } from "./messages/heartbeat";
+import { meterValuesOcppMessage } from "./messages/meterValues";
+import { remoteStartTransactionOcppMessage } from "./messages/remoteStartTransaction";
+import { remoteStopTransactionOcppMessage } from "./messages/remoteStopTransaction";
+import { reserveNowOcppMessage } from "./messages/reserveNow";
+import { resetOcppMessage } from "./messages/reset";
+import { sendLocalListOcppMessage } from "./messages/sendLocalList";
+import { setChargingProfileOcppMessage } from "./messages/setChargingProfile";
+import { startTransactionOcppMessage } from "./messages/startTransaction";
+import { statusNotificationOcppMessage } from "./messages/statusNotification";
+import { stopTransactionOcppMessage } from "./messages/stopTransaction";
+import { triggerMessageOcppMessage } from "./messages/triggerMessage";
+import { unlockConnectorOcppMessage } from "./messages/unlockConnector";
+import { updateFirmwareOcppMessage } from "./messages/updateFirmware";
+import { diagnosticsStatusNotificationOcppMessage } from "./messages/diagnosticsStatusNotification";
+import { firmwareStatusNotificationOcppMessage } from "./messages/firmwareStatusNotification";
+import { getCompositeScheduleOcppMessage } from "./messages/getCompositeSchedule";
+import { getDiagnosticsOcppMessage } from "./messages/getDiagnostics";
+import { getLocalListVersionOcppMessage } from "./messages/getLocalListVersion";
 
+<<<<<<< HEAD
 const callHandlers: { [key: string]: CallHandler } = {
   ClearCache: (vcp: VCP, call: OcppCall<any>) => {
     vcp.respond(callResult(call, { status: "Accepted" }));
@@ -175,27 +197,58 @@ const callResultHandlers: { [key: string]: CallResultHandler } = {
   Authorize: NOOP,
   DataTransfer: NOOP,
 };
+=======
+const ocppMessages: { [key: string]: OcppMessage<z.ZodTypeAny, z.ZodTypeAny> } =
+  {
+    Authorize: authorizeOcppMessage,
+    BootNotification: bootNotificationOcppMessage,
+    CancelReservation: cancelReservationOcppMessage,
+    ChangeAvailability: changeAvailabilityOcppMessage,
+    ChangeConfiguration: changeConfigurationOcppMessage,
+    ClearCache: clearCacheOcppMessage,
+    ClearChargingProfile: clearChargingProfileOcppMessage,
+    DataTransfer: dataTransferOcppMessage,
+    DiagnosticsStatusNotification: diagnosticsStatusNotificationOcppMessage,
+    FirmwareStatusNotification: firmwareStatusNotificationOcppMessage,
+    GetCompositeSchedule: getCompositeScheduleOcppMessage,
+    GetConfiguration: getConfigurationOcppMessage,
+    GetDiagnostics: getDiagnosticsOcppMessage,
+    GetLocalListVersion: getLocalListVersionOcppMessage,
+    Heartbeat: heartbeatOcppMessage,
+    MeterValues: meterValuesOcppMessage,
+    RemoteStartTransaction: remoteStartTransactionOcppMessage,
+    RemoteStopTransaction: remoteStopTransactionOcppMessage,
+    ReserveNow: reserveNowOcppMessage,
+    Reset: resetOcppMessage,
+    SendLocalList: sendLocalListOcppMessage,
+    SetChargingProfile: setChargingProfileOcppMessage,
+    StartTransaction: startTransactionOcppMessage,
+    StatusNotification: statusNotificationOcppMessage,
+    StopTransaction: stopTransactionOcppMessage,
+    TriggerMessage: triggerMessageOcppMessage,
+    UnlockConnector: unlockConnectorOcppMessage,
+    UpdateFirmware: updateFirmwareOcppMessage,
+  };
+>>>>>>> 756528d (feat: refactor ocpp1.6 to type-safe zod schemas)
 
 export const messageHandlerV16: OcppMessageHandler = {
   handleCall: function (vcp: VCP, call: OcppCall<any>): void {
-    const handler = callHandlers[call.action];
-    if (!handler) {
-      throw new Error(`Call handler not implemented for ${call.action}`);
+    const ocppMessage = ocppMessages[call.action];
+    if (!ocppMessage) {
+      throw new Error(`OCPP Message not implemented for ${call.action}`);
     }
-    handler(vcp, call);
+    ocppMessage.reqHandler(vcp, call);
   },
   handleCallResult: function (
     vcp: VCP,
     call: OcppCall<any>,
-    result: OcppCallResult<any>
+    result: OcppCallResult<any>,
   ): void {
-    const handler = callResultHandlers[result.action];
-    if (!handler) {
-      throw new Error(
-        `CallResult handler not implemented for ${result.action}`
-      );
+    const ocppMessage = ocppMessages[result.action];
+    if (!ocppMessage) {
+      throw new Error(`OCPP Message not implemented for ${result.action}`);
     }
-    handler(vcp, call, result);
+    ocppMessage.resHandler(vcp, call, result);
   },
   handleCallError: function (vcp: VCP, error: OcppCallError<any>): void {
     // NOOP

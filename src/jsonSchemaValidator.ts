@@ -18,7 +18,7 @@ const jsonSchemaDir = (ocppVersion: OcppVersion) => {
 export const validateOcppRequest = (
   ocppVersion: OcppVersion,
   action: string,
-  payload: any
+  payload: any,
 ) => {
   if (!JSON_SCHEMA_VALIDATION_ENABLED) {
     return;
@@ -37,7 +37,7 @@ export const validateOcppRequest = (
 export const validateOcppResponse = (
   ocppVersion: OcppVersion,
   action: string,
-  payload: any
+  payload: any,
 ) => {
   if (!JSON_SCHEMA_VALIDATION_ENABLED) {
     return;

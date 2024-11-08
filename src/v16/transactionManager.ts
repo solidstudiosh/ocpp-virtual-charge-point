@@ -1,7 +1,7 @@
-import { call } from "../messageFactory";
 import { VCP } from "../vcp";
+import { meterValuesOcppMessage } from "./messages/meterValues";
 
-const METER_VALUES_INTERVAL_SEC = 60;
+const METER_VALUES_INTERVAL_SEC = 15;
 
 interface TransactionState {
   transactionId: number;
@@ -14,21 +14,15 @@ interface TransactionState {
 export class TransactionManager {
   transactions: Map<string, TransactionState> = new Map();
 
-  canStartNewTransaction(connectorId: number) {
-    return !Array.from(this.transactions.values()).some(
-      (transaction) => transaction.connectorId === connectorId,
-    );
-  }
-
   startTransaction(vcp: VCP, transactionId: number, connectorId: number) {
     const meterValuesTimer = setInterval(() => {
       vcp.send(
-        call("MeterValues", {
+        meterValuesOcppMessage.request({
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: [
             {
-              timestamp: new Date(),
+              timestamp: new Date().toISOString(),
               sampledValue: [
                 {
                   value: (this.getMeterValue(transactionId) / 1000).toString(),

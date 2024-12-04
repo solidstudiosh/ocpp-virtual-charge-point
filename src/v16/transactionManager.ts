@@ -31,9 +31,9 @@ export class TransactionManager {
               timestamp: new Date(),
               sampledValue: [
                 {
-                  value: (this.getMeterValue(transactionId) / 1000).toString(),
+                  value: (this.getMeterValue(transactionId)).toString(),
                   measurand: "Energy.Active.Import.Register",
-                  unit: "kWh",
+                  unit: "Wh",
                 },
                 {
                   value: "28.67",
@@ -92,8 +92,12 @@ export class TransactionManager {
     if (!transaction) {
       return 0;
     }
-    console.log(`transaction: ${transaction}`)
-    return transaction.meterValue + (new Date().getTime() - transaction.startedAt.getTime()) / 100;
+    // make meterValue not a neat round number
+    let meterValue = transaction.meterValue + ((new Date().getTime() - transaction.startedAt.getTime()) / 100);
+    meterValue *= 1.24;
+    meterValue = Math.round(meterValue);
+    console.log(`getMeterValue meterValue: ${meterValue}`)
+    return meterValue;
   }
 
   getTransactionIdByVcp(vcp: VCP): number | undefined {

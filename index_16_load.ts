@@ -8,7 +8,7 @@ import { bootVCP } from "./src/vcp_commands/bootVcp"
 import { sleep } from "./src/utils"
 
 import { getArgs } from './src/getArgs';
-const args:Record<string, any> = getArgs();
+const args:Record<string, any> = getArgs
 
 // start command:
 // WS_URL=ws://192.168.1.116:9000 npx ts-node index_16_load.ts
@@ -69,7 +69,7 @@ async function run() {
       // Start each VCP a second apart
       await sleep(i * vcpTimeGap);
       await vcp.connect();
-      bootVCP(vcp, sleepTime);
+      await bootVCP(vcp, sleepTime);
 
     })();
     tasks.push(task);

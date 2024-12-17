@@ -35,11 +35,11 @@ const vcp = new VCP({
   adminWsPort: parseInt(
       args["ADMIN_PORT"] ?? process.env["ADMIN_PORT"] ?? "9999"
   ),
+  isTwinGun: isTwinGun,
 });
 
 (async () => {
   await vcp.connect();
-  // boot twingun
   bootVCP(vcp, sleepTime);
 
   // if TEST_CHARGE=true set in cli, start test charge

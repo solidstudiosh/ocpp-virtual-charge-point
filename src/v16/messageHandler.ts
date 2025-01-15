@@ -35,7 +35,19 @@ import { firmwareStatusNotificationOcppMessage } from "./messages/firmwareStatus
 import { getCompositeScheduleOcppMessage } from "./messages/getCompositeSchedule";
 import { getDiagnosticsOcppMessage } from "./messages/getDiagnostics";
 import { getLocalListVersionOcppMessage } from "./messages/getLocalListVersion";
+import { certificateSignedOcppMessage } from "./messages/certificateSigned";
+import { deleteCertificateOcppMessage } from "./messages/deleteCertificate";
+import { extendedTriggerMessageOcppMessage } from "./messages/extendedTriggerMessage";
+import { getInstalledCertificateIdsOcppMessage } from "./messages/getInstalledCertificateIds";
+import { getLogOcppMessage } from "./messages/getLog";
+import { installCertificateOcppMessage } from "./messages/installCertificate";
+import { logStatusNotificationOcppMessage } from "./messages/logStatusNotification";
+import { signCertificateOcppMessage } from "./messages/signCertificate";
+import { signedFirmwareStatusNotificationOcppMessage } from "./messages/signedFirmwareStatusNotification";
+import { signedUpdateFirmwareOcppMessage } from "./messages/signedUpdateFirmware";
+import { securityEventNotificationOcppMessage } from "./messages/securityEventNotification";
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 const callHandlers: { [key: string]: CallHandler } = {
   ClearCache: (vcp: VCP, call: OcppCall<any>) => {
@@ -230,6 +242,51 @@ const ocppMessages: { [key: string]: OcppMessage<z.ZodTypeAny, z.ZodTypeAny> } =
     UpdateFirmware: updateFirmwareOcppMessage,
   };
 >>>>>>> 756528d (feat: refactor ocpp1.6 to type-safe zod schemas)
+=======
+export const ocppMessages: {
+  [key: string]: OcppMessage<z.ZodTypeAny, z.ZodTypeAny>;
+} = {
+  Authorize: authorizeOcppMessage,
+  BootNotification: bootNotificationOcppMessage,
+  CancelReservation: cancelReservationOcppMessage,
+  CertificateSigned: certificateSignedOcppMessage,
+  ChangeAvailability: changeAvailabilityOcppMessage,
+  ChangeConfiguration: changeConfigurationOcppMessage,
+  ClearCache: clearCacheOcppMessage,
+  ClearChargingProfile: clearChargingProfileOcppMessage,
+  DataTransfer: dataTransferOcppMessage,
+  DeleteCertificate: deleteCertificateOcppMessage,
+  DiagnosticsStatusNotification: diagnosticsStatusNotificationOcppMessage,
+  ExtendedTriggerMessage: extendedTriggerMessageOcppMessage,
+  FirmwareStatusNotification: firmwareStatusNotificationOcppMessage,
+  GetCompositeSchedule: getCompositeScheduleOcppMessage,
+  GetConfiguration: getConfigurationOcppMessage,
+  GetDiagnostics: getDiagnosticsOcppMessage,
+  GetInstalledCertificateIds: getInstalledCertificateIdsOcppMessage,
+  GetLocalListVersion: getLocalListVersionOcppMessage,
+  GetLog: getLogOcppMessage,
+  Heartbeat: heartbeatOcppMessage,
+  InstallCertificate: installCertificateOcppMessage,
+  LogStatusNotification: logStatusNotificationOcppMessage,
+  MeterValues: meterValuesOcppMessage,
+  RemoteStartTransaction: remoteStartTransactionOcppMessage,
+  RemoteStopTransaction: remoteStopTransactionOcppMessage,
+  ReserveNow: reserveNowOcppMessage,
+  Reset: resetOcppMessage,
+  SendLocalList: sendLocalListOcppMessage,
+  SecurityEventNotification: securityEventNotificationOcppMessage,
+  SetChargingProfile: setChargingProfileOcppMessage,
+  SignCertificate: signCertificateOcppMessage,
+  SignedFirmwareStatusNotification: signedFirmwareStatusNotificationOcppMessage,
+  SignedUpdateFirmware: signedUpdateFirmwareOcppMessage,
+  StartTransaction: startTransactionOcppMessage,
+  StatusNotification: statusNotificationOcppMessage,
+  StopTransaction: stopTransactionOcppMessage,
+  TriggerMessage: triggerMessageOcppMessage,
+  UnlockConnector: unlockConnectorOcppMessage,
+  UpdateFirmware: updateFirmwareOcppMessage,
+};
+>>>>>>> deb4d34 (feat: add ocpp 1.6 security whitepaper messages)
 
 export const messageHandlerV16: OcppMessageHandler = {
   handleCall: function (vcp: VCP, call: OcppCall<any>): void {

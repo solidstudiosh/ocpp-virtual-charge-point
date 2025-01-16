@@ -19,7 +19,7 @@ export class TransactionManager {
     vcp: VCP,
     transactionId: string,
     evseId: number,
-    connectorId: number
+    connectorId: number,
   ) {
     const meterValuesTimer = setInterval(() => {
       vcp.send(
@@ -49,7 +49,7 @@ export class TransactionManager {
               ],
             },
           ],
-        })
+        }),
       );
     }, METER_VALUES_INTERVAL_SEC * 1000);
     this.transactions.set(transactionId, {

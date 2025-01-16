@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { VCP } from "./vcp";
 import { call, callResult } from "./messageFactory";
+import { logger } from "./logger";
 
 export interface OcppCall<T = any> {
   messageId: string;
@@ -47,21 +48,29 @@ export abstract class OcppMessage<
   };
 
   request = (payload: z.infer<ReqSchema>): OcppCall<z.infer<ReqSchema>> => {
-    return call(this.action, this.requestPayload(payload));
+    return call(this.action, this.parseRequestPayload(payload));
   };
 
-  requestPayload = (payload: z.infer<ReqSchema>): z.infer<ReqSchema> => {
-    return this.reqSchema.parse(payload);
+  parseRequestPayload = (payload: z.infer<ReqSchema>): z.infer<ReqSchema> => {
+    const parseResult = this.reqSchema.safeParse(payload);
+    if (parseResult.error) {
+      logger.warn(JSON.stringify(parseResult.error));
+    }
+    return parseResult.data;
   };
 
   response = (
     call: OcppCall<any>,
     payload: z.infer<ResSchema>,
   ): OcppCallResult<z.infer<ResSchema>> => {
-    return callResult(call, this.responsePayload(payload));
+    return callResult(call, this.parseResponsePayload(payload));
   };
 
-  responsePayload = (payload: z.infer<ResSchema>): z.infer<ResSchema> => {
-    return this.resSchema.parse(payload);
+  parseResponsePayload = (payload: z.infer<ResSchema>): z.infer<ResSchema> => {
+    const parseResult = this.resSchema.safeParse(payload);
+    if (parseResult.error) {
+      logger.warn(JSON.stringify(parseResult.error));
+    }
+    return parseResult.data;
   };
 }

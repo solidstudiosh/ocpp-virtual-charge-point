@@ -1,37 +1,26 @@
-import Ajv from "ajv";
 import { logger } from "./logger";
 import { OcppVersion } from "./ocppVersion";
+import { ocppMessages as ocppMessages16 } from "./v16/messageHandler";
+import { ocppMessages as ocppMessages201 } from "./v201/messageHandler";
 
-const ajv = new Ajv({ multipleOfPrecision: 1 });
-
-const JSON_SCHEMA_VALIDATION_ENABLED = true;
-const JSON_SCHEMA_BASE_DIR = "../_json_schema";
-
-const jsonSchemaDir = (ocppVersion: OcppVersion) => {
-  if (ocppVersion === OcppVersion.OCPP_1_6) {
-    return `${JSON_SCHEMA_BASE_DIR}/v16`;
-  } else if (ocppVersion === OcppVersion.OCPP_2_0_1) {
-    return `${JSON_SCHEMA_BASE_DIR}/v201`;
-  }
-};
+const SCHEMA_VALIDATION_ENABLED = true;
 
 export const validateOcppRequest = (
   ocppVersion: OcppVersion,
   action: string,
   payload: any,
 ) => {
-  if (!JSON_SCHEMA_VALIDATION_ENABLED) {
+  if (!SCHEMA_VALIDATION_ENABLED) {
     return;
   }
-  const schemaDir = jsonSchemaDir(ocppVersion);
-  const schema = require(`${schemaDir}/${action}.json`);
-  const validate = ajv.compile(schema);
-  const valid = validate(payload);
-  if (!valid) {
-    logger.warn(JSON.stringify(validate.errors));
-  } else {
-    logger.debug(`Schema for ${action} OK`);
+  const ocppMessages =
+    ocppVersion === OcppVersion.OCPP_1_6 ? ocppMessages16 : ocppMessages201;
+  const ocppMessage = ocppMessages[action];
+  if (!ocppMessage) {
+    logger.warn(`Unknown action ${action}`);
+    return;
   }
+  ocppMessage.parseRequestPayload(payload);
 };
 
 export const validateOcppResponse = (
@@ -39,16 +28,15 @@ export const validateOcppResponse = (
   action: string,
   payload: any,
 ) => {
-  if (!JSON_SCHEMA_VALIDATION_ENABLED) {
+  if (!SCHEMA_VALIDATION_ENABLED) {
     return;
   }
-  const schemaDir = jsonSchemaDir(ocppVersion);
-  const schema = require(`${schemaDir}/${action}Response.json`);
-  const validate = ajv.compile(schema);
-  const valid = validate(payload);
-  if (!valid) {
-    logger.warn(JSON.stringify(validate.errors));
-  } else {
-    logger.debug(`Schema for ${action} Response OK`);
+  const ocppMessages =
+    ocppVersion === OcppVersion.OCPP_1_6 ? ocppMessages16 : ocppMessages201;
+  const ocppMessage = ocppMessages[action];
+  if (!ocppMessage) {
+    logger.warn(`Unknown action ${action}`);
+    return;
   }
+  ocppMessage.parseResponsePayload(payload);
 };

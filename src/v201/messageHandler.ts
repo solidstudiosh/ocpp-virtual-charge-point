@@ -142,7 +142,7 @@ export const ocppMessages: {
   UpdateFirmware: updateFirmwareOcppMessage,
 };
 
-export const messageHandlerV16: OcppMessageHandler = {
+export const messageHandlerV201: OcppMessageHandler = {
   handleCall: function (vcp: VCP, call: OcppCall<any>): void {
     const ocppMessage = ocppMessages[call.action];
     if (!ocppMessage) {

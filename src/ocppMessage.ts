@@ -54,7 +54,11 @@ export abstract class OcppMessage<
   parseRequestPayload = (payload: z.infer<ReqSchema>): z.infer<ReqSchema> => {
     const parseResult = this.reqSchema.safeParse(payload);
     if (parseResult.error) {
-      logger.warn(JSON.stringify(parseResult.error));
+      logger.warn("REQUEST payload parsing errors", {
+        action: this.action,
+        payload: payload,
+        errors: JSON.stringify(parseResult.error.issues),
+      });
     }
     return parseResult.data;
   };
@@ -69,7 +73,11 @@ export abstract class OcppMessage<
   parseResponsePayload = (payload: z.infer<ResSchema>): z.infer<ResSchema> => {
     const parseResult = this.resSchema.safeParse(payload);
     if (parseResult.error) {
-      logger.warn(JSON.stringify(parseResult.error));
+      logger.warn("RESPONSE payload parsing errors", {
+        action: this.action,
+        payload: payload,
+        errors: JSON.stringify(parseResult.error.issues),
+      });
     }
     return parseResult.data;
   };

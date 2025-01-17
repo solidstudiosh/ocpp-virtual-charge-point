@@ -4,7 +4,7 @@ import WebSocket, { WebSocketServer } from "ws";
 import {
   validateOcppRequest,
   validateOcppResponse,
-} from "./jsonSchemaValidator";
+} from "./schemaValidator";
 import { logger } from "./logger";
 import { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
 import {

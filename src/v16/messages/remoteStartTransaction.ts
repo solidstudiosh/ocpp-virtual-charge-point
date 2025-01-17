@@ -8,6 +8,7 @@ import {
 } from "./_common";
 import { statusNotificationOcppMessage } from "./statusNotification";
 import { startTransactionOcppMessage } from "./startTransaction";
+import { transactionManager } from "../transactionManager";
 
 const RemoteStartTransactionReqSchema = z.object({
   connectorId: ConnectorIdSchema.nullish(),
@@ -30,6 +31,10 @@ class RemoteStartTransactionOcppMessage extends OcppMessage<
     call: OcppCall<z.infer<RemoteStartTransactionReqType>>,
   ): Promise<void> => {
     if (!call.payload.connectorId) {
+      vcp.respond(this.response(call, { status: "Rejected" }));
+      return;
+    }
+    if (!transactionManager.canStartNewTransaction(call.payload.connectorId)) {
       vcp.respond(this.response(call, { status: "Rejected" }));
       return;
     }

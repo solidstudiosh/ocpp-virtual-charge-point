@@ -26,7 +26,6 @@ class GetDisplayMessagesOcppMessage extends OcppMessage<
     call: OcppCall<z.infer<GetDisplayMessagesReqType>>,
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
-    TODO Send NotifyDisplayMessages
   };
 }
 

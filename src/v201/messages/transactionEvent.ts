@@ -3,7 +3,9 @@ import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
 import { VCP } from "../../vcp";
 import {
   EVSETypeSchema,
+  IdTokenInfoTypeSchema,
   IdTokenTypeSchema,
+  MessageContentTypeSchema,
   MeterValueTypeSchema,
 } from "./_common";
 
@@ -73,21 +75,14 @@ const TransactionEventReqSchema = z.object({
   evse: EVSETypeSchema.nullish(),
   meterValue: z.array(MeterValueTypeSchema).nullish(),
 });
-
 type TransactionEventReqType = typeof TransactionEventReqSchema;
 
 const TransactionEventResSchema = z.object({
-  currentTime: z.string().datetime(),
-  interval: z.number().int(),
-  status: z.enum(["Accepted", "Rejected"]),
-  statusInfo: z
-    .object({
-      reasonCode: z.string().max(20),
-      additionalInfo: z.string().max(512).nullish(),
-    })
-    .nullish(),
+  totalCost: z.number().nullish(),
+  chargingPriority: z.number().int().nullish(),
+  idTokenInfo: IdTokenInfoTypeSchema.nullish(),
+  updatedPersonalMessage: MessageContentTypeSchema.nullish(),
 });
-
 type TransactionEventResType = typeof TransactionEventResSchema;
 
 class TransactionEventOcppMessage extends OcppMessage<

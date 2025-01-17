@@ -1,6 +1,6 @@
 # OCPP Virtual Charge Point
 
-Simple, configurable, terminal-based OCPP Charging Station simulator written in Node.js with JSON Schema validation.
+Simple, configurable, terminal-based OCPP Charging Station simulator written in Node.js with Schema validation.
 
 ## Watch our video introduction
 

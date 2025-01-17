@@ -1,47 +1,40 @@
-import * as uuid from "uuid";
 require("dotenv").config();
 
 import { OcppVersion } from "./src/ocppVersion";
 import { VCP } from "./src/vcp";
+import { bootNotificationOcppMessage } from "./src/v16/messages/bootNotification";
+import { statusNotificationOcppMessage } from "./src/v16/messages/statusNotification";
 
 const vcp = new VCP({
   endpoint: process.env["WS_URL"] ?? "ws://localhost:3000",
   chargePointId: process.env["CP_ID"] ?? "123456",
   ocppVersion: OcppVersion.OCPP_1_6,
   basicAuthPassword: process.env["PASSWORD"] ?? undefined,
-  adminWsPort: parseInt(
-    process.env["ADMIN_PORT"] ?? "9999"
-  ),
+  adminWsPort: parseInt(process.env["ADMIN_PORT"] ?? "9999"),
 });
 
 (async () => {
   await vcp.connect();
-  vcp.send({
-    messageId: uuid.v4(),
-    action: "BootNotification",
-    payload: {
+  vcp.send(
+    bootNotificationOcppMessage.request({
       chargePointVendor: "Solidstudio",
       chargePointModel: "VirtualChargePoint",
       chargePointSerialNumber: "S001",
       firmwareVersion: "1.0.0",
-    },
-  });
-  vcp.send({
-    messageId: uuid.v4(),
-    action: "StatusNotification",
-    payload: {
+    }),
+  );
+  vcp.send(
+    statusNotificationOcppMessage.request({
       connectorId: 1,
       errorCode: "NoError",
       status: "Available",
-    },
-  });
-  vcp.send({
-    messageId: uuid.v4(),
-    action: "StatusNotification",
-    payload: {
+    }),
+  );
+  vcp.send(
+    statusNotificationOcppMessage.request({
       connectorId: 2,
       errorCode: "NoError",
       status: "Available",
-    },
-  });
+    }),
+  );
 })();

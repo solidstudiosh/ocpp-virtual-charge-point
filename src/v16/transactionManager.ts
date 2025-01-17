@@ -14,6 +14,12 @@ interface TransactionState {
 export class TransactionManager {
   transactions: Map<string, TransactionState> = new Map();
 
+  canStartNewTransaction(connectorId: number) {
+    return !Array.from(this.transactions.values()).some(
+      (transaction) => transaction.connectorId === connectorId,
+    );
+  }
+
   startTransaction(vcp: VCP, transactionId: number, connectorId: number) {
     const meterValuesTimer = setInterval(() => {
       vcp.send(

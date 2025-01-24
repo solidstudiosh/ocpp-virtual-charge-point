@@ -70,6 +70,10 @@ const callHandlers: { [key: string]: CallHandler } = {
       vcp.respond(callResult(call, { status: "Rejected" }));
       return;
     }
+    if (!transactionManager.canStartNewTransaction(call.payload.connectorId)) {
+      vcp.respond(callResult(call, { status: "Rejected" }));
+      return;
+    }
     vcp.respond(callResult(call, { status: "Accepted" }));
     vcp.send(
       callFactory("StartTransaction", {

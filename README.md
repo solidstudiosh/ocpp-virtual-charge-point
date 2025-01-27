@@ -2,6 +2,10 @@
 
 Simple, configurable, terminal-based OCPP Charging Station simulator written in Node.js with JSON Schema validation.
 
+## Watch our video introduction
+
+[![VCP Video](https://img.youtube.com/vi/YsXjnk0mhfA/0.jpg)](https://www.youtube.com/watch?v=YsXjnk0mhfA)
+
 ## Prerequisites
 
 - Node.js 12+

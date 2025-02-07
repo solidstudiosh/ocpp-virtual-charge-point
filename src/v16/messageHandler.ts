@@ -1,203 +1,114 @@
-import { call as callFactory, callError, callResult } from "../messageFactory";
-import { OcppCall, OcppCallError, OcppCallResult } from "../ocppMessage";
+import { z } from "zod";
 import {
-  CallHandler,
-  CallResultHandler,
-  OcppMessageHandler,
-} from "../ocppMessageHandler";
-import { delay, NOOP } from "../utils";
+  OcppCall,
+  OcppCallError,
+  OcppCallResult,
+  OcppMessage,
+} from "../ocppMessage";
+import { OcppMessageHandler } from "../ocppMessageHandler";
 import { VCP } from "../vcp";
-import { transactionManager } from "./transactionManager";
-import {
-  GetConfigurationReq,
-  RemoteStartTransactionReq,
-  RemoteStopTransactionReq,
-  TriggerMessageReq,
-} from "./types";
+import { authorizeOcppMessage } from "./messages/authorize";
+import { bootNotificationOcppMessage } from "./messages/bootNotification";
+import { cancelReservationOcppMessage } from "./messages/cancelReservation";
+import { changeAvailabilityOcppMessage } from "./messages/changeAvailability";
+import { changeConfigurationOcppMessage } from "./messages/changeConfiguration";
+import { clearCacheOcppMessage } from "./messages/clearCache";
+import { clearChargingProfileOcppMessage } from "./messages/clearChargingProfile";
+import { dataTransferOcppMessage } from "./messages/dataTransfer";
+import { getConfigurationOcppMessage } from "./messages/getConfiguration";
+import { heartbeatOcppMessage } from "./messages/heartbeat";
+import { meterValuesOcppMessage } from "./messages/meterValues";
+import { remoteStartTransactionOcppMessage } from "./messages/remoteStartTransaction";
+import { remoteStopTransactionOcppMessage } from "./messages/remoteStopTransaction";
+import { reserveNowOcppMessage } from "./messages/reserveNow";
+import { resetOcppMessage } from "./messages/reset";
+import { sendLocalListOcppMessage } from "./messages/sendLocalList";
+import { setChargingProfileOcppMessage } from "./messages/setChargingProfile";
+import { startTransactionOcppMessage } from "./messages/startTransaction";
+import { statusNotificationOcppMessage } from "./messages/statusNotification";
+import { stopTransactionOcppMessage } from "./messages/stopTransaction";
+import { triggerMessageOcppMessage } from "./messages/triggerMessage";
+import { unlockConnectorOcppMessage } from "./messages/unlockConnector";
+import { updateFirmwareOcppMessage } from "./messages/updateFirmware";
+import { diagnosticsStatusNotificationOcppMessage } from "./messages/diagnosticsStatusNotification";
+import { firmwareStatusNotificationOcppMessage } from "./messages/firmwareStatusNotification";
+import { getCompositeScheduleOcppMessage } from "./messages/getCompositeSchedule";
+import { getDiagnosticsOcppMessage } from "./messages/getDiagnostics";
+import { getLocalListVersionOcppMessage } from "./messages/getLocalListVersion";
+import { certificateSignedOcppMessage } from "./messages/certificateSigned";
+import { deleteCertificateOcppMessage } from "./messages/deleteCertificate";
+import { extendedTriggerMessageOcppMessage } from "./messages/extendedTriggerMessage";
+import { getInstalledCertificateIdsOcppMessage } from "./messages/getInstalledCertificateIds";
+import { getLogOcppMessage } from "./messages/getLog";
+import { installCertificateOcppMessage } from "./messages/installCertificate";
+import { logStatusNotificationOcppMessage } from "./messages/logStatusNotification";
+import { signCertificateOcppMessage } from "./messages/signCertificate";
+import { signedFirmwareStatusNotificationOcppMessage } from "./messages/signedFirmwareStatusNotification";
+import { signedUpdateFirmwareOcppMessage } from "./messages/signedUpdateFirmware";
+import { securityEventNotificationOcppMessage } from "./messages/securityEventNotification";
 
-const callHandlers: { [key: string]: CallHandler } = {
-  ClearCache: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-  },
-  ChangeConfiguration: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-  },
-  GetConfiguration: (vcp: VCP, call: OcppCall<GetConfigurationReq>) => {
-    vcp.respond(
-      callResult(call, {
-        configurationKey: [
-          {
-            key: "SupportedFeatureProfiles",
-            readonly: true,
-            value:
-              "Core,FirmwareManagement,LocalAuthListManagement,Reservation,SmartCharging,RemoteTrigger",
-          },
-          {
-            key: "ChargeProfileMaxStackLevel",
-            readonly: true,
-            value: "99",
-          },
-          {
-            key: "HeartbeatInterval",
-            readonly: false,
-            value: "300",
-          },
-          {
-            key: "GetConfigurationMaxKeys",
-            readonly: true,
-            value: "99",
-          },
-        ],
-      })
-    );
-  },
-  Reset: async (vcp: VCP, call: OcppCall) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-    await delay(3000);
-    vcp.close();
-  },
-  SetChargingProfile: (vcp: VCP, call: OcppCall) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-  },
-  ClearChargingProfile: (vcp: VCP, call: OcppCall) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-  },
-  RemoteStartTransaction: (
-    vcp: VCP,
-    call: OcppCall<RemoteStartTransactionReq>
-  ) => {
-    if (!call.payload.connectorId) {
-      vcp.respond(callResult(call, { status: "Rejected" }));
-      return;
-    }
-    if (!transactionManager.canStartNewTransaction(call.payload.connectorId)) {
-      vcp.respond(callResult(call, { status: "Rejected" }));
-      return;
-    }
-    vcp.respond(callResult(call, { status: "Accepted" }));
-    vcp.send(
-      callFactory("StartTransaction", {
-        connectorId: call.payload.connectorId,
-        idTag: call.payload.idTag,
-        meterStart: 0,
-        timestamp: new Date(),
-      })
-    );
-    vcp.send(
-      callFactory("StatusNotification", {
-        connectorId: call.payload.connectorId,
-        errorCode: "NoError",
-        status: "Charging",
-      })
-    );
-  },
-  RemoteStopTransaction: (
-    vcp: VCP,
-    call: OcppCall<RemoteStopTransactionReq>
-  ) => {
-    const transactionId = call.payload.transactionId;
-    const transaction = transactionManager.transactions.get(
-      transactionId.toString()
-    );
-    if (!transaction) {
-      vcp.respond(callResult(call, { status: "Rejected" }));
-      return;
-    }
-    vcp.respond(callResult(call, { status: "Accepted" }));
-    vcp.send(
-      callFactory("StopTransaction", {
-        transactionId: transactionId,
-        meterStop: Math.floor(
-          transactionManager.getMeterValue(transactionId)
-        ),
-        timestamp: new Date(),
-      })
-    );
-    vcp.send(
-      callFactory("StatusNotification", {
-        connectorId: transaction.connectorId,
-        errorCode: "NoError",
-        status: "Available",
-      })
-    );
-  },
-  ReserveNow: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-  },
-  CancelReservation: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-  },
-  UnlockConnector: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Unlocked" }));
-  },
-  TriggerMessage: (vcp: VCP, call: OcppCall<TriggerMessageReq>) => {
-    if (call.payload.requestedMessage === "StatusNotification") {
-      vcp.respond(callResult(call, { status: "Accepted" }));
-    } else {
-      vcp.respond(callResult(call, { status: "NotImplemented" }));
-    }
-  },
-  ChangeAvailability: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-  },
-  DataTransfer: (vcp: VCP, call: OcppCall<any>) => {
-    vcp.respond(callResult(call, { status: "Accepted" }));
-  },
-};
-
-const callResultHandlers: { [key: string]: CallResultHandler } = {
-  BootNotification: (
-    vcp: VCP,
-    _call: OcppCall<any>,
-    _result: OcppCallResult<any>
-  ) => {
-    vcp.configureHeartbeat(60_000);
-  },
-  MeterValues: NOOP,
-  Heartbeat: NOOP,
-  StatusNotification: NOOP,
-  StartTransaction: (
-    vcp: VCP,
-    call: OcppCall<any>,
-    result: OcppCallResult<any>
-  ) => {
-    transactionManager.startTransaction(
-      vcp,
-      result.payload.transactionId,
-      call.payload.connectorId
-    );
-  },
-  StopTransaction: (
-    _vcp: VCP,
-    call: OcppCall<any>,
-    _result: OcppCallResult<any>
-  ) => {
-    transactionManager.stopTransaction(call.payload.transactionId);
-  },
-  Authorize: NOOP,
-  DataTransfer: NOOP,
+export const ocppMessages: {
+  [key: string]: OcppMessage<z.ZodTypeAny, z.ZodTypeAny>;
+} = {
+  Authorize: authorizeOcppMessage,
+  BootNotification: bootNotificationOcppMessage,
+  CancelReservation: cancelReservationOcppMessage,
+  CertificateSigned: certificateSignedOcppMessage,
+  ChangeAvailability: changeAvailabilityOcppMessage,
+  ChangeConfiguration: changeConfigurationOcppMessage,
+  ClearCache: clearCacheOcppMessage,
+  ClearChargingProfile: clearChargingProfileOcppMessage,
+  DataTransfer: dataTransferOcppMessage,
+  DeleteCertificate: deleteCertificateOcppMessage,
+  DiagnosticsStatusNotification: diagnosticsStatusNotificationOcppMessage,
+  ExtendedTriggerMessage: extendedTriggerMessageOcppMessage,
+  FirmwareStatusNotification: firmwareStatusNotificationOcppMessage,
+  GetCompositeSchedule: getCompositeScheduleOcppMessage,
+  GetConfiguration: getConfigurationOcppMessage,
+  GetDiagnostics: getDiagnosticsOcppMessage,
+  GetInstalledCertificateIds: getInstalledCertificateIdsOcppMessage,
+  GetLocalListVersion: getLocalListVersionOcppMessage,
+  GetLog: getLogOcppMessage,
+  Heartbeat: heartbeatOcppMessage,
+  InstallCertificate: installCertificateOcppMessage,
+  LogStatusNotification: logStatusNotificationOcppMessage,
+  MeterValues: meterValuesOcppMessage,
+  RemoteStartTransaction: remoteStartTransactionOcppMessage,
+  RemoteStopTransaction: remoteStopTransactionOcppMessage,
+  ReserveNow: reserveNowOcppMessage,
+  Reset: resetOcppMessage,
+  SendLocalList: sendLocalListOcppMessage,
+  SecurityEventNotification: securityEventNotificationOcppMessage,
+  SetChargingProfile: setChargingProfileOcppMessage,
+  SignCertificate: signCertificateOcppMessage,
+  SignedFirmwareStatusNotification: signedFirmwareStatusNotificationOcppMessage,
+  SignedUpdateFirmware: signedUpdateFirmwareOcppMessage,
+  StartTransaction: startTransactionOcppMessage,
+  StatusNotification: statusNotificationOcppMessage,
+  StopTransaction: stopTransactionOcppMessage,
+  TriggerMessage: triggerMessageOcppMessage,
+  UnlockConnector: unlockConnectorOcppMessage,
+  UpdateFirmware: updateFirmwareOcppMessage,
 };
 
 export const messageHandlerV16: OcppMessageHandler = {
   handleCall: function (vcp: VCP, call: OcppCall<any>): void {
-    const handler = callHandlers[call.action];
-    if (!handler) {
-      throw new Error(`Call handler not implemented for ${call.action}`);
+    const ocppMessage = ocppMessages[call.action];
+    if (!ocppMessage) {
+      throw new Error(`OCPP Message not implemented for ${call.action}`);
     }
-    handler(vcp, call);
+    ocppMessage.reqHandler(vcp, call);
   },
   handleCallResult: function (
     vcp: VCP,
     call: OcppCall<any>,
-    result: OcppCallResult<any>
+    result: OcppCallResult<any>,
   ): void {
-    const handler = callResultHandlers[result.action];
-    if (!handler) {
-      throw new Error(
-        `CallResult handler not implemented for ${result.action}`
-      );
+    const ocppMessage = ocppMessages[result.action];
+    if (!ocppMessage) {
+      throw new Error(`OCPP Message not implemented for ${result.action}`);
     }
-    handler(vcp, call, result);
+    ocppMessage.resHandler(vcp, call, result);
   },
   handleCallError: function (vcp: VCP, error: OcppCallError<any>): void {
     // NOOP

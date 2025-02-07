@@ -1,10 +1,7 @@
 import * as uuid from "uuid";
 import { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
 
-export const call = <T>(
-  action: string,
-  payload: T | {} = {},
-): OcppCall<T | {}> => {
+export const call = <T = {}>(action: string, payload: T): OcppCall<T> => {
   return {
     messageId: uuid.v4(),
     action: action,
@@ -12,9 +9,9 @@ export const call = <T>(
   };
 };
 
-export const callResult = (
+export const callResult = <T>(
   call: OcppCall<any>,
-  payload: any = {},
+  payload: T | {} = {},
 ): OcppCallResult<any> => {
   return {
     messageId: call.messageId,

@@ -1,8 +1,8 @@
-import WebSocket, { WebSocketServer } from "ws";
 import util from "util";
+import WebSocket, { WebSocketServer } from "ws";
 
+import { validateOcppRequest, validateOcppResponse } from "./schemaValidator";
 import { logger } from "./logger";
-import { call } from "./messageFactory";
 import { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
 import {
   OcppMessageHandler,
@@ -10,10 +10,7 @@ import {
 } from "./ocppMessageHandler";
 import { ocppOutbox } from "./ocppOutbox";
 import { OcppVersion, toProtocolVersion } from "./ocppVersion";
-import {
-  validateOcppRequest,
-  validateOcppResponse,
-} from "./jsonSchemaValidator";
+import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
 
 interface VCPOptions {
   ocppVersion: OcppVersion;
@@ -48,8 +45,7 @@ export class VCP {
     logger.info(`Connecting... | ${util.inspect(this.vcpOptions)}`);
     this.isFinishing = false;
     return new Promise((resolve) => {
-      const websocketUrl =
-        `${this.vcpOptions.endpoint}/${this.vcpOptions.chargePointId}`;
+      const websocketUrl = `${this.vcpOptions.endpoint}/${this.vcpOptions.chargePointId}`;
       const protocol = toProtocolVersion(this.vcpOptions.ocppVersion);
       this.ws = new WebSocket(websocketUrl, [protocol], {
         rejectUnauthorized: false,
@@ -67,9 +63,8 @@ export class VCP {
       this.ws.on("pong", () => {
         logger.info("Received PONG");
       });
-      this.ws.on(
-        "close",
-        (code: number, reason: string) => this._onClose(code, reason),
+      this.ws.on("close", (code: number, reason: string) =>
+        this._onClose(code, reason),
       );
     });
   }
@@ -125,7 +120,7 @@ export class VCP {
 
   configureHeartbeat(interval: number) {
     setInterval(() => {
-      this.send(call("Heartbeat"));
+      this.send(heartbeatOcppMessage.request({}));
     }, interval);
   }
 

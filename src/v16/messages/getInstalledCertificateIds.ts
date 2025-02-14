@@ -13,7 +13,7 @@ type GetInstalledCertificateIdsReqType =
 
 const GetInstalledCertificateIdsResSchema = z.object({
   status: z.enum(["Accepted", "NotFound"]),
-  certificateHashDataChain: z
+  certificateHashData: z
     .array(
       z.object({
         hashAlgorithm: z.enum(["SHA256", "SHA384", "SHA512"]),

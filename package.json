@@ -2,20 +2,27 @@
   "name": "ocpp-vcp-nodejs",
   "version": "0.0.1",
   "description": "Simple OCPP Virtual Charging Point",
-  "scripts": {},
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "npx nodemon",
+    "start": "npm run build && node build/src/index.js"
+  },
   "author": "Solidstudio",
   "license": "Apache-2.0",
   "dependencies": {
     "ajv": "^6.12.6",
     "dotenv": "^16.0.0",
+    "fastify": "^5.2.1",
     "typescript": "^4.5.5",
     "uuid": "^8.3.2",
     "winston": "^3.5.1",
     "ws": "^8.4.2"
   },
   "devDependencies": {
+    "@types/node": "^22.13.2",
     "@types/uuid": "^8.3.4",
     "@types/ws": "^8.2.2",
+    "nodemon": "^3.1.9",
     "ts-node": "^10.9.1"
   }
 }

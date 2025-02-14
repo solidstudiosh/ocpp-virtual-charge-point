@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppMessage } from "../../ocppMessage";
 import { IdTokenSchema } from "../../v16/messages/_common";
-import { VCP } from "../../vcp";
+import type { VCP } from "../../vcp";
 import { CertificateHashDataTypeSchema, StatusInfoTypeSchema } from "./_common";
 
 const CustomerInformationReqSchema = z.object({

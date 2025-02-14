@@ -1,7 +1,7 @@
-import { sendAdminCommand } from "../../admin";
+import { securityEventNotificationOcppMessage } from "../../../src/v16/messages/securityEventNotification";
 import { signedFirmwareStatusNotificationOcppMessage } from "../../../src/v16/messages/signedFirmwareStatusNotification";
 import { statusNotificationOcppMessage } from "../../../src/v16/messages/statusNotification";
-import { securityEventNotificationOcppMessage } from "../../../src/v16/messages/securityEventNotification";
+import { sendAdminCommand } from "../../admin";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppMessage,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const NotifySettlementReqSchema = z.object({
   transactionId: z.string().max(36).nullish(),

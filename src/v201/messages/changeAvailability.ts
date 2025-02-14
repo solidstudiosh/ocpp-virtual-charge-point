@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { EVSETypeSchema, StatusInfoTypeSchema } from "./_common";
 import { statusNotificationOcppMessage } from "./statusNotification";
 

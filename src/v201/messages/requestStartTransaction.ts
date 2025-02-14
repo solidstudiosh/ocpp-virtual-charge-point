@@ -1,13 +1,13 @@
-import { z } from "zod";
 import * as uuid from "uuid";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { z } from "zod";
+import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
+import { transactionManager } from "../transactionManager";
 import {
   ChargingProfileSchema,
   IdTokenTypeSchema,
   StatusInfoTypeSchema,
 } from "./_common";
-import { transactionManager } from "../transactionManager";
 import { statusNotificationOcppMessage } from "./statusNotification";
 import { transactionEventOcppMessage } from "./transactionEvent";
 

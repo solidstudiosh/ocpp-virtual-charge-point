@@ -1,12 +1,12 @@
-import { z } from "zod";
-import {
+import type { z } from "zod";
+import type {
   OcppCall,
   OcppCallError,
   OcppCallResult,
   OcppMessage,
 } from "../ocppMessage";
-import { OcppMessageHandler } from "../ocppMessageHandler";
-import { VCP } from "../vcp";
+import type { OcppMessageHandler } from "../ocppMessageHandler";
+import type { VCP } from "../vcp";
 import { authorizeOcppMessage } from "./messages/authorize";
 import { bootNotificationOcppMessage } from "./messages/bootNotification";
 import { cancelReservationOcppMessage } from "./messages/cancelReservation";
@@ -15,8 +15,8 @@ import { changeAvailabilityOcppMessage } from "./messages/changeAvailability";
 import { clearCacheOcppMessage } from "./messages/clearCache";
 import { clearChargingProfileOcppMessage } from "./messages/clearChargingProfile";
 import { clearDisplayMessageOcppMessage } from "./messages/clearDisplayMessage";
-import { clearedChargingLimitOcppMessage } from "./messages/clearedChargingLimit";
 import { clearVariableMonitoringOcppMessage } from "./messages/clearVariableMonitoring";
+import { clearedChargingLimitOcppMessage } from "./messages/clearedChargingLimit";
 import { costUpdatedOcppMessage } from "./messages/costUpdated";
 import { customerInformationOcppMessage } from "./messages/customerInformation";
 import { dataTransferOcppMessage } from "./messages/dataTransfer";
@@ -143,25 +143,29 @@ export const ocppMessages: {
 };
 
 export const messageHandlerV201: OcppMessageHandler = {
-  handleCall: function (vcp: VCP, call: OcppCall<any>): void {
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  handleCall: (vcp: VCP, call: OcppCall<any>): void => {
     const ocppMessage = ocppMessages[call.action];
     if (!ocppMessage) {
       throw new Error(`OCPP Message not implemented for ${call.action}`);
     }
     ocppMessage.reqHandler(vcp, call);
   },
-  handleCallResult: function (
+  handleCallResult: (
     vcp: VCP,
+    // biome-ignore lint/suspicious/noExplicitAny: ocpp types
     call: OcppCall<any>,
+    // biome-ignore lint/suspicious/noExplicitAny: ocpp types
     result: OcppCallResult<any>,
-  ): void {
+  ): void => {
     const ocppMessage = ocppMessages[result.action];
     if (!ocppMessage) {
       throw new Error(`OCPP Message not implemented for ${result.action}`);
     }
     ocppMessage.resHandler(vcp, call, result);
   },
-  handleCallError: function (vcp: VCP, error: OcppCallError<any>): void {
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  handleCallError: (vcp: VCP, error: OcppCallError<any>): void => {
     // NOOP
   },
 };

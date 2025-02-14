@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "description": "Simple OCPP Virtual Charging Point",
   "scripts": {
-    "start": "tsx"
+    "start": "tsx",
+    "lint": "biome lint src",
+    "format": "biome format src"
   },
   "author": "Solidstudio",
   "license": "Apache-2.0",

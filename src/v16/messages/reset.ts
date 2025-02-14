@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppMessage } from "../../ocppMessage";
 import { delay } from "../../utils";
+import type { VCP } from "../../vcp";
 
 const ResetReqSchema = z.object({
   type: z.enum(["Hard", "Soft"]),

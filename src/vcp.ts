@@ -1,15 +1,15 @@
-import util from "util";
+import util from "node:util";
 import WebSocket, { WebSocketServer } from "ws";
 
-import { validateOcppRequest, validateOcppResponse } from "./schemaValidator";
 import { logger } from "./logger";
-import { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
+import type { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
 import {
-  OcppMessageHandler,
+  type OcppMessageHandler,
   resolveMessageHandler,
 } from "./ocppMessageHandler";
 import { ocppOutbox } from "./ocppOutbox";
-import { OcppVersion, toProtocolVersion } from "./ocppVersion";
+import { type OcppVersion, toProtocolVersion } from "./ocppVersion";
+import { validateOcppRequest, validateOcppResponse } from "./schemaValidator";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
 
 interface VCPOptions {
@@ -25,7 +25,7 @@ export class VCP {
   private adminWs?: WebSocketServer;
   private messageHandler: OcppMessageHandler;
 
-  private isFinishing: boolean = false;
+  private isFinishing = false;
 
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
@@ -69,6 +69,7 @@ export class VCP {
     });
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   send(ocppCall: OcppCall<any>) {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
@@ -89,6 +90,7 @@ export class VCP {
     this.ws.send(jsonMessage);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   respond(result: OcppCallResult<any>) {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
@@ -103,6 +105,7 @@ export class VCP {
     this.ws.send(jsonMessage);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   respondError(error: OcppCallError<any>) {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
@@ -133,8 +136,8 @@ export class VCP {
     this.isFinishing = true;
     this.ws.close();
     this.adminWs?.close();
-    delete this.ws;
-    delete this.adminWs;
+    this.ws = undefined;
+    this.adminWs = undefined;
     process.exit(1);
   }
 

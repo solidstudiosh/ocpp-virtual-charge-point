@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { DERControlType, StatusInfoTypeSchema } from "./_common";
 
 const GetDERControlReqSchema = z.object({

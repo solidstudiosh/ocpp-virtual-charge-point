@@ -1,8 +1,12 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
-import { IdTagInfoSchema, IdTokenSchema, MeterValueSchema } from "./_common";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppMessage,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { transactionManager } from "../transactionManager";
+import { IdTagInfoSchema, IdTokenSchema, MeterValueSchema } from "./_common";
 
 const StopTransactionReqSchema = z.object({
   idTag: IdTokenSchema.nullish(),

@@ -1,20 +1,23 @@
-import { z } from "zod";
-import { VCP } from "./vcp";
-import { call, callResult } from "./messageFactory";
+import type { z } from "zod";
 import { logger } from "./logger";
+import { call, callResult } from "./messageFactory";
+import type { VCP } from "./vcp";
 
+// biome-ignore lint/suspicious/noExplicitAny: ocpp types
 export interface OcppCall<T = any> {
   messageId: string;
   action: string;
   payload: T;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: ocpp types
 export interface OcppCallResult<T = any> {
   messageId: string;
   action: string;
   payload: T;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: ocpp types
 export interface OcppCallError<T = any> {
   messageId: string;
   errorCode: string;
@@ -64,6 +67,7 @@ export abstract class OcppMessage<
   };
 
   response = (
+    // biome-ignore lint/suspicious/noExplicitAny: ocpp types
     call: OcppCall<any>,
     payload: z.infer<ResSchema>,
   ): OcppCallResult<z.infer<ResSchema>> => {

@@ -1,8 +1,8 @@
 import { logger } from "./logger";
 import { OcppVersion } from "./ocppVersion";
 import { ocppMessages as ocppMessages16 } from "./v16/messageHandler";
-import { ocppMessages as ocppMessages201 } from "./v201/messageHandler";
 import { ocppMessages as ocppMessages21 } from "./v21/messageHandler";
+import { ocppMessages as ocppMessages201 } from "./v201/messageHandler";
 
 const SCHEMA_VALIDATION_ENABLED = true;
 
@@ -22,6 +22,7 @@ const getOcppMessages = (ocppVersion: OcppVersion) => {
 export const validateOcppRequest = (
   ocppVersion: OcppVersion,
   action: string,
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp message
   payload: any,
 ) => {
   if (!SCHEMA_VALIDATION_ENABLED) {
@@ -39,6 +40,7 @@ export const validateOcppRequest = (
 export const validateOcppResponse = (
   ocppVersion: OcppVersion,
   action: string,
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp message
   payload: any,
 ) => {
   if (!SCHEMA_VALIDATION_ENABLED) {

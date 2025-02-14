@@ -1,5 +1,5 @@
 import { call } from "../messageFactory";
-import { VCP } from "../vcp";
+import type { VCP } from "../vcp";
 
 const METER_VALUES_INTERVAL_SEC = 60;
 
@@ -64,7 +64,7 @@ export class TransactionManager {
 
   stopTransaction(transactionId: string) {
     const transaction = this.transactions.get(transactionId);
-    if (transaction && transaction.meterValuesTimer) {
+    if (transaction?.meterValuesTimer) {
       clearInterval(transaction.meterValuesTimer);
     }
     this.transactions.delete(transactionId);

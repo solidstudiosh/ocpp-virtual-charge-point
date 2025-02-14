@@ -1,7 +1,11 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppMessage,
+} from "../../ocppMessage";
 import { ChargingScheduleSchema } from "../../v16/messages/_common";
+import type { VCP } from "../../vcp";
 import { GenericStatusEnumSchema, StatusInfoTypeSchema } from "./_common";
 
 const NotifyEVChargingScheduleReqSchema = z.object({

@@ -1,8 +1,12 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
-import { ConnectorIdSchema, IdTagInfoSchema, IdTokenSchema } from "./_common";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppMessage,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { transactionManager } from "../transactionManager";
+import { ConnectorIdSchema, IdTagInfoSchema, IdTokenSchema } from "./_common";
 
 const StartTransactionReqSchema = z.object({
   connectorId: ConnectorIdSchema,

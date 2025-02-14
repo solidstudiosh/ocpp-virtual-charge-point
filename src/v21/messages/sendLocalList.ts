@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
-import { IdTokenInfoTypeSchema, StatusInfoTypeSchema } from "./_common";
+import { type OcppCall, OcppMessage } from "../../ocppMessage";
 import { IdTokenSchema } from "../../v16/messages/_common";
+import type { VCP } from "../../vcp";
+import { IdTokenInfoTypeSchema, StatusInfoTypeSchema } from "./_common";
 
 const SendLocalListReqSchema = z.object({
   versionNumber: z.number().int(),

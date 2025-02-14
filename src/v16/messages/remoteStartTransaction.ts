@@ -1,14 +1,14 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
+import { transactionManager } from "../transactionManager";
 import {
   ChargingProfileSchema,
   ConnectorIdSchema,
   IdTokenSchema,
 } from "./_common";
-import { statusNotificationOcppMessage } from "./statusNotification";
 import { startTransactionOcppMessage } from "./startTransaction";
-import { transactionManager } from "../transactionManager";
+import { statusNotificationOcppMessage } from "./statusNotification";
 
 const RemoteStartTransactionReqSchema = z.object({
   connectorId: ConnectorIdSchema.nullish(),

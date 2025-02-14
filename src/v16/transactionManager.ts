@@ -1,4 +1,4 @@
-import { VCP } from "../vcp";
+import type { VCP } from "../vcp";
 import { meterValuesOcppMessage } from "./messages/meterValues";
 
 const METER_VALUES_INTERVAL_SEC = 15;
@@ -52,7 +52,7 @@ export class TransactionManager {
 
   stopTransaction(transactionId: number) {
     const transaction = this.transactions.get(transactionId.toString());
-    if (transaction && transaction.meterValuesTimer) {
+    if (transaction?.meterValuesTimer) {
       clearInterval(transaction.meterValuesTimer);
     }
     this.transactions.delete(transactionId.toString());

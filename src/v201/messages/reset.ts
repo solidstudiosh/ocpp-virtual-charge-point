@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
-import { StatusInfoTypeSchema } from "./_common";
+import { type OcppCall, OcppMessage } from "../../ocppMessage";
 import { delay } from "../../utils";
+import type { VCP } from "../../vcp";
+import { StatusInfoTypeSchema } from "./_common";
 
 const ResetReqSchema = z.object({
   type: z.enum(["Immediate", "OnIdle"]),

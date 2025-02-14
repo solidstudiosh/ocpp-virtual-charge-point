@@ -1,12 +1,12 @@
-import { z } from "zod";
-import {
+import type { z } from "zod";
+import type {
   OcppCall,
   OcppCallError,
   OcppCallResult,
   OcppMessage,
 } from "../ocppMessage";
-import { OcppMessageHandler } from "../ocppMessageHandler";
-import { VCP } from "../vcp";
+import type { OcppMessageHandler } from "../ocppMessageHandler";
+import type { VCP } from "../vcp";
 import { adjustPeriodicEventStreamOcppMessage } from "./messages/adjustPeriodicEventStream";
 import { afrrSignalOcppMessage } from "./messages/afrrSignal";
 import { authorizeOcppMessage } from "./messages/authorize";
@@ -20,9 +20,9 @@ import { clearCacheOcppMessage } from "./messages/clearCache";
 import { clearChargingProfileOcppMessage } from "./messages/clearChargingProfile";
 import { clearDERControlOcppMessage } from "./messages/clearDERControl";
 import { clearDisplayMessageOcppMessage } from "./messages/clearDisplayMessage";
-import { clearedChargingLimitOcppMessage } from "./messages/clearedChargingLimit";
 import { clearTariffsOcppMessage } from "./messages/clearTariffs";
 import { clearVariableMonitoringOcppMessage } from "./messages/clearVariableMonitoring";
+import { clearedChargingLimitOcppMessage } from "./messages/clearedChargingLimit";
 import { closePeriodicEventStreamOcppMessage } from "./messages/closePeriodicEventStream";
 import { costUpdatedOcppMessage } from "./messages/costUpdated";
 import { customerInformationOcppMessage } from "./messages/customerInformation";
@@ -80,8 +80,8 @@ import { resetOcppMessage } from "./messages/reset";
 import { securityEventNotificationOcppMessage } from "./messages/securityEventNotification";
 import { sendLocalListOcppMessage } from "./messages/sendLocalList";
 import { setChargingProfileOcppMessage } from "./messages/setChargingProfile";
-import { setDefaultTariffOcppMessage } from "./messages/setDefaultTariff";
 import { setDERControlOcppMessage } from "./messages/setDERControl";
+import { setDefaultTariffOcppMessage } from "./messages/setDefaultTariff";
 import { setDisplayMessageOcppMessage } from "./messages/setDisplayMessage";
 import { setMonitoringBaseOcppMessage } from "./messages/setMonitoringBase";
 import { setMonitoringLevelOcppMessage } from "./messages/setMonitoringLevel";
@@ -197,25 +197,29 @@ export const ocppMessages: {
 };
 
 export const messageHandlerV21: OcppMessageHandler = {
-  handleCall: function (vcp: VCP, call: OcppCall<any>): void {
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  handleCall: (vcp: VCP, call: OcppCall<any>): void => {
     const ocppMessage = ocppMessages[call.action];
     if (!ocppMessage) {
       throw new Error(`OCPP Message not implemented for ${call.action}`);
     }
     ocppMessage.reqHandler(vcp, call);
   },
-  handleCallResult: function (
+  handleCallResult: (
     vcp: VCP,
+    // biome-ignore lint/suspicious/noExplicitAny: ocpp types
     call: OcppCall<any>,
+    // biome-ignore lint/suspicious/noExplicitAny: ocpp types
     result: OcppCallResult<any>,
-  ): void {
+  ): void => {
     const ocppMessage = ocppMessages[result.action];
     if (!ocppMessage) {
       throw new Error(`OCPP Message not implemented for ${result.action}`);
     }
     ocppMessage.resHandler(vcp, call, result);
   },
-  handleCallError: function (vcp: VCP, error: OcppCallError<any>): void {
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  handleCallError: (vcp: VCP, error: OcppCallError<any>): void => {
     // NOOP
   },
 };

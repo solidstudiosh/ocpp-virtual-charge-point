@@ -4,102 +4,144 @@ import { OcppVersion } from "../ocppVersion";
 import { simulateCharge } from "../vcp_commands/simulateCharge";
 import { bootVCP } from "../vcp_commands/bootVcp";
 import { sleep } from "../utils";
-// import dotenv from "dotenv";
 import "dotenv/config";
+import { v4 as uuid } from "uuid";
+
+interface StartChargePointsRequest {
+  idPrefix: string;
+  count: number;
+  sleepTime: number;
+  startChance: number;
+  testCharge: boolean;
+  duration: number;
+  randomDelay: boolean;
+  isTwinGun: boolean;
+  adminPort?: string;
+  adminPortIncrement?: boolean;
+  ocppVersion?: string;
+}
+
+const vcpList: VCP[] = [];
 
 export const startChargePoints = async (
-  request: FastifyRequest,
+  request: FastifyRequest<{ Body: StartChargePointsRequest }>,
   reply: FastifyReply,
 ) => {
-  const chargePoint = "";
+  const payload = request.body;
 
-  // const idPrefix: string = args["CP_PREFIX"] ?? process.env["CP_PREFIX"] ?? "VCP_";
-  // const count: number = Number(args["COUNT"] ?? process.env["COUNT"] ?? 1);
-  // const sleepTime: number = Number(args["SLEEP_TIME"] ?? process.env["SLEEP_TIME"] ?? 500);
-  // const startChance: number = Number(args["START_CHANCE"] ?? process.env["START_CHANCE"] ?? 100);
-  // const testCharge: boolean = args["TEST_CHARGE"] ?? process.env["TEST_CHARGE"] === "true" ?? false;
-  // const duration: number = Number(args["DURATION"] ?? process.env["DURATION"] ?? 60000);
-  // const randomDelay: boolean = args["RANDOM_DELAY"] ?? process.env["RANDOM_DELAY"] == "true" ?? false;
-  // const isTwinGun: boolean = args["TWIN_GUN"] ?? process.env["TWIN_GUN"] === "true" ?? false;
-  // const adminPort: string|undefined = args["ADMIN_PORT"] ?? process.env["ADMIN_PORT"] ?? undefined;
-  // const adminPortIncrement: boolean = args["ADMIN_PORT_INCREMENT"] ?? process.env["ADMIN_PORT_INCREMENT"] === "true" ?? false;
+  try {
+    run(payload);
 
-  const endpoint = process.env.WS_URL;
+    const response = vcpList.map((vcp: VCP) => {
+      return {
+        uuid: uuid(),
+        isFinishing: vcp.isFinishing,
+        isWaiting: vcp.isWaiting,
+        lastAction: vcp.lastAction,
+        connectorIDs: vcp.connectorIDs,
+        ...vcp.vcpOptions,
+      };
+    });
 
-  async function run() {
-    const vcpList: VCP[] = [];
-    const tasks: Promise<void>[] = []; // Array to hold promises
-    let adminWsPort = undefined;
+    reply.send({ message: `${vcpList.length} VCPs loaded`, data: response });
+  } catch (error) {
+    console.error("Error: " + error);
 
-    for (let i = 1; i <= count; i++) {
-      if ((i == 1 || adminPortIncrement) && adminPort != undefined) {
-        adminWsPort = parseInt(adminPort) + (i - 1);
-      } else {
-        adminWsPort = undefined;
-      }
-
-      let vcp = new VCP({
-        endpoint: endpoint,
-        chargePointId: idPrefix + i,
-        ocppVersion: OcppVersion.OCPP_1_6,
-        isTwinGun: isTwinGun,
-        adminWsPort: adminWsPort,
-      });
-
-      vcpList.push(vcp);
-
-      let task = (async () => {
-        // Start each VCP a second apart
-        await sleep(i * vcpTimeGap);
-        await vcp.connect();
-        await bootVCP(vcp, sleepTime);
-      })();
-      tasks.push(task);
-    }
-
-    // Wait for all VCPs to be connected and initialized
-    await Promise.all(tasks);
-    console.log(`${vcpList.length} VCPs loaded...`);
-
-    // After all VCPs have been initialized, start the simulateCharge function concurrently for each VCP
-    if (testCharge) {
-      const chargeTasks = vcpList.map((vcp) => {
-        // VCP performs simulateCharge based on startChance
-        const randomChance = Math.floor(Math.random() * 100);
-        console.log(`randomChance: ${randomChance}`);
-        if (randomChance <= startChance) {
-          return simulateCharge(vcp, duration, randomDelay);
-        } else {
-          return Promise.resolve();
-        }
-      });
-      await Promise.all(chargeTasks);
-    }
+    reply.code(500).send({ message: "Unable to start VCPs" });
   }
 
-  run().catch(console.error);
+  // run().catch(console.error);
 
-  reply.send(chargePoint);
+  // reply.send({ message: response, vcps: vcpList });
 };
 
-export const getChargePoints = async (
-  request: FastifyRequest,
-  reply: FastifyReply,
-) => {
-  const chargePoints = [];
+// export const getChargePoints = async (
+//   request: FastifyRequest,
+//   reply: FastifyReply,
+// ) => {
+//   const chargePoints = [];
 
-  reply.send(chargePoints);
-};
+//   reply.send(chargePoints);
+// };
 
-export const changeStatus = async (
-  request: FastifyRequest,
-  reply: FastifyReply,
-) => {
-  const chargePoint = {
-    id: "1",
-    name: "Charge Point 1",
-    location: "Location 1",
-  };
+// export const changeStatus = async (
+//   request: FastifyRequest,
+//   reply: FastifyReply,
+// ) => {
+//   const chargePoint = {
+//     id: "1",
+//     name: "Charge Point 1",
+//     location: "Location 1",
+//   };
 
-  reply.send(chargePoint);
-};
+//   reply.send(chargePoint);
+// };
+
+async function run(payload: StartChargePointsRequest) {
+  const {
+    idPrefix,
+    count,
+    sleepTime,
+    startChance,
+    testCharge,
+    duration,
+    randomDelay,
+    isTwinGun,
+    adminPort,
+    adminPortIncrement,
+  } = payload;
+
+  const endpoint = process.env.WS_URL || "ws://127.0.0.1:9000";
+
+  const tasks: Promise<void>[] = [];
+  let adminWsPort = undefined;
+
+  for (let i = 1; i <= count; i++) {
+    if ((i === 1 || adminPortIncrement) && adminPort !== undefined) {
+      adminWsPort = parseInt(adminPort) + (i - 1);
+    } else {
+      adminWsPort = undefined;
+    }
+
+    const vcp = new VCP({
+      endpoint,
+      chargePointId: idPrefix + i,
+      ocppVersion: OcppVersion.OCPP_1_6,
+      isTwinGun,
+      adminWsPort,
+    });
+
+    vcpList.push(vcp);
+
+    const task = (async () => {
+      // Start each VCP a second apart
+      await sleep(i * 1000);
+      await vcp.connect();
+      await bootVCP(vcp, sleepTime);
+    })();
+
+    tasks.push(task);
+  }
+
+  // Wait for all VCPs to be connected and initialized
+  await Promise.all(tasks);
+
+  console.log(`${vcpList.length} VCPs loaded...`);
+
+  // After all VCPs have been initialized, start the simulateCharge function concurrently for each VCP
+  if (testCharge) {
+    const chargeTasks = vcpList.map((vcp) => {
+      // VCP performs simulateCharge based on startChance
+      const randomChance = Math.floor(Math.random() * 100);
+      console.log(`randomChance: ${randomChance}`);
+
+      if (randomChance <= startChance) {
+        return simulateCharge(vcp, duration, randomDelay);
+      } else {
+        return Promise.resolve();
+      }
+    });
+
+    await Promise.all(chargeTasks);
+  }
+}

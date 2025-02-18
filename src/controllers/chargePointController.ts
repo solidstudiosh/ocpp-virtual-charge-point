@@ -23,7 +23,7 @@ interface StartChargePointsRequest {
 
 const vcpList: VCP[] = [];
 
-export const startChargePoints = async (
+export const startVcp = async (
   request: FastifyRequest<{ Body: StartChargePointsRequest }>,
   reply: FastifyReply,
 ) => {
@@ -32,37 +32,31 @@ export const startChargePoints = async (
   try {
     run(payload);
 
-    const response = vcpList.map((vcp: VCP) => {
-      return {
-        uuid: uuid(),
-        isFinishing: vcp.isFinishing,
-        isWaiting: vcp.isWaiting,
-        lastAction: vcp.lastAction,
-        connectorIDs: vcp.connectorIDs,
-        ...vcp.vcpOptions,
-      };
-    });
-
-    reply.send({ message: `${vcpList.length} VCPs loaded`, data: response });
+    reply.send({ message: `${vcpList.length} VCPs started` });
   } catch (error) {
     console.error("Error: " + error);
 
     reply.code(500).send({ message: "Unable to start VCPs" });
   }
-
-  // run().catch(console.error);
-
-  // reply.send({ message: response, vcps: vcpList });
 };
 
-// export const getChargePoints = async (
-//   request: FastifyRequest,
-//   reply: FastifyReply,
-// ) => {
-//   const chargePoints = [];
+export const getVcpStatus = async (
+  request: FastifyRequest,
+  reply: FastifyReply,
+) => {
+  const response = vcpList.map((vcp: VCP) => {
+    return {
+      uuid: uuid(),
+      isFinishing: vcp.isFinishing,
+      isWaiting: vcp.isWaiting,
+      lastAction: vcp.lastAction,
+      connectorIDs: vcp.connectorIDs,
+      ...vcp.vcpOptions,
+    };
+  });
 
-//   reply.send(chargePoints);
-// };
+  reply.send({ data: response });
+};
 
 // export const changeStatus = async (
 //   request: FastifyRequest,

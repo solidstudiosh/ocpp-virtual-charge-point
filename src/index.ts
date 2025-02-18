@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { startChargePoints } from "./controllers/chargePointController";
+import { getVcpStatus, startVcp } from "./controllers/chargePointController";
 
 const fastify = require("fastify")({
   logger: true,
@@ -8,7 +8,8 @@ const fastify = require("fastify")({
 const host = process.env.HOST || "0.0.0.0";
 const port = process.env.PORT || 3000;
 
-fastify.post("/api/vcp/start", startChargePoints);
+fastify.post("/api/vcp/start", startVcp);
+fastify.get("/api/vcp/status", getVcpStatus);
 
 const start = async () => {
   try {

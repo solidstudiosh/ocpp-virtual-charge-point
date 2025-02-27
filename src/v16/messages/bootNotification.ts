@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -26,7 +26,7 @@ const BootNotificationResSchema = z.object({
 });
 type BootNotificationResType = typeof BootNotificationResSchema;
 
-class BootNotificationOcppMessage extends OcppMessage<
+class BootNotificationOcppMessage extends OcppOutgoing<
   BootNotificationReqType,
   BootNotificationResType
 > {

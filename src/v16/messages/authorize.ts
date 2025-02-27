@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { IdTagInfoSchema } from "./_common";
@@ -17,7 +17,7 @@ const AuthorizeResSchema = z.object({
 });
 type AuthorizeResType = typeof AuthorizeResSchema;
 
-class AuthorizeOcppMessage extends OcppMessage<
+class AuthorizeOcppMessage extends OcppOutgoing<
   AuthorizeReqType,
   AuthorizeResType
 > {

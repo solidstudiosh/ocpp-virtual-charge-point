@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { transactionManager } from "../transactionManager";
@@ -23,7 +23,7 @@ const StartTransactionResSchema = z.object({
 });
 type StartTransactionResType = typeof StartTransactionResSchema;
 
-class StartTransactionOcppMessage extends OcppMessage<
+class StartTransactionOcppMessage extends OcppOutgoing<
   StartTransactionReqType,
   StartTransactionResType
 > {

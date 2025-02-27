@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
 const InstallCertificateReqSchema = z.object({
@@ -16,7 +16,7 @@ const InstallCertificateResSchema = z.object({
 });
 type InstallCertificateResType = typeof InstallCertificateResSchema;
 
-class InstallCertificateOcppMessage extends OcppMessage<
+class InstallCertificateOcppMessage extends OcppIncoming<
   InstallCertificateReqType,
   InstallCertificateResType
 > {

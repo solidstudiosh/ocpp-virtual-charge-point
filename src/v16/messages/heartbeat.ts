@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -14,7 +14,7 @@ const HeartbeatResSchema = z.object({
 });
 type HeartbeatResType = typeof HeartbeatResSchema;
 
-class HeartbeatOcppMessage extends OcppMessage<
+class HeartbeatOcppMessage extends OcppOutgoing<
   HeartbeatReqType,
   HeartbeatResType
 > {

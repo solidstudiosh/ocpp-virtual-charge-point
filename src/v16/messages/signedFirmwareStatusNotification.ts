@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -32,7 +32,7 @@ const SignedFirmwareStatusNotificationResSchema = z.object({});
 type SignedFirmwareStatusNotificationResType =
   typeof SignedFirmwareStatusNotificationResSchema;
 
-class SignedFirmwareStatusNotificationOcppMessage extends OcppMessage<
+class SignedFirmwareStatusNotificationOcppMessage extends OcppOutgoing<
   SignedFirmwareStatusNotificationReqType,
   SignedFirmwareStatusNotificationResType
 > {

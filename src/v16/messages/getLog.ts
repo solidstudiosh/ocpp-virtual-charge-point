@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
 const GetLogReqSchema = z.object({
@@ -21,7 +21,7 @@ const GetLogResSchema = z.object({
 });
 type GetLogResType = typeof GetLogResSchema;
 
-class GetLogOcppMessage extends OcppMessage<GetLogReqType, GetLogResType> {
+class GetLogOcppMessage extends OcppIncoming<GetLogReqType, GetLogResType> {
   reqHandler = async (
     vcp: VCP,
     call: OcppCall<z.infer<GetLogReqType>>,

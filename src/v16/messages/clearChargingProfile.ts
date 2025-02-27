@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { ConnectorIdSchema } from "./_common";
 
@@ -18,7 +18,7 @@ const ClearChargingProfileResSchema = z.object({
 });
 type ClearChargingProfileResType = typeof ClearChargingProfileResSchema;
 
-class ClearChargingProfileOcppMessage extends OcppMessage<
+class ClearChargingProfileOcppMessage extends OcppIncoming<
   ClearChargingProfileReqType,
   ClearChargingProfileResType
 > {

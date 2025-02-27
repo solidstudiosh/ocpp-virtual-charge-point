@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { transactionManager } from "../transactionManager";
 import { statusNotificationOcppMessage } from "./statusNotification";
@@ -15,7 +15,7 @@ const RemoteStopTransactionResSchema = z.object({
 });
 type RemoteStopTransactionResType = typeof RemoteStopTransactionResSchema;
 
-class RemoteStopTransactionOcppMessage extends OcppMessage<
+class RemoteStopTransactionOcppMessage extends OcppIncoming<
   RemoteStopTransactionReqType,
   RemoteStopTransactionResType
 > {

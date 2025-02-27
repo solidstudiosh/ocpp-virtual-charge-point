@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
 const CertificateSignedReqSchema = z.object({
@@ -12,7 +12,7 @@ const CertificateSignedResSchema = z.object({
 });
 type CertificateSignedResType = typeof CertificateSignedResSchema;
 
-class CertificateSignedOcppMessage extends OcppMessage<
+class CertificateSignedOcppMessage extends OcppIncoming<
   CertificateSignedReqType,
   CertificateSignedResType
 > {

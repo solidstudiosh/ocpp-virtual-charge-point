@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { ChargingScheduleSchema, ConnectorIdSchema } from "./_common";
 
@@ -18,7 +18,7 @@ const GetCompositeScheduleResSchema = z.object({
 });
 type GetCompositeScheduleResType = typeof GetCompositeScheduleResSchema;
 
-class GetCompositeScheduleOcppMessage extends OcppMessage<
+class GetCompositeScheduleOcppMessage extends OcppIncoming<
   GetCompositeScheduleReqType,
   GetCompositeScheduleResType
 > {

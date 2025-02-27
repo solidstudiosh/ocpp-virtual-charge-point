@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -16,7 +16,7 @@ const DiagnosticsStatusNotificationResSchema = z.object({});
 type DiagnosticsStatusNotificationResType =
   typeof DiagnosticsStatusNotificationResSchema;
 
-class DiagnosticsStatusNotificationOcppMessage extends OcppMessage<
+class DiagnosticsStatusNotificationOcppMessage extends OcppOutgoing<
   DiagnosticsStatusNotificationReqType,
   DiagnosticsStatusNotificationResType
 > {

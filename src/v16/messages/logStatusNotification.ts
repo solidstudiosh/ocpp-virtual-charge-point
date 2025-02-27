@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -23,7 +23,7 @@ type LogStatusNotificationReqType = typeof LogStatusNotificationReqSchema;
 const LogStatusNotificationResSchema = z.object({});
 type LogStatusNotificationResType = typeof LogStatusNotificationResSchema;
 
-class LogStatusNotificationOcppMessage extends OcppMessage<
+class LogStatusNotificationOcppMessage extends OcppOutgoing<
   LogStatusNotificationReqType,
   LogStatusNotificationResType
 > {

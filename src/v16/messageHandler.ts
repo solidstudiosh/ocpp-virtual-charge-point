@@ -3,7 +3,8 @@ import type {
   OcppCall,
   OcppCallError,
   OcppCallResult,
-  OcppMessage,
+  OcppIncoming,
+  OcppOutgoing,
 } from "../ocppMessage";
 import type { OcppMessageHandler } from "../ocppMessageHandler";
 import type { VCP } from "../vcp";
@@ -15,7 +16,10 @@ import { changeAvailabilityOcppMessage } from "./messages/changeAvailability";
 import { changeConfigurationOcppMessage } from "./messages/changeConfiguration";
 import { clearCacheOcppMessage } from "./messages/clearCache";
 import { clearChargingProfileOcppMessage } from "./messages/clearChargingProfile";
-import { dataTransferOcppMessage } from "./messages/dataTransfer";
+import {
+  dataTransferIncomingOcppMessage,
+  dataTransferOutgoingOcppMessage,
+} from "./messages/dataTransfer";
 import { deleteCertificateOcppMessage } from "./messages/deleteCertificate";
 import { diagnosticsStatusNotificationOcppMessage } from "./messages/diagnosticsStatusNotification";
 import { extendedTriggerMessageOcppMessage } from "./messages/extendedTriggerMessage";
@@ -39,7 +43,10 @@ import { sendLocalListOcppMessage } from "./messages/sendLocalList";
 import { setChargingProfileOcppMessage } from "./messages/setChargingProfile";
 import { signCertificateOcppMessage } from "./messages/signCertificate";
 import { signedFirmwareStatusNotificationOcppMessage } from "./messages/signedFirmwareStatusNotification";
-import { signedUpdateFirmwareOcppMessage } from "./messages/signedUpdateFirmware";
+import {
+  signedUpdateFirmwareIncomingOcppMessage,
+  signedUpdateFirmwareOutgoingOcppMessage,
+} from "./messages/signedUpdateFirmware";
 import { startTransactionOcppMessage } from "./messages/startTransaction";
 import { statusNotificationOcppMessage } from "./messages/statusNotification";
 import { stopTransactionOcppMessage } from "./messages/stopTransaction";
@@ -47,56 +54,71 @@ import { triggerMessageOcppMessage } from "./messages/triggerMessage";
 import { unlockConnectorOcppMessage } from "./messages/unlockConnector";
 import { updateFirmwareOcppMessage } from "./messages/updateFirmware";
 
-export const ocppMessages: {
-  [key: string]: OcppMessage<z.ZodTypeAny, z.ZodTypeAny>;
+// Collection for incoming messages (used for handleCall)
+export const ocppIncoming: {
+  [key: string]: OcppIncoming<z.ZodTypeAny, z.ZodTypeAny>;
 } = {
-  Authorize: authorizeOcppMessage,
-  BootNotification: bootNotificationOcppMessage,
   CancelReservation: cancelReservationOcppMessage,
   CertificateSigned: certificateSignedOcppMessage,
   ChangeAvailability: changeAvailabilityOcppMessage,
   ChangeConfiguration: changeConfigurationOcppMessage,
   ClearCache: clearCacheOcppMessage,
   ClearChargingProfile: clearChargingProfileOcppMessage,
-  DataTransfer: dataTransferOcppMessage,
+  DataTransfer: dataTransferIncomingOcppMessage,
   DeleteCertificate: deleteCertificateOcppMessage,
-  DiagnosticsStatusNotification: diagnosticsStatusNotificationOcppMessage,
   ExtendedTriggerMessage: extendedTriggerMessageOcppMessage,
-  FirmwareStatusNotification: firmwareStatusNotificationOcppMessage,
   GetCompositeSchedule: getCompositeScheduleOcppMessage,
   GetConfiguration: getConfigurationOcppMessage,
   GetDiagnostics: getDiagnosticsOcppMessage,
   GetInstalledCertificateIds: getInstalledCertificateIdsOcppMessage,
   GetLocalListVersion: getLocalListVersionOcppMessage,
   GetLog: getLogOcppMessage,
-  Heartbeat: heartbeatOcppMessage,
   InstallCertificate: installCertificateOcppMessage,
-  LogStatusNotification: logStatusNotificationOcppMessage,
-  MeterValues: meterValuesOcppMessage,
   RemoteStartTransaction: remoteStartTransactionOcppMessage,
   RemoteStopTransaction: remoteStopTransactionOcppMessage,
   ReserveNow: reserveNowOcppMessage,
   Reset: resetOcppMessage,
   SendLocalList: sendLocalListOcppMessage,
-  SecurityEventNotification: securityEventNotificationOcppMessage,
   SetChargingProfile: setChargingProfileOcppMessage,
-  SignCertificate: signCertificateOcppMessage,
-  SignedFirmwareStatusNotification: signedFirmwareStatusNotificationOcppMessage,
-  SignedUpdateFirmware: signedUpdateFirmwareOcppMessage,
-  StartTransaction: startTransactionOcppMessage,
-  StatusNotification: statusNotificationOcppMessage,
-  StopTransaction: stopTransactionOcppMessage,
+  SignedUpdateFirmware: signedUpdateFirmwareIncomingOcppMessage,
   TriggerMessage: triggerMessageOcppMessage,
   UnlockConnector: unlockConnectorOcppMessage,
   UpdateFirmware: updateFirmwareOcppMessage,
 };
 
+// Collection for outgoing messages (used for handleCallResult)
+export const ocppOutgoing: {
+  [key: string]: OcppOutgoing<z.ZodTypeAny, z.ZodTypeAny>;
+} = {
+  Authorize: authorizeOcppMessage,
+  BootNotification: bootNotificationOcppMessage,
+  DataTransfer: dataTransferOutgoingOcppMessage,
+  DiagnosticsStatusNotification: diagnosticsStatusNotificationOcppMessage,
+  FirmwareStatusNotification: firmwareStatusNotificationOcppMessage,
+  Heartbeat: heartbeatOcppMessage,
+  LogStatusNotification: logStatusNotificationOcppMessage,
+  MeterValues: meterValuesOcppMessage,
+  SecurityEventNotification: securityEventNotificationOcppMessage,
+  SignCertificate: signCertificateOcppMessage,
+  SignedFirmwareStatusNotification: signedFirmwareStatusNotificationOcppMessage,
+  SignedUpdateFirmware: signedUpdateFirmwareOutgoingOcppMessage,
+  StartTransaction: startTransactionOcppMessage,
+  StatusNotification: statusNotificationOcppMessage,
+  StopTransaction: stopTransactionOcppMessage,
+};
+
+// For backward compatibility
+export const ocppMessages = {
+  ...ocppIncoming,
+  ...ocppOutgoing,
+};
+
 export const messageHandlerV16: OcppMessageHandler = {
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   handleCall: (vcp: VCP, call: OcppCall<any>): void => {
-    const ocppMessage = ocppMessages[call.action];
+    const ocppMessage = ocppIncoming[call.action];
     if (!ocppMessage) {
-      throw new Error(`OCPP Message not implemented for ${call.action}`);
+      throw new Error(`OCPP Incoming Message not implemented for ${call.action}`);
     }
     ocppMessage.reqHandler(vcp, call);
   },
@@ -107,9 +129,9 @@ export const messageHandlerV16: OcppMessageHandler = {
     // biome-ignore lint/suspicious/noExplicitAny: ocpp types
     result: OcppCallResult<any>,
   ): void => {
-    const ocppMessage = ocppMessages[result.action];
+    const ocppMessage = ocppOutgoing[result.action];
     if (!ocppMessage) {
-      throw new Error(`OCPP Message not implemented for ${result.action}`);
+      throw new Error(`OCPP Outgoing Message not implemented for ${result.action}`);
     }
     ocppMessage.resHandler(vcp, call, result);
   },

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { ChargingProfileSchema, ConnectorIdSchema } from "./_common";
 
@@ -14,7 +14,7 @@ const SetChargingProfileResSchema = z.object({
 });
 type SetChargingProfileResType = typeof SetChargingProfileResSchema;
 
-class SetChargingProfileOcppMessage extends OcppMessage<
+class SetChargingProfileOcppMessage extends OcppIncoming<
   SetChargingProfileReqType,
   SetChargingProfileResType
 > {

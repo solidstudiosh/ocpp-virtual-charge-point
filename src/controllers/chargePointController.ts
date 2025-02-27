@@ -6,25 +6,13 @@ import { bootVCP } from "../vcp_commands/bootVcp";
 import { sleep } from "../utils";
 import "dotenv/config";
 import { v4 as uuid } from "uuid";
+import WebSocket from "ws";
+import { ChangeVcpStatusRequest, StartVcpRequest } from "../schema";
 
-interface StartChargePointsRequest {
-  idPrefix: string;
-  count: number;
-  sleepTime: number;
-  startChance: number;
-  testCharge: boolean;
-  duration: number;
-  randomDelay: boolean;
-  isTwinGun: boolean;
-  adminPort?: string;
-  adminPortIncrement?: boolean;
-  ocppVersion?: string;
-}
-
-const vcpList: VCP[] = [];
+let vcpList: VCP[] = [];
 
 export const startVcp = async (
-  request: FastifyRequest<{ Body: StartChargePointsRequest }>,
+  request: FastifyRequest<{ Body: StartVcpRequest }>,
   reply: FastifyReply,
 ) => {
   const payload = request.body;
@@ -38,6 +26,36 @@ export const startVcp = async (
 
     reply.code(500).send({ message: "Unable to start VCPs" });
   }
+};
+
+export const stopVcp = async (request: FastifyRequest, reply: FastifyReply) => {
+  vcpList = [];
+
+  reply.send({ message: "All VCPs stopped" });
+};
+
+export const changeVcpStatus = async (
+  request: FastifyRequest<{ Body: ChangeVcpStatusRequest }>,
+  reply: FastifyReply,
+) => {
+  const { action, payload } = request.body;
+
+  const adminWsUrl = process.env.ADMIN_WS_URL || "ws://127.0.0.1:9999";
+  const adminWs = new WebSocket(adminWsUrl);
+
+  adminWs.on("open", () => {
+    adminWs.send(
+      JSON.stringify({
+        action,
+        messageId: uuid(),
+        payload,
+      }),
+    );
+
+    adminWs.close();
+  });
+
+  reply.send({ message: "Status updated" });
 };
 
 export const getVcpStatus = async (
@@ -58,20 +76,7 @@ export const getVcpStatus = async (
   reply.send({ data: response });
 };
 
-// export const changeStatus = async (
-//   request: FastifyRequest,
-//   reply: FastifyReply,
-// ) => {
-//   const chargePoint = {
-//     id: "1",
-//     name: "Charge Point 1",
-//     location: "Location 1",
-//   };
-
-//   reply.send(chargePoint);
-// };
-
-async function run(payload: StartChargePointsRequest) {
+async function run(payload: StartVcpRequest) {
   const {
     idPrefix,
     count,

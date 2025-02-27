@@ -3,205 +3,219 @@ import type {
   OcppCall,
   OcppCallError,
   OcppCallResult,
-  OcppMessage,
+  OcppIncoming,
+  OcppOutgoing,
 } from "../ocppMessage";
 import type { OcppMessageHandler } from "../ocppMessageHandler";
 import type { VCP } from "../vcp";
-import { adjustPeriodicEventStreamOcppMessage } from "./messages/adjustPeriodicEventStream";
-import { afrrSignalOcppMessage } from "./messages/afrrSignal";
-import { authorizeOcppMessage } from "./messages/authorize";
-import { batterySwapOcppMessage } from "./messages/batterySwap";
-import { bootNotificationOcppMessage } from "./messages/bootNotification";
-import { cancelReservationOcppMessage } from "./messages/cancelReservation";
-import { certificateSignedOcppMessage } from "./messages/certificateSigned";
-import { changeAvailabilityOcppMessage } from "./messages/changeAvailability";
-import { changeTransactionTariffOcppMessage } from "./messages/changeTransactionTariff";
-import { clearCacheOcppMessage } from "./messages/clearCache";
-import { clearChargingProfileOcppMessage } from "./messages/clearChargingProfile";
-import { clearDERControlOcppMessage } from "./messages/clearDERControl";
-import { clearDisplayMessageOcppMessage } from "./messages/clearDisplayMessage";
-import { clearTariffsOcppMessage } from "./messages/clearTariffs";
-import { clearVariableMonitoringOcppMessage } from "./messages/clearVariableMonitoring";
-import { clearedChargingLimitOcppMessage } from "./messages/clearedChargingLimit";
-import { closePeriodicEventStreamOcppMessage } from "./messages/closePeriodicEventStream";
-import { costUpdatedOcppMessage } from "./messages/costUpdated";
-import { customerInformationOcppMessage } from "./messages/customerInformation";
-import { dataTransferOcppMessage } from "./messages/dataTransfer";
-import { deleteCertificateOcppMessage } from "./messages/deleteCertificate";
-import { firmwareStatusNotificationOcppMessage } from "./messages/firmwareStatusNotification";
-import { get15118EVCertificateOcppMessage } from "./messages/get15118EVCertificate";
-import { getBaseReportOcppMessage } from "./messages/getBaseReport";
-import { getCertificateChainStatusOcppMessage } from "./messages/getCertificateChainStatus";
-import { getCertificateStatusOcppMessage } from "./messages/getCertificateStatus";
-import { getChargingProfilesOcppMessage } from "./messages/getChargingProfiles";
-import { getCompositeScheduleOcppMessage } from "./messages/getCompositeSchedule";
-import { getDERControlOcppMessage } from "./messages/getDERControl";
-import { getDisplayMessagesOcppMessage } from "./messages/getDisplayMessages";
-import { getInstalledCertificateIdsOcppMessage } from "./messages/getInstalledCertificateIds";
-import { getLocalListVersionOcppMessage } from "./messages/getLocalListVersion";
-import { getLogOcppMessage } from "./messages/getLog";
-import { getMonitoringReportOcppMessage } from "./messages/getMonitoringReport";
-import { getPeriodicEventStreamOcppMessage } from "./messages/getPeriodicEventStream";
-import { getReportOcppMessage } from "./messages/getReport";
-import { getTariffsOcppMessage } from "./messages/getTariffs";
-import { getTransactionStatusOcppMessage } from "./messages/getTransactionStatus";
-import { getVariablesOcppMessage } from "./messages/getVariables";
-import { heartbeatOcppMessage } from "./messages/heartbeat";
-import { installCertificateOcppMessage } from "./messages/installCertificate";
-import { logStatusNotificationOcppMessage } from "./messages/logStatusNotification";
-import { meterValuesOcppMessage } from "./messages/meterValues";
-import { notifyAllowedEnergyTransferOcppMessage } from "./messages/notifyAllowedEnergyTransfer";
-import { notifyChargingLimitOcppMessage } from "./messages/notifyChargingLimit";
-import { notifyCustomerInformationOcppMessage } from "./messages/notifyCustomerInformation";
-import { notifyDERAlarmOcppMessage } from "./messages/notifyDERAlarm";
-import { notifyDERStartStopOcppMessage } from "./messages/notifyDERStartStop";
-import { notifyDisplayMessagesOcppMessage } from "./messages/notifyDisplayMessages";
-import { notifyEVChargingNeedsOcppMessage } from "./messages/notifyEVChargingNeeds";
-import { notifyEVChargingScheduleOcppMessage } from "./messages/notifyEVChargingSchedule";
-import { notifyEventOcppMessage } from "./messages/notifyEvent";
-import { notifyMonitoringReportOcppMessage } from "./messages/notifyMonitoringReport";
-import { notifyPeriodicEventStreamOcppMessage } from "./messages/notifyPeriodicEventStream";
-import { notifyPriorityChargingOcppMessage } from "./messages/notifyPriorityCharging";
-import { notifyReportOcppMessage } from "./messages/notifyReport";
-import { notifySettlementOcppMessage } from "./messages/notifySettlement";
-import { notifyWebPaymentStartedOcppMessage } from "./messages/notifyWebPaymentStarted";
-import { openPeriodicEventStreamOcppMessage } from "./messages/openPeriodicEventStream";
-import { publishFirmwareOcppMessage } from "./messages/publishFirmware";
-import { publishFirmwareStatusNotificationOcppMessage } from "./messages/publishFirmwareStatusNotification";
-import { pullDynamicScheduleUpdateOcppMessage } from "./messages/pullDynamicScheduleUpdate";
-import { reportChargingProfilesOcppMessage } from "./messages/reportChargingProfiles";
-import { reportDERControlOcppMessage } from "./messages/reportDERControl";
-import { requestBatterySwapOcppMessage } from "./messages/requestBatterySwap";
-import { requestStartTransactionOcppMessage } from "./messages/requestStartTransaction";
-import { requestStopTransactionOcppMessage } from "./messages/requestStopTransaction";
-import { reservationStatusUpdateOcppMessage } from "./messages/reservationStatusUpdate";
-import { reserveNowOcppMessage } from "./messages/reserveNow";
-import { resetOcppMessage } from "./messages/reset";
-import { securityEventNotificationOcppMessage } from "./messages/securityEventNotification";
-import { sendLocalListOcppMessage } from "./messages/sendLocalList";
-import { setChargingProfileOcppMessage } from "./messages/setChargingProfile";
-import { setDERControlOcppMessage } from "./messages/setDERControl";
-import { setDefaultTariffOcppMessage } from "./messages/setDefaultTariff";
-import { setDisplayMessageOcppMessage } from "./messages/setDisplayMessage";
-import { setMonitoringBaseOcppMessage } from "./messages/setMonitoringBase";
-import { setMonitoringLevelOcppMessage } from "./messages/setMonitoringLevel";
-import { setNetworkProfileOcppMessage } from "./messages/setNetworkProfile";
-import { setVariableMonitoringOcppMessage } from "./messages/setVariableMonitoring";
-import { setVariablesOcppMessage } from "./messages/setVariables";
-import { signCertificateOcppMessage } from "./messages/signCertificate";
-import { statusNotificationOcppMessage } from "./messages/statusNotification";
-import { transactionEventOcppMessage } from "./messages/transactionEvent";
-import { triggerMessageOcppMessage } from "./messages/triggerMessage";
-import { unlockConnectorOcppMessage } from "./messages/unlockConnector";
-import { unpublishFirmwareOcppMessage } from "./messages/unpublishFirmware";
-import { updateDynamicScheduleOcppMessage } from "./messages/updateDynamicSchedule";
-import { updateFirmwareOcppMessage } from "./messages/updateFirmware";
-import { usePriorityChargingOcppMessage } from "./messages/usePriorityCharging";
-import { vatNumberValidationOcppMessage } from "./messages/vatNumberValidation";
+import { adjustPeriodicEventStreamOcppIncoming } from "./messages/adjustPeriodicEventStream";
+import { afrrSignalOcppIncoming } from "./messages/afrrSignal";
+import { authorizeOcppOutgoing } from "./messages/authorize";
+import { batterySwapOcppOutgoing } from "./messages/batterySwap";
+import { bootNotificationOcppOutgoing } from "./messages/bootNotification";
+import { cancelReservationOcppOutgoing } from "./messages/cancelReservation";
+import { certificateSignedOcppOutgoing } from "./messages/certificateSigned";
+import { changeAvailabilityOcppIncoming } from "./messages/changeAvailability";
+import { changeTransactionTariffOcppIncoming } from "./messages/changeTransactionTariff";
+import { clearCacheOcppIncoming } from "./messages/clearCache";
+import { clearChargingProfileOcppIncoming } from "./messages/clearChargingProfile";
+import { clearDERControlOcppIncoming } from "./messages/clearDERControl";
+import { clearDisplayMessageOcppIncoming } from "./messages/clearDisplayMessage";
+import { clearTariffsOcppIncoming } from "./messages/clearTariffs";
+import { clearVariableMonitoringOcppIncoming } from "./messages/clearVariableMonitoring";
+import { clearedChargingLimitOcppOutgoing } from "./messages/clearedChargingLimit";
+import { closePeriodicEventStreamOcppOutgoing } from "./messages/closePeriodicEventStream";
+import { costUpdatedOcppIncoming } from "./messages/costUpdated";
+import { customerInformationOcppIncoming } from "./messages/customerInformation";
+import {
+  dataTransferOcppIncoming,
+  dataTransferOcppOutgoing,
+} from "./messages/dataTransfer";
+import { deleteCertificateOcppIncoming } from "./messages/deleteCertificate";
+import { firmwareStatusNotificationOcppOutgoing } from "./messages/firmwareStatusNotification";
+import { get15118EVCertificateOcppIncoming } from "./messages/get15118EVCertificate";
+import { getBaseReportOcppIncoming } from "./messages/getBaseReport";
+import { getCertificateChainStatusOcppOutgoing } from "./messages/getCertificateChainStatus";
+import { getCertificateStatusOcppOutgoing } from "./messages/getCertificateStatus";
+import { getChargingProfilesOcppIncoming } from "./messages/getChargingProfiles";
+import { getCompositeScheduleOcppIncoming } from "./messages/getCompositeSchedule";
+import { getDERControlOcppIncoming } from "./messages/getDERControl";
+import { getDisplayMessagesOcppIncoming } from "./messages/getDisplayMessages";
+import { getInstalledCertificateIdsOcppIncoming } from "./messages/getInstalledCertificateIds";
+import { getLocalListVersionOcppIncoming } from "./messages/getLocalListVersion";
+import { getLogOcppIncoming } from "./messages/getLog";
+import { getMonitoringReportOcppIncoming } from "./messages/getMonitoringReport";
+import { getPeriodicEventStreamOcppIncoming } from "./messages/getPeriodicEventStream";
+import { getReportOcppIncoming } from "./messages/getReport";
+import { getTariffsOcppIncoming } from "./messages/getTariffs";
+import { getTransactionStatusOcppIncoming } from "./messages/getTransactionStatus";
+import { getVariablesOcppIncoming } from "./messages/getVariables";
+import { heartbeatOcppOutgoing } from "./messages/heartbeat";
+import { installCertificateOcppIncoming } from "./messages/installCertificate";
+import { logStatusNotificationOcppOutgoing } from "./messages/logStatusNotification";
+import { meterValuesOcppOutgoing } from "./messages/meterValues";
+import { notifyAllowedEnergyTransferOcppIncoming } from "./messages/notifyAllowedEnergyTransfer";
+import { notifyChargingLimitOcppOutgoing } from "./messages/notifyChargingLimit";
+import { notifyCustomerInformationOcppOutgoing } from "./messages/notifyCustomerInformation";
+import { notifyDERAlarmOcppOutgoing } from "./messages/notifyDERAlarm";
+import { notifyDERStartStopOcppOutgoing } from "./messages/notifyDERStartStop";
+import { notifyDisplayMessagesOcppOutgoing } from "./messages/notifyDisplayMessages";
+import { notifyEVChargingNeedsOcppOutgoing } from "./messages/notifyEVChargingNeeds";
+import { notifyEVChargingScheduleOcppOutgoing } from "./messages/notifyEVChargingSchedule";
+import { notifyEventOcppOutgoing } from "./messages/notifyEvent";
+import { notifyMonitoringReportOcppOutgoing } from "./messages/notifyMonitoringReport";
+import { notifyPeriodicEventStreamOcppOutgoing } from "./messages/notifyPeriodicEventStream";
+import { notifyPriorityChargingOcppOutgoing } from "./messages/notifyPriorityCharging";
+import { notifyReportOcppOutgoing } from "./messages/notifyReport";
+import { notifySettlementOcppOutgoing } from "./messages/notifySettlement";
+import { notifyWebPaymentStartedOcppOutgoing } from "./messages/notifyWebPaymentStarted";
+import { openPeriodicEventStreamOcppOutgoing } from "./messages/openPeriodicEventStream";
+import { publishFirmwareOcppIncoming } from "./messages/publishFirmware";
+import { publishFirmwareStatusNotificationOcppOutgoing } from "./messages/publishFirmwareStatusNotification";
+import { pullDynamicScheduleUpdateOcppOutgoing } from "./messages/pullDynamicScheduleUpdate";
+import { reportChargingProfilesOcppOutgoing } from "./messages/reportChargingProfiles";
+import { reportDERControlOcppOutgoing } from "./messages/reportDERControl";
+import { requestBatterySwapOcppOutgoing } from "./messages/requestBatterySwap";
+import { requestStartTransactionOcppIncoming } from "./messages/requestStartTransaction";
+import { requestStopTransactionOcppIncoming } from "./messages/requestStopTransaction";
+import { reservationStatusUpdateOcppOutgoing } from "./messages/reservationStatusUpdate";
+import { reserveNowOcppIncoming } from "./messages/reserveNow";
+import { resetOcppIncoming } from "./messages/reset";
+import { securityEventNotificationOcppOutgoing } from "./messages/securityEventNotification";
+import { sendLocalListOcppIncoming } from "./messages/sendLocalList";
+import { setChargingProfileOcppIncoming } from "./messages/setChargingProfile";
+import { setDERControlOcppOutgoing } from "./messages/setDERControl";
+import { setDefaultTariffOcppIncoming } from "./messages/setDefaultTariff";
+import { setDisplayMessageOcppIncoming } from "./messages/setDisplayMessage";
+import { setMonitoringBaseOcppIncoming } from "./messages/setMonitoringBase";
+import { setMonitoringLevelOcppIncoming } from "./messages/setMonitoringLevel";
+import { setNetworkProfileOcppIncoming } from "./messages/setNetworkProfile";
+import { setVariableMonitoringOcppIncoming } from "./messages/setVariableMonitoring";
+import { setVariablesOcppIncoming } from "./messages/setVariables";
+import { signCertificateOcppOutgoing } from "./messages/signCertificate";
+import { statusNotificationOcppOutgoing } from "./messages/statusNotification";
+import { transactionEventOcppOutgoing } from "./messages/transactionEvent";
+import { triggerMessageOcppIncoming } from "./messages/triggerMessage";
+import { unlockConnectorOcppIncoming } from "./messages/unlockConnector";
+import { unpublishFirmwareOcppIncoming } from "./messages/unpublishFirmware";
+import { updateDynamicScheduleOcppIncoming } from "./messages/updateDynamicSchedule";
+import { updateFirmwareOcppIncoming } from "./messages/updateFirmware";
+import { usePriorityChargingOcppIncoming } from "./messages/usePriorityCharging";
+import { vatNumberValidationOcppOutgoing } from "./messages/vatNumberValidation";
 
-export const ocppMessages: {
-  [key: string]: OcppMessage<z.ZodTypeAny, z.ZodTypeAny>;
+// Incoming messages (messages that are received by the CSMS)
+export const ocppIncomingMessages: {
+  [key: string]: OcppIncoming<z.ZodTypeAny, z.ZodTypeAny>;
 } = {
-  AdjustPeriodicEventStream: adjustPeriodicEventStreamOcppMessage,
-  AFRRSignal: afrrSignalOcppMessage,
-  Authorize: authorizeOcppMessage,
-  BatterySwap: batterySwapOcppMessage,
-  BootNotification: bootNotificationOcppMessage,
-  CancelReservation: cancelReservationOcppMessage,
-  CertificateSigned: certificateSignedOcppMessage,
-  ChangeAvailability: changeAvailabilityOcppMessage,
-  ChangeTransactionTariff: changeTransactionTariffOcppMessage,
-  ClearCache: clearCacheOcppMessage,
-  ClearChargingProfile: clearChargingProfileOcppMessage,
-  ClearDERControl: clearDERControlOcppMessage,
-  ClearDisplayMessage: clearDisplayMessageOcppMessage,
-  ClearedChargingLimit: clearedChargingLimitOcppMessage,
-  ClearTariffs: clearTariffsOcppMessage,
-  ClearVariableMonitoring: clearVariableMonitoringOcppMessage,
-  ClosePeriodicEventStream: closePeriodicEventStreamOcppMessage,
-  CostUpdated: costUpdatedOcppMessage,
-  CustomerInformation: customerInformationOcppMessage,
-  DataTransfer: dataTransferOcppMessage,
-  DeleteCertificate: deleteCertificateOcppMessage,
-  FirmwareStatusNotification: firmwareStatusNotificationOcppMessage,
-  Get15118EVCertificate: get15118EVCertificateOcppMessage,
-  GetBaseReport: getBaseReportOcppMessage,
-  GetCertificateChainStatus: getCertificateChainStatusOcppMessage,
-  GetCertificateStatus: getCertificateStatusOcppMessage,
-  GetChargingProfiles: getChargingProfilesOcppMessage,
-  GetCompositeSchedule: getCompositeScheduleOcppMessage,
-  GetDERControl: getDERControlOcppMessage,
-  GetDisplayMessages: getDisplayMessagesOcppMessage,
-  GetInstalledCertificateIds: getInstalledCertificateIdsOcppMessage,
-  GetLocalListVersion: getLocalListVersionOcppMessage,
-  GetLog: getLogOcppMessage,
-  GetMonitoringReport: getMonitoringReportOcppMessage,
-  GetPeriodicEventStream: getPeriodicEventStreamOcppMessage,
-  GetReport: getReportOcppMessage,
-  GetTariffs: getTariffsOcppMessage,
-  GetTransactionStatus: getTransactionStatusOcppMessage,
-  GetVariables: getVariablesOcppMessage,
-  Heartbeat: heartbeatOcppMessage,
-  InstallCertificate: installCertificateOcppMessage,
-  LogStatusNotification: logStatusNotificationOcppMessage,
-  MeterValues: meterValuesOcppMessage,
-  NotifyAllowedEnergyTransfer: notifyAllowedEnergyTransferOcppMessage,
-  NotifyChargingLimit: notifyChargingLimitOcppMessage,
-  NotifyCustomerInformation: notifyCustomerInformationOcppMessage,
-  NotifyDERAlarm: notifyDERAlarmOcppMessage,
-  NotifyDERStartStop: notifyDERStartStopOcppMessage,
-  NotifyDisplayMessages: notifyDisplayMessagesOcppMessage,
-  NotifyEVChargingNeeds: notifyEVChargingNeedsOcppMessage,
-  NotifyEVChargingSchedule: notifyEVChargingScheduleOcppMessage,
-  NotifyEvent: notifyEventOcppMessage,
-  NotifyMonitoringReport: notifyMonitoringReportOcppMessage,
-  NotifyPeriodicEventStream: notifyPeriodicEventStreamOcppMessage,
-  NotifyPriorityCharging: notifyPriorityChargingOcppMessage,
-  NotifyReport: notifyReportOcppMessage,
-  NotifySettlement: notifySettlementOcppMessage,
-  NotifyWebPaymentStarted: notifyWebPaymentStartedOcppMessage,
-  OpenPeriodicEventStream: openPeriodicEventStreamOcppMessage,
-  PublishFirmware: publishFirmwareOcppMessage,
+  AdjustPeriodicEventStream: adjustPeriodicEventStreamOcppIncoming,
+  AFRRSignal: afrrSignalOcppIncoming,
+  ChangeAvailability: changeAvailabilityOcppIncoming,
+  ChangeTransactionTariff: changeTransactionTariffOcppIncoming,
+  ClearCache: clearCacheOcppIncoming,
+  ClearChargingProfile: clearChargingProfileOcppIncoming,
+  ClearDERControl: clearDERControlOcppIncoming,
+  ClearDisplayMessage: clearDisplayMessageOcppIncoming,
+  ClearTariffs: clearTariffsOcppIncoming,
+  ClearVariableMonitoring: clearVariableMonitoringOcppIncoming,
+  CostUpdated: costUpdatedOcppIncoming,
+  CustomerInformation: customerInformationOcppIncoming,
+  DataTransfer: dataTransferOcppIncoming,
+  DeleteCertificate: deleteCertificateOcppIncoming,
+  Get15118EVCertificate: get15118EVCertificateOcppIncoming,
+  GetBaseReport: getBaseReportOcppIncoming,
+  GetChargingProfiles: getChargingProfilesOcppIncoming,
+  GetCompositeSchedule: getCompositeScheduleOcppIncoming,
+  GetDERControl: getDERControlOcppIncoming,
+  GetDisplayMessages: getDisplayMessagesOcppIncoming,
+  GetInstalledCertificateIds: getInstalledCertificateIdsOcppIncoming,
+  GetLocalListVersion: getLocalListVersionOcppIncoming,
+  GetLog: getLogOcppIncoming,
+  GetMonitoringReport: getMonitoringReportOcppIncoming,
+  GetPeriodicEventStream: getPeriodicEventStreamOcppIncoming,
+  GetReport: getReportOcppIncoming,
+  GetTariffs: getTariffsOcppIncoming,
+  GetTransactionStatus: getTransactionStatusOcppIncoming,
+  GetVariables: getVariablesOcppIncoming,
+  InstallCertificate: installCertificateOcppIncoming,
+  NotifyAllowedEnergyTransfer: notifyAllowedEnergyTransferOcppIncoming,
+  PublishFirmware: publishFirmwareOcppIncoming,
+  RequestStartTransaction: requestStartTransactionOcppIncoming,
+  RequestStopTransaction: requestStopTransactionOcppIncoming,
+  ReserveNow: reserveNowOcppIncoming,
+  Reset: resetOcppIncoming,
+  SendLocalList: sendLocalListOcppIncoming,
+  SetChargingProfile: setChargingProfileOcppIncoming,
+  SetDefaultTariff: setDefaultTariffOcppIncoming,
+  SetDisplayMessage: setDisplayMessageOcppIncoming,
+  SetMonitoringBase: setMonitoringBaseOcppIncoming,
+  SetMonitoringLevel: setMonitoringLevelOcppIncoming,
+  SetNetworkProfile: setNetworkProfileOcppIncoming,
+  SetVariableMonitoring: setVariableMonitoringOcppIncoming,
+  SetVariables: setVariablesOcppIncoming,
+  TriggerMessage: triggerMessageOcppIncoming,
+  UnlockConnector: unlockConnectorOcppIncoming,
+  UnpublishFirmware: unpublishFirmwareOcppIncoming,
+  UpdateDynamicSchedule: updateDynamicScheduleOcppIncoming,
+  UpdateFirmware: updateFirmwareOcppIncoming,
+  UsePriorityCharging: usePriorityChargingOcppIncoming,
+};
+
+// Outgoing messages (messages that are sent by the CSMS)
+export const ocppOutgoingMessages: {
+  [key: string]: OcppOutgoing<z.ZodTypeAny, z.ZodTypeAny>;
+} = {
+  Authorize: authorizeOcppOutgoing,
+  BatterySwap: batterySwapOcppOutgoing,
+  BootNotification: bootNotificationOcppOutgoing,
+  CancelReservation: cancelReservationOcppOutgoing,
+  CertificateSigned: certificateSignedOcppOutgoing,
+  ClearedChargingLimit: clearedChargingLimitOcppOutgoing,
+  ClosePeriodicEventStream: closePeriodicEventStreamOcppOutgoing,
+  DataTransfer: dataTransferOcppOutgoing,
+  FirmwareStatusNotification: firmwareStatusNotificationOcppOutgoing,
+  GetCertificateChainStatus: getCertificateChainStatusOcppOutgoing,
+  GetCertificateStatus: getCertificateStatusOcppOutgoing,
+  Heartbeat: heartbeatOcppOutgoing,
+  LogStatusNotification: logStatusNotificationOcppOutgoing,
+  MeterValues: meterValuesOcppOutgoing,
+  NotifyChargingLimit: notifyChargingLimitOcppOutgoing,
+  NotifyCustomerInformation: notifyCustomerInformationOcppOutgoing,
+  NotifyDERAlarm: notifyDERAlarmOcppOutgoing,
+  NotifyDERStartStop: notifyDERStartStopOcppOutgoing,
+  NotifyDisplayMessages: notifyDisplayMessagesOcppOutgoing,
+  NotifyEVChargingNeeds: notifyEVChargingNeedsOcppOutgoing,
+  NotifyEVChargingSchedule: notifyEVChargingScheduleOcppOutgoing,
+  NotifyEvent: notifyEventOcppOutgoing,
+  NotifyMonitoringReport: notifyMonitoringReportOcppOutgoing,
+  NotifyPeriodicEventStream: notifyPeriodicEventStreamOcppOutgoing,
+  NotifyPriorityCharging: notifyPriorityChargingOcppOutgoing,
+  NotifyReport: notifyReportOcppOutgoing,
+  NotifySettlement: notifySettlementOcppOutgoing,
+  NotifyWebPaymentStarted: notifyWebPaymentStartedOcppOutgoing,
+  OpenPeriodicEventStream: openPeriodicEventStreamOcppOutgoing,
   PublishFirmwareStatusNotification:
-    publishFirmwareStatusNotificationOcppMessage,
-  PullDynamicScheduleUpdate: pullDynamicScheduleUpdateOcppMessage,
-  ReportChargingProfiles: reportChargingProfilesOcppMessage,
-  ReportDERControl: reportDERControlOcppMessage,
-  RequestBatterySwap: requestBatterySwapOcppMessage,
-  RequestStartTransaction: requestStartTransactionOcppMessage,
-  RequestStopTransaction: requestStopTransactionOcppMessage,
-  ReservationStatusUpdate: reservationStatusUpdateOcppMessage,
-  ReserveNow: reserveNowOcppMessage,
-  Reset: resetOcppMessage,
-  SecurityEventNotification: securityEventNotificationOcppMessage,
-  SendLocalList: sendLocalListOcppMessage,
-  SetChargingProfile: setChargingProfileOcppMessage,
-  SetDefaultTariff: setDefaultTariffOcppMessage,
-  SetDERControl: setDERControlOcppMessage,
-  SetDisplayMessage: setDisplayMessageOcppMessage,
-  SetMonitoringBase: setMonitoringBaseOcppMessage,
-  SetMonitoringLevel: setMonitoringLevelOcppMessage,
-  SetNetworkProfile: setNetworkProfileOcppMessage,
-  SetVariableMonitoring: setVariableMonitoringOcppMessage,
-  SetVariables: setVariablesOcppMessage,
-  SignCertificate: signCertificateOcppMessage,
-  StatusNotification: statusNotificationOcppMessage,
-  TransactionEvent: transactionEventOcppMessage,
-  TriggerMessage: triggerMessageOcppMessage,
-  UnlockConnector: unlockConnectorOcppMessage,
-  UnpublishFirmware: unpublishFirmwareOcppMessage,
-  UpdateDynamicSchedule: updateDynamicScheduleOcppMessage,
-  UpdateFirmware: updateFirmwareOcppMessage,
-  UsePriorityCharging: usePriorityChargingOcppMessage,
-  VatNumberValidation: vatNumberValidationOcppMessage,
+    publishFirmwareStatusNotificationOcppOutgoing,
+  PullDynamicScheduleUpdate: pullDynamicScheduleUpdateOcppOutgoing,
+  ReportChargingProfiles: reportChargingProfilesOcppOutgoing,
+  ReportDERControl: reportDERControlOcppOutgoing,
+  RequestBatterySwap: requestBatterySwapOcppOutgoing,
+  ReservationStatusUpdate: reservationStatusUpdateOcppOutgoing,
+  SecurityEventNotification: securityEventNotificationOcppOutgoing,
+  SetDERControl: setDERControlOcppOutgoing,
+  SignCertificate: signCertificateOcppOutgoing,
+  StatusNotification: statusNotificationOcppOutgoing,
+  TransactionEvent: transactionEventOcppOutgoing,
+  VatNumberValidation: vatNumberValidationOcppOutgoing,
 };
 
 export const messageHandlerV21: OcppMessageHandler = {
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   handleCall: (vcp: VCP, call: OcppCall<any>): void => {
-    const ocppMessage = ocppMessages[call.action];
+    const ocppMessage = ocppIncomingMessages[call.action];
     if (!ocppMessage) {
-      throw new Error(`OCPP Message not implemented for ${call.action}`);
+      throw new Error(
+        `OCPP Incoming Message not implemented for ${call.action}`,
+      );
     }
     ocppMessage.reqHandler(vcp, call);
   },
@@ -212,9 +226,11 @@ export const messageHandlerV21: OcppMessageHandler = {
     // biome-ignore lint/suspicious/noExplicitAny: ocpp types
     result: OcppCallResult<any>,
   ): void => {
-    const ocppMessage = ocppMessages[result.action];
+    const ocppMessage = ocppOutgoingMessages[result.action];
     if (!ocppMessage) {
-      throw new Error(`OCPP Message not implemented for ${result.action}`);
+      throw new Error(
+        `OCPP Outgoing Message not implemented for ${result.action}`,
+      );
     }
     ocppMessage.resHandler(vcp, call, result);
   },

@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -15,7 +15,7 @@ type NotifyPriorityChargingReqType = typeof NotifyPriorityChargingReqSchema;
 const NotifyPriorityChargingResSchema = z.object({});
 type NotifyPriorityChargingResType = typeof NotifyPriorityChargingResSchema;
 
-class NotifyPriorityChargingOcppMessage extends OcppMessage<
+class NotifyPriorityChargingOcppOutgoing extends OcppOutgoing<
   NotifyPriorityChargingReqType,
   NotifyPriorityChargingResType
 > {
@@ -28,8 +28,8 @@ class NotifyPriorityChargingOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyPriorityChargingOcppMessage =
-  new NotifyPriorityChargingOcppMessage(
+export const notifyPriorityChargingOcppOutgoing =
+  new NotifyPriorityChargingOcppOutgoing(
     "NotifyPriorityCharging",
     NotifyPriorityChargingReqSchema,
     NotifyPriorityChargingResSchema,

@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -15,7 +15,7 @@ type ClearedChargingLimitReqType = typeof ClearedChargingLimitReqSchema;
 const ClearedChargingLimitResSchema = z.object({});
 type ClearedChargingLimitResType = typeof ClearedChargingLimitResSchema;
 
-class ClearedChargingLimitOcppMessage extends OcppMessage<
+class ClearedChargingLimitOcppOutgoing extends OcppOutgoing<
   ClearedChargingLimitReqType,
   ClearedChargingLimitResType
 > {
@@ -28,8 +28,8 @@ class ClearedChargingLimitOcppMessage extends OcppMessage<
   };
 }
 
-export const clearedChargingLimitOcppMessage =
-  new ClearedChargingLimitOcppMessage(
+export const clearedChargingLimitOcppOutgoing =
+  new ClearedChargingLimitOcppOutgoing(
     "ClearedChargingLimit",
     ClearedChargingLimitReqSchema,
     ClearedChargingLimitResSchema,

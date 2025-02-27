@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { IdTokenTypeSchema } from "./_common";
@@ -27,7 +27,7 @@ type BatterySwapReqType = typeof BatterySwapReqSchema;
 const BatterySwapResSchema = z.object({});
 type BatterySwapResType = typeof BatterySwapResSchema;
 
-class BatterySwapOcppMessage extends OcppMessage<
+class BatterySwapOcppOutgoing extends OcppOutgoing<
   BatterySwapReqType,
   BatterySwapResType
 > {
@@ -40,7 +40,7 @@ class BatterySwapOcppMessage extends OcppMessage<
   };
 }
 
-export const batterySwapOcppMessage = new BatterySwapOcppMessage(
+export const batterySwapOcppOutgoing = new BatterySwapOcppOutgoing(
   "BatterySwap",
   BatterySwapReqSchema,
   BatterySwapResSchema,

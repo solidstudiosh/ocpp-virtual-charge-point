@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
@@ -110,7 +110,7 @@ type ReportDERControlReqType = typeof ReportDERControlReqSchema;
 const ReportDERControlResSchema = z.object({});
 type ReportDERControlResType = typeof ReportDERControlResSchema;
 
-class ReportDERControlOcppMessage extends OcppMessage<
+class ReportDERControlOcppOutgoing extends OcppOutgoing<
   ReportDERControlReqType,
   ReportDERControlResType
 > {
@@ -123,7 +123,7 @@ class ReportDERControlOcppMessage extends OcppMessage<
   };
 }
 
-export const reportDERControlOcppMessage = new ReportDERControlOcppMessage(
+export const reportDERControlOcppOutgoing = new ReportDERControlOcppOutgoing(
   "ReportDERControl",
   ReportDERControlReqSchema,
   ReportDERControlResSchema,

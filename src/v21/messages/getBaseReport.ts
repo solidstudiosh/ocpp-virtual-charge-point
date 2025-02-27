@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
-import { notifyReportOcppMessage } from "./notifyReport";
+import { notifyReportOcppIncoming } from "./notifyReport";
 
 const GetBaseReportReqSchema = z.object({
   requestId: z.number().int(),
@@ -20,7 +20,7 @@ const GetBaseReportResSchema = z.object({
 });
 type GetBaseReportResType = typeof GetBaseReportResSchema;
 
-class GetBaseReportOcppMessage extends OcppMessage<
+class GetBaseReportOcppIncoming extends OcppIncoming<
   GetBaseReportReqType,
   GetBaseReportResType
 > {
@@ -32,7 +32,7 @@ class GetBaseReportOcppMessage extends OcppMessage<
 
     // Send NotifyReport
     vcp.send(
-      notifyReportOcppMessage.request({
+      notifyReportOcppIncoming.request({
         requestId: call.payload.requestId,
         generatedAt: new Date().toISOString(),
         seqNo: 0,
@@ -129,7 +129,7 @@ class GetBaseReportOcppMessage extends OcppMessage<
   };
 }
 
-export const getBaseReportOcppMessage = new GetBaseReportOcppMessage(
+export const getBaseReportOcppIncoming = new GetBaseReportOcppIncoming(
   "GetBaseReport",
   GetBaseReportReqSchema,
   GetBaseReportResSchema,

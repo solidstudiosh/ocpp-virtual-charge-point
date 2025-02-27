@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
@@ -41,7 +41,7 @@ const AuthorizeResSchema = z.object({
 });
 type AuthorizeResType = typeof AuthorizeResSchema;
 
-class AuthorizeOcppMessage extends OcppMessage<
+class AuthorizeOcppOutgoing extends OcppOutgoing<
   AuthorizeReqType,
   AuthorizeResType
 > {
@@ -54,7 +54,7 @@ class AuthorizeOcppMessage extends OcppMessage<
   };
 }
 
-export const authorizeOcppMessage = new AuthorizeOcppMessage(
+export const authorizeOcppOutgoing = new AuthorizeOcppOutgoing(
   "Authorize",
   AuthorizeReqSchema,
   AuthorizeResSchema,

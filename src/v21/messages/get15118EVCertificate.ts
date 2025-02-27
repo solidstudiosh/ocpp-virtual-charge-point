@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
@@ -20,7 +20,7 @@ const Get15118EVCertificateResSchema = z.object({
 });
 type Get15118EVCertificateResType = typeof Get15118EVCertificateResSchema;
 
-class Get15118EVCertificateOcppMessage extends OcppMessage<
+class Get15118EVCertificateOcppIncoming extends OcppIncoming<
   Get15118EVCertificateReqType,
   Get15118EVCertificateResType
 > {
@@ -32,8 +32,8 @@ class Get15118EVCertificateOcppMessage extends OcppMessage<
   };
 }
 
-export const get15118EVCertificateOcppMessage =
-  new Get15118EVCertificateOcppMessage(
+export const get15118EVCertificateOcppIncoming =
+  new Get15118EVCertificateOcppIncoming(
     "Get15118EVCertificate",
     Get15118EVCertificateReqSchema,
     Get15118EVCertificateResSchema,

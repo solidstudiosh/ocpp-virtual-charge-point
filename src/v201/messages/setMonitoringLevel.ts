@@ -26,8 +26,9 @@ class SetMonitoringLevelOcppIncoming extends OcppIncoming<
   };
 }
 
-export const setMonitoringLevelOcppIncoming = new SetMonitoringLevelOcppIncoming(
-  "SetMonitoringLevel",
-  SetMonitoringLevelReqSchema,
-  SetMonitoringLevelResSchema,
-);
+export const setMonitoringLevelOcppIncoming =
+  new SetMonitoringLevelOcppIncoming(
+    "SetMonitoringLevel",
+    SetMonitoringLevelReqSchema,
+    SetMonitoringLevelResSchema,
+  );

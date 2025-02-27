@@ -27,8 +27,9 @@ class SetChargingProfileOcppIncoming extends OcppIncoming<
   };
 }
 
-export const setChargingProfileOcppIncoming = new SetChargingProfileOcppIncoming(
-  "SetChargingProfile",
-  SetChargingProfileReqSchema,
-  SetChargingProfileResSchema,
-);
+export const setChargingProfileOcppIncoming =
+  new SetChargingProfileOcppIncoming(
+    "SetChargingProfile",
+    SetChargingProfileReqSchema,
+    SetChargingProfileResSchema,
+  );

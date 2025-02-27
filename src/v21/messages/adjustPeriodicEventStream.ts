@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
   GenericStatusEnumSchema,
@@ -21,7 +21,7 @@ const AdjustPeriodicEventStreamResSchema = z.object({
 type AdjustPeriodicEventStreamResType =
   typeof AdjustPeriodicEventStreamResSchema;
 
-class AdjustPeriodicEventStreamOcppMessage extends OcppMessage<
+class AdjustPeriodicEventStreamOcppIncoming extends OcppIncoming<
   AdjustPeriodicEventStreamReqType,
   AdjustPeriodicEventStreamResType
 > {
@@ -33,8 +33,8 @@ class AdjustPeriodicEventStreamOcppMessage extends OcppMessage<
   };
 }
 
-export const adjustPeriodicEventStreamOcppMessage =
-  new AdjustPeriodicEventStreamOcppMessage(
+export const adjustPeriodicEventStreamOcppIncoming =
+  new AdjustPeriodicEventStreamOcppIncoming(
     "AdjustPeriodicEventStream",
     AdjustPeriodicEventStreamReqSchema,
     AdjustPeriodicEventStreamResSchema,

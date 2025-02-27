@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
 const GetLocalListVersionReqSchema = z.object({});
@@ -10,7 +10,7 @@ const GetLocalListVersionResSchema = z.object({
 });
 type GetLocalListVersionResType = typeof GetLocalListVersionResSchema;
 
-class GetLocalListVersionOcppMessage extends OcppMessage<
+class GetLocalListVersionOcppIncoming extends OcppIncoming<
   GetLocalListVersionReqType,
   GetLocalListVersionResType
 > {
@@ -22,8 +22,8 @@ class GetLocalListVersionOcppMessage extends OcppMessage<
   };
 }
 
-export const getLocalListVersionOcppMessage =
-  new GetLocalListVersionOcppMessage(
+export const getLocalListVersionOcppIncoming =
+  new GetLocalListVersionOcppIncoming(
     "GetLocalListVersion",
     GetLocalListVersionReqSchema,
     GetLocalListVersionResSchema,

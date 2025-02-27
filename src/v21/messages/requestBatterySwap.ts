@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
@@ -23,7 +23,7 @@ const RequestBatterySwapResSchema = z.object({
 });
 type RequestBatterySwapResType = typeof RequestBatterySwapResSchema;
 
-class RequestBatterySwapOcppMessage extends OcppMessage<
+class RequestBatterySwapOcppOutgoing extends OcppOutgoing<
   RequestBatterySwapReqType,
   RequestBatterySwapResType
 > {
@@ -36,8 +36,9 @@ class RequestBatterySwapOcppMessage extends OcppMessage<
   };
 }
 
-export const requestBatterySwapOcppMessage = new RequestBatterySwapOcppMessage(
-  "RequestBatterySwap",
-  RequestBatterySwapReqSchema,
-  RequestBatterySwapResSchema,
-);
+export const requestBatterySwapOcppOutgoing =
+  new RequestBatterySwapOcppOutgoing(
+    "RequestBatterySwap",
+    RequestBatterySwapReqSchema,
+    RequestBatterySwapResSchema,
+  );

@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { ChargingScheduleUpdate, StatusInfoTypeSchema } from "./_common";
@@ -21,7 +21,7 @@ const PullDynamicScheduleUpdateResSchema = z.object({
 type PullDynamicScheduleUpdateResType =
   typeof PullDynamicScheduleUpdateResSchema;
 
-class PullDynamicScheduleUpdateOcppMessage extends OcppMessage<
+class PullDynamicScheduleUpdateOcppOutgoing extends OcppOutgoing<
   PullDynamicScheduleUpdateReqType,
   PullDynamicScheduleUpdateResType
 > {
@@ -34,8 +34,8 @@ class PullDynamicScheduleUpdateOcppMessage extends OcppMessage<
   };
 }
 
-export const pullDynamicScheduleUpdateOcppMessage =
-  new PullDynamicScheduleUpdateOcppMessage(
+export const pullDynamicScheduleUpdateOcppOutgoing =
+  new PullDynamicScheduleUpdateOcppOutgoing(
     "PullDynamicScheduleUpdate",
     PullDynamicScheduleUpdateReqSchema,
     PullDynamicScheduleUpdateResSchema,

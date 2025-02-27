@@ -20,7 +20,10 @@ import { clearVariableMonitoringOcppIncoming } from "./messages/clearVariableMon
 import { clearedChargingLimitOcppOutgoing } from "./messages/clearedChargingLimit";
 import { costUpdatedOcppIncoming } from "./messages/costUpdated";
 import { customerInformationOcppIncoming } from "./messages/customerInformation";
-import { dataTransferIncomingOcppMessage, dataTransferOutgoingOcppMessage } from "./messages/dataTransfer";
+import {
+  dataTransferIncomingOcppMessage,
+  dataTransferOutgoingOcppMessage,
+} from "./messages/dataTransfer";
 import { deleteCertificateOcppIncoming } from "./messages/deleteCertificate";
 import { firmwareStatusNotificationOcppOutgoing } from "./messages/firmwareStatusNotification";
 import { get15118EVCertificateOcppIncoming } from "./messages/get15118EVCertificate";
@@ -139,7 +142,8 @@ export const ocppOutgoingMessages: {
   NotifyEvent: notifyEventOcppOutgoing,
   NotifyMonitoringReport: notifyMonitoringReportOcppOutgoing,
   NotifyReport: notifyReportOcppOutgoing,
-  PublishFirmwareStatusNotification: publishFirmwareStatusNotificationOcppOutgoing,
+  PublishFirmwareStatusNotification:
+    publishFirmwareStatusNotificationOcppOutgoing,
   ReportChargingProfiles: reportChargingProfilesOcppOutgoing,
   ReservationStatusUpdate: reservationStatusUpdateOcppOutgoing,
   SecurityEventNotification: securityEventNotificationOcppOutgoing,
@@ -153,7 +157,9 @@ export const messageHandlerV201: OcppMessageHandler = {
   handleCall: (vcp: VCP, call: OcppCall<any>): void => {
     const ocppMessage = ocppIncomingMessages[call.action];
     if (!ocppMessage) {
-      throw new Error(`OCPP Incoming Message not implemented for ${call.action}`);
+      throw new Error(
+        `OCPP Incoming Message not implemented for ${call.action}`,
+      );
     }
     ocppMessage.reqHandler(vcp, call);
   },
@@ -166,7 +172,9 @@ export const messageHandlerV201: OcppMessageHandler = {
   ): void => {
     const ocppMessage = ocppOutgoingMessages[result.action];
     if (!ocppMessage) {
-      throw new Error(`OCPP Outgoing Message not implemented for ${result.action}`);
+      throw new Error(
+        `OCPP Outgoing Message not implemented for ${result.action}`,
+      );
     }
     ocppMessage.resHandler(vcp, call, result);
   },

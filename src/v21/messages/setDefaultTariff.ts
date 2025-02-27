@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema, Tariff } from "./_common";
 
@@ -21,7 +21,7 @@ const SetDefaultTariffResSchema = z.object({
 });
 type SetDefaultTariffResType = typeof SetDefaultTariffResSchema;
 
-class SetDefaultTariffOcppMessage extends OcppMessage<
+class SetDefaultTariffOcppIncoming extends OcppIncoming<
   SetDefaultTariffReqType,
   SetDefaultTariffResType
 > {
@@ -33,7 +33,7 @@ class SetDefaultTariffOcppMessage extends OcppMessage<
   };
 }
 
-export const setDefaultTariffOcppMessage = new SetDefaultTariffOcppMessage(
+export const setDefaultTariffOcppIncoming = new SetDefaultTariffOcppIncoming(
   "SetDefaultTariff",
   SetDefaultTariffReqSchema,
   SetDefaultTariffResSchema,

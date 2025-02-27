@@ -38,8 +38,9 @@ class ChangeAvailabilityOcppIncoming extends OcppIncoming<
   };
 }
 
-export const changeAvailabilityOcppIncoming = new ChangeAvailabilityOcppIncoming(
-  "ChangeAvailability",
-  ChangeAvailabilityReqSchema,
-  ChangeAvailabilityResSchema,
-);
+export const changeAvailabilityOcppIncoming =
+  new ChangeAvailabilityOcppIncoming(
+    "ChangeAvailability",
+    ChangeAvailabilityReqSchema,
+    ChangeAvailabilityResSchema,
+  );

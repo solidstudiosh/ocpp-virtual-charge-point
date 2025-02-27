@@ -92,36 +92,3 @@ export abstract class OcppOutgoing<
     return call(this.action, this.parseRequestPayload(payload));
   };
 }
-
-// For backward compatibility
-export abstract class OcppMessage<
-  ReqSchema extends z.ZodTypeAny,
-  ResSchema extends z.ZodTypeAny,
-> extends OcppBase<ReqSchema, ResSchema> {
-  reqHandler = async (
-    _vcp: VCP,
-    _call: OcppCall<z.infer<ReqSchema>>,
-  ): Promise<void> => {
-    throw new Error("Method not implemented.");
-  };
-
-  resHandler = async (
-    _vcp: VCP,
-    _call: OcppCall<z.infer<ReqSchema>>,
-    _result: OcppCallResult<z.infer<ResSchema>>,
-  ): Promise<void> => {
-    throw new Error("Method not implemented.");
-  };
-
-  request = (payload: z.infer<ReqSchema>): OcppCall<z.infer<ReqSchema>> => {
-    return call(this.action, this.parseRequestPayload(payload));
-  };
-
-  response = (
-    // biome-ignore lint/suspicious/noExplicitAny: ocpp types
-    call: OcppCall<any>,
-    payload: z.infer<ResSchema>,
-  ): OcppCallResult<z.infer<ResSchema>> => {
-    return callResult(call, this.parseResponsePayload(payload));
-  };
-}

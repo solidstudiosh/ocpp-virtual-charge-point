@@ -29,8 +29,9 @@ class GetDisplayMessagesOcppIncoming extends OcppIncoming<
   };
 }
 
-export const getDisplayMessagesOcppIncoming = new GetDisplayMessagesOcppIncoming(
-  "GetDisplayMessages",
-  GetDisplayMessagesReqSchema,
-  GetDisplayMessagesResSchema,
-);
+export const getDisplayMessagesOcppIncoming =
+  new GetDisplayMessagesOcppIncoming(
+    "GetDisplayMessages",
+    GetDisplayMessagesReqSchema,
+    GetDisplayMessagesResSchema,
+  );

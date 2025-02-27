@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { OCSPRequestDataTypeSchema, StatusInfoTypeSchema } from "./_common";
@@ -19,7 +19,7 @@ const GetCertificateStatusResSchema = z.object({
 });
 type GetCertificateStatusResType = typeof GetCertificateStatusResSchema;
 
-class GetCertificateStatusOcppMessage extends OcppMessage<
+class GetCertificateStatusOcppOutgoing extends OcppOutgoing<
   GetCertificateStatusReqType,
   GetCertificateStatusResType
 > {
@@ -32,8 +32,8 @@ class GetCertificateStatusOcppMessage extends OcppMessage<
   };
 }
 
-export const getCertificateStatusOcppMessage =
-  new GetCertificateStatusOcppMessage(
+export const getCertificateStatusOcppOutgoing =
+  new GetCertificateStatusOcppOutgoing(
     "GetCertificateStatus",
     GetCertificateStatusReqSchema,
     GetCertificateStatusResSchema,

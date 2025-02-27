@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
@@ -174,7 +174,7 @@ const TransactionEventResSchema = z.object({
 });
 type TransactionEventResType = typeof TransactionEventResSchema;
 
-class TransactionEventOcppMessage extends OcppMessage<
+class TransactionEventOcppOutgoing extends OcppOutgoing<
   TransactionEventReqType,
   TransactionEventResType
 > {
@@ -187,7 +187,7 @@ class TransactionEventOcppMessage extends OcppMessage<
   };
 }
 
-export const transactionEventOcppMessage = new TransactionEventOcppMessage(
+export const transactionEventOcppOutgoing = new TransactionEventOcppOutgoing(
   "TransactionEvent",
   TransactionEventReqSchema,
   TransactionEventResSchema,

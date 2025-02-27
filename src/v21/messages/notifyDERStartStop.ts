@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -17,7 +17,7 @@ type NotifyDERStartStopReqType = typeof NotifyDERStartStopReqSchema;
 const NotifyDERStartStopResSchema = z.object({});
 type NotifyDERStartStopResType = typeof NotifyDERStartStopResSchema;
 
-class NotifyDERStartStopOcppMessage extends OcppMessage<
+class NotifyDERStartStopOcppOutgoing extends OcppOutgoing<
   NotifyDERStartStopReqType,
   NotifyDERStartStopResType
 > {
@@ -30,8 +30,9 @@ class NotifyDERStartStopOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyDERStartStopOcppMessage = new NotifyDERStartStopOcppMessage(
-  "NotifyDERStartStop",
-  NotifyDERStartStopReqSchema,
-  NotifyDERStartStopResSchema,
-);
+export const notifyDERStartStopOcppOutgoing =
+  new NotifyDERStartStopOcppOutgoing(
+    "NotifyDERStartStop",
+    NotifyDERStartStopReqSchema,
+    NotifyDERStartStopResSchema,
+  );

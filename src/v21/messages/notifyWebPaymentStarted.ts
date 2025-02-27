@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -15,7 +15,7 @@ type NotifyWebPaymentStartedReqType = typeof NotifyWebPaymentStartedReqSchema;
 const NotifyWebPaymentStartedResSchema = z.object({});
 type NotifyWebPaymentStartedResType = typeof NotifyWebPaymentStartedResSchema;
 
-class NotifyWebPaymentStartedOcppMessage extends OcppMessage<
+class NotifyWebPaymentStartedOcppOutgoing extends OcppOutgoing<
   NotifyWebPaymentStartedReqType,
   NotifyWebPaymentStartedResType
 > {
@@ -28,8 +28,8 @@ class NotifyWebPaymentStartedOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyWebPaymentStartedOcppMessage =
-  new NotifyWebPaymentStartedOcppMessage(
+export const notifyWebPaymentStartedOcppOutgoing =
+  new NotifyWebPaymentStartedOcppOutgoing(
     "NotifyWebPaymentStarted",
     NotifyWebPaymentStartedReqSchema,
     NotifyWebPaymentStartedResSchema,

@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -35,7 +35,7 @@ const NotifySettlementResSchema = z.object({
 });
 type NotifySettlementResType = typeof NotifySettlementResSchema;
 
-class NotifySettlementOcppMessage extends OcppMessage<
+class NotifySettlementOcppOutgoing extends OcppOutgoing<
   NotifySettlementReqType,
   NotifySettlementResType
 > {
@@ -48,7 +48,7 @@ class NotifySettlementOcppMessage extends OcppMessage<
   };
 }
 
-export const notifySettlementOcppMessage = new NotifySettlementOcppMessage(
+export const notifySettlementOcppOutgoing = new NotifySettlementOcppOutgoing(
   "NotifySettlement",
   NotifySettlementReqSchema,
   NotifySettlementResSchema,

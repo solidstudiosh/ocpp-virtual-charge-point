@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { transactionManager } from "../transactionManager";
 import { StatusInfoTypeSchema } from "./_common";
-import { statusNotificationOcppMessage } from "./statusNotification";
-import { transactionEventOcppMessage } from "./transactionEvent";
+import { statusNotificationOcppIncoming } from "./statusNotification";
+import { transactionEventOcppIncoming } from "./transactionEvent";
 
 const RequestStopTransactionReqSchema = z.object({
   transactionId: z.string(),
@@ -17,7 +17,7 @@ const RequestStopTransactionResSchema = z.object({
 });
 type RequestStopTransactionResType = typeof RequestStopTransactionResSchema;
 
-class RequestStopTransactionOcppMessage extends OcppMessage<
+class RequestStopTransactionOcppIncoming extends OcppIncoming<
   RequestStopTransactionReqType,
   RequestStopTransactionResType
 > {
@@ -31,7 +31,7 @@ class RequestStopTransactionOcppMessage extends OcppMessage<
       }),
     );
     vcp.send(
-      transactionEventOcppMessage.request({
+      transactionEventOcppIncoming.request({
         eventType: "Ended",
         timestamp: new Date().toISOString(),
         seqNo: 0,
@@ -46,7 +46,7 @@ class RequestStopTransactionOcppMessage extends OcppMessage<
       }),
     );
     vcp.send(
-      statusNotificationOcppMessage.request({
+      statusNotificationOcppIncoming.request({
         evseId: 1,
         connectorId: 1,
         connectorStatus: "Available",
@@ -57,8 +57,8 @@ class RequestStopTransactionOcppMessage extends OcppMessage<
   };
 }
 
-export const requestStopTransactionOcppMessage =
-  new RequestStopTransactionOcppMessage(
+export const requestStopTransactionOcppIncoming =
+  new RequestStopTransactionOcppIncoming(
     "RequestStopTransaction",
     RequestStopTransactionReqSchema,
     RequestStopTransactionResSchema,

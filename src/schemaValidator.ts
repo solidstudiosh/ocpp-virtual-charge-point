@@ -4,7 +4,10 @@ import {
   ocppIncomingMessages as ocppIncomingMessages16,
   ocppOutgoingMessages as ocppOutgoingMessages16,
 } from "./v16/messageHandler";
-import { ocppMessages as ocppMessages21 } from "./v21/messageHandler";
+import {
+  ocppIncomingMessages as ocppIncomingMessages21,
+  ocppOutgoingMessages as ocppOutgoingMessages21,
+} from "./v21/messageHandler";
 import {
   ocppIncomingMessages as ocppIncomingMessages201,
   ocppOutgoingMessages as ocppOutgoingMessages201,
@@ -19,7 +22,7 @@ const getOcppIncomingMessages = (ocppVersion: OcppVersion) => {
     case OcppVersion.OCPP_2_0_1:
       return ocppIncomingMessages201;
     case OcppVersion.OCPP_2_1:
-      return ocppMessages21;
+      return ocppIncomingMessages21;
     default:
       throw new Error(`Ocpp messages not found for version: ${ocppVersion}`);
   }
@@ -32,7 +35,7 @@ const getOcppOutgoingMessages = (ocppVersion: OcppVersion) => {
     case OcppVersion.OCPP_2_0_1:
       return ocppOutgoingMessages201;
     case OcppVersion.OCPP_2_1:
-      return ocppMessages21;
+      return ocppOutgoingMessages21;
     default:
       throw new Error(`Ocpp messages not found for version: ${ocppVersion}`);
   }

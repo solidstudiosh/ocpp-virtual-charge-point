@@ -37,8 +37,9 @@ class StatusNotificationOcppOutgoing extends OcppOutgoing<
   };
 }
 
-export const statusNotificationOcppOutgoing = new StatusNotificationOcppOutgoing(
-  "StatusNotification",
-  StatusNotificationReqSchema,
-  StatusNotificationResSchema,
-);
+export const statusNotificationOcppOutgoing =
+  new StatusNotificationOcppOutgoing(
+    "StatusNotification",
+    StatusNotificationReqSchema,
+    StatusNotificationResSchema,
+  );

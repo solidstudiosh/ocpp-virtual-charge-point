@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { EVSETypeSchema, StatusInfoTypeSchema } from "./_common";
-import { statusNotificationOcppMessage } from "./statusNotification";
+import { statusNotificationOcppIncoming } from "./statusNotification";
 
 const ChangeAvailabilityReqSchema = z.object({
   operationalStatus: z.enum(["Inoperative", "Operative"]),
@@ -16,7 +16,7 @@ const ChangeAvailabilityResSchema = z.object({
 });
 type ChangeAvailabilityResType = typeof ChangeAvailabilityResSchema;
 
-class ChangeAvailabilityOcppMessage extends OcppMessage<
+class ChangeAvailabilityOcppIncoming extends OcppIncoming<
   ChangeAvailabilityReqType,
   ChangeAvailabilityResType
 > {
@@ -27,7 +27,7 @@ class ChangeAvailabilityOcppMessage extends OcppMessage<
     vcp.respond(this.response(call, { status: "Accepted" }));
     if (call.payload.operationalStatus === "Inoperative") {
       vcp.send(
-        statusNotificationOcppMessage.request({
+        statusNotificationOcppIncoming.request({
           timestamp: new Date().toISOString(),
           connectorStatus: "Unavailable",
           evseId: call.payload.evse?.id ?? 1,
@@ -38,8 +38,9 @@ class ChangeAvailabilityOcppMessage extends OcppMessage<
   };
 }
 
-export const changeAvailabilityOcppMessage = new ChangeAvailabilityOcppMessage(
-  "ChangeAvailability",
-  ChangeAvailabilityReqSchema,
-  ChangeAvailabilityResSchema,
-);
+export const changeAvailabilityOcppIncoming =
+  new ChangeAvailabilityOcppIncoming(
+    "ChangeAvailability",
+    ChangeAvailabilityReqSchema,
+    ChangeAvailabilityResSchema,
+  );

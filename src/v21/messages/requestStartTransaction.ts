@@ -1,6 +1,6 @@
 import * as uuid from "uuid";
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { transactionManager } from "../transactionManager";
 import {
@@ -8,8 +8,8 @@ import {
   IdTokenTypeSchema,
   StatusInfoTypeSchema,
 } from "./_common";
-import { statusNotificationOcppMessage } from "./statusNotification";
-import { transactionEventOcppMessage } from "./transactionEvent";
+import { statusNotificationOcppIncoming } from "./statusNotification";
+import { transactionEventOcppIncoming } from "./transactionEvent";
 
 const RequestStartTransactionReqSchema = z.object({
   evseId: z.number().int().nullish(),
@@ -27,7 +27,7 @@ const RequestStartTransactionResSchema = z.object({
 });
 type RequestStartTransactionResType = typeof RequestStartTransactionResSchema;
 
-class RequestStartTransactionOcppMessage extends OcppMessage<
+class RequestStartTransactionOcppIncoming extends OcppIncoming<
   RequestStartTransactionReqType,
   RequestStartTransactionResType
 > {
@@ -50,7 +50,7 @@ class RequestStartTransactionOcppMessage extends OcppMessage<
       }),
     );
     vcp.send(
-      statusNotificationOcppMessage.request({
+      statusNotificationOcppIncoming.request({
         evseId: transactionEvseId,
         connectorId: transactionConnectorId,
         connectorStatus: "Occupied",
@@ -58,7 +58,7 @@ class RequestStartTransactionOcppMessage extends OcppMessage<
       }),
     );
     vcp.send(
-      transactionEventOcppMessage.request({
+      transactionEventOcppIncoming.request({
         eventType: "Started",
         timestamp: new Date().toISOString(),
         seqNo: 0,
@@ -90,8 +90,8 @@ class RequestStartTransactionOcppMessage extends OcppMessage<
   };
 }
 
-export const requestStartTransactionOcppMessage =
-  new RequestStartTransactionOcppMessage(
+export const requestStartTransactionOcppIncoming =
+  new RequestStartTransactionOcppIncoming(
     "RequestStartTransaction",
     RequestStartTransactionReqSchema,
     RequestStartTransactionResSchema,

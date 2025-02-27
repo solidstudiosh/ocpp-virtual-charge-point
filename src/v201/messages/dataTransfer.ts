@@ -52,14 +52,16 @@ class DataTransferOutgoingOcppMessage extends OcppOutgoing<
   };
 }
 
-export const dataTransferIncomingOcppMessage = new DataTransferIncomingOcppMessage(
-  "DataTransfer",
-  DataTransferReqSchema,
-  DataTransferResSchema,
-);
+export const dataTransferIncomingOcppMessage =
+  new DataTransferIncomingOcppMessage(
+    "DataTransfer",
+    DataTransferReqSchema,
+    DataTransferResSchema,
+  );
 
-export const dataTransferOutgoingOcppMessage = new DataTransferOutgoingOcppMessage(
-  "DataTransfer",
-  DataTransferReqSchema,
-  DataTransferResSchema,
-);
+export const dataTransferOutgoingOcppMessage =
+  new DataTransferOutgoingOcppMessage(
+    "DataTransfer",
+    DataTransferReqSchema,
+    DataTransferResSchema,
+  );

@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { CertificateHashDataTypeSchema, StatusInfoTypeSchema } from "./_common";
@@ -34,7 +34,7 @@ const GetCertificateChainStatusResSchema = z.object({
 type GetCertificateChainStatusResType =
   typeof GetCertificateChainStatusResSchema;
 
-class GetCertificateChainStatusOcppMessage extends OcppMessage<
+class GetCertificateChainStatusOcppOutgoing extends OcppOutgoing<
   GetCertificateChainStatusReqType,
   GetCertificateChainStatusResType
 > {
@@ -47,8 +47,8 @@ class GetCertificateChainStatusOcppMessage extends OcppMessage<
   };
 }
 
-export const getCertificateChainStatusOcppMessage =
-  new GetCertificateChainStatusOcppMessage(
+export const getCertificateChainStatusOcppOutgoing =
+  new GetCertificateChainStatusOcppOutgoing(
     "GetCertificateChainStatus",
     GetCertificateChainStatusReqSchema,
     GetCertificateChainStatusResSchema,

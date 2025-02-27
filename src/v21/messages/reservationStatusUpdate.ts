@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -15,7 +15,7 @@ type ReservationStatusUpdateReqType = typeof ReservationStatusUpdateReqSchema;
 const ReservationStatusUpdateResSchema = z.object({});
 type ReservationStatusUpdateResType = typeof ReservationStatusUpdateResSchema;
 
-class ReservationStatusUpdateOcppMessage extends OcppMessage<
+class ReservationStatusUpdateOcppOutgoing extends OcppOutgoing<
   ReservationStatusUpdateReqType,
   ReservationStatusUpdateResType
 > {
@@ -28,8 +28,8 @@ class ReservationStatusUpdateOcppMessage extends OcppMessage<
   };
 }
 
-export const reservationStatusUpdateOcppMessage =
-  new ReservationStatusUpdateOcppMessage(
+export const reservationStatusUpdateOcppOutgoing =
+  new ReservationStatusUpdateOcppOutgoing(
     "ReservationStatusUpdate",
     ReservationStatusUpdateReqSchema,
     ReservationStatusUpdateResSchema,

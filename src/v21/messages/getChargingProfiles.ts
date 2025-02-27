@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
@@ -33,7 +33,7 @@ const GetChargingProfilesResSchema = z.object({
 });
 type GetChargingProfilesResType = typeof GetChargingProfilesResSchema;
 
-class GetChargingProfilesOcppMessage extends OcppMessage<
+class GetChargingProfilesOcppIncoming extends OcppIncoming<
   GetChargingProfilesReqType,
   GetChargingProfilesResType
 > {
@@ -45,8 +45,8 @@ class GetChargingProfilesOcppMessage extends OcppMessage<
   };
 }
 
-export const getChargingProfilesOcppMessage =
-  new GetChargingProfilesOcppMessage(
+export const getChargingProfilesOcppIncoming =
+  new GetChargingProfilesOcppIncoming(
     "GetChargingProfiles",
     GetChargingProfilesReqSchema,
     GetChargingProfilesResSchema,

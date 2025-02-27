@@ -32,8 +32,9 @@ class InstallCertificateOcppIncoming extends OcppIncoming<
   };
 }
 
-export const installCertificateOcppIncoming = new InstallCertificateOcppIncoming(
-  "InstallCertificate",
-  InstallCertificateReqSchema,
-  InstallCertificateResSchema,
-);
+export const installCertificateOcppIncoming =
+  new InstallCertificateOcppIncoming(
+    "InstallCertificate",
+    InstallCertificateReqSchema,
+    InstallCertificateResSchema,
+  );

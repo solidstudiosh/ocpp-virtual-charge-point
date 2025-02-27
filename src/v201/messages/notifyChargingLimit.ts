@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
-  OcppMessage,
+  OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -71,7 +71,7 @@ const NotifyChargingLimitResSchema = z.object({
 
 type NotifyChargingLimitResType = typeof NotifyChargingLimitResSchema;
 
-class NotifyChargingLimitOcppMessage extends OcppMessage<
+class NotifyChargingLimitOcppOutgoing extends OcppOutgoing<
   NotifyChargingLimitReqType,
   NotifyChargingLimitResType
 > {
@@ -84,8 +84,8 @@ class NotifyChargingLimitOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyChargingLimitOcppMessage =
-  new NotifyChargingLimitOcppMessage(
+export const notifyChargingLimitOcppOutgoing =
+  new NotifyChargingLimitOcppOutgoing(
     "NotifyChargingLimit",
     NotifyChargingLimitReqSchema,
     NotifyChargingLimitResSchema,

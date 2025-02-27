@@ -55,7 +55,7 @@ import { unlockConnectorOcppMessage } from "./messages/unlockConnector";
 import { updateFirmwareOcppMessage } from "./messages/updateFirmware";
 
 // Collection for incoming messages (used for handleCall)
-export const ocppIncoming: {
+export const ocppIncomingMessages: {
   [key: string]: OcppIncoming<z.ZodTypeAny, z.ZodTypeAny>;
 } = {
   CancelReservation: cancelReservationOcppMessage,
@@ -87,7 +87,7 @@ export const ocppIncoming: {
 };
 
 // Collection for outgoing messages (used for handleCallResult)
-export const ocppOutgoing: {
+export const ocppOutgoingMessages: {
   [key: string]: OcppOutgoing<z.ZodTypeAny, z.ZodTypeAny>;
 } = {
   Authorize: authorizeOcppMessage,
@@ -107,18 +107,14 @@ export const ocppOutgoing: {
   StopTransaction: stopTransactionOcppMessage,
 };
 
-// For backward compatibility
-export const ocppMessages = {
-  ...ocppIncoming,
-  ...ocppOutgoing,
-};
-
 export const messageHandlerV16: OcppMessageHandler = {
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   handleCall: (vcp: VCP, call: OcppCall<any>): void => {
-    const ocppMessage = ocppIncoming[call.action];
+    const ocppMessage = ocppIncomingMessages[call.action];
     if (!ocppMessage) {
-      throw new Error(`OCPP Incoming Message not implemented for ${call.action}`);
+      throw new Error(
+        `OCPP Incoming Message not implemented for ${call.action}`,
+      );
     }
     ocppMessage.reqHandler(vcp, call);
   },
@@ -129,9 +125,11 @@ export const messageHandlerV16: OcppMessageHandler = {
     // biome-ignore lint/suspicious/noExplicitAny: ocpp types
     result: OcppCallResult<any>,
   ): void => {
-    const ocppMessage = ocppOutgoing[result.action];
+    const ocppMessage = ocppOutgoingMessages[result.action];
     if (!ocppMessage) {
-      throw new Error(`OCPP Outgoing Message not implemented for ${result.action}`);
+      throw new Error(
+        `OCPP Outgoing Message not implemented for ${result.action}`,
+      );
     }
     ocppMessage.resHandler(vcp, call, result);
   },

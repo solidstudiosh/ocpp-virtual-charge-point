@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppCallResult, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
 const UnpublishFirmwareReqSchema = z.object({
@@ -12,7 +12,7 @@ const UnpublishFirmwareResSchema = z.object({
 });
 type UnpublishFirmwareResType = typeof UnpublishFirmwareResSchema;
 
-class UnpublishFirmwareOcppMessage extends OcppMessage<
+class UnpublishFirmwareOcppIncoming extends OcppIncoming<
   UnpublishFirmwareReqType,
   UnpublishFirmwareResType
 > {
@@ -24,7 +24,7 @@ class UnpublishFirmwareOcppMessage extends OcppMessage<
   };
 }
 
-export const unpublishFirmwareOcppMessage = new UnpublishFirmwareOcppMessage(
+export const unpublishFirmwareOcppIncoming = new UnpublishFirmwareOcppIncoming(
   "UnpublishFirmware",
   UnpublishFirmwareReqSchema,
   UnpublishFirmwareResSchema,

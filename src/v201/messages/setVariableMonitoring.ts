@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppCallResult, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
   ComponentTypeSchema,
@@ -45,7 +45,7 @@ const SetVariableMonitoringResSchema = z.object({
 });
 type SetVariableMonitoringResType = typeof SetVariableMonitoringResSchema;
 
-class SetVariableMonitoringOcppMessage extends OcppMessage<
+class SetVariableMonitoringOcppIncoming extends OcppIncoming<
   SetVariableMonitoringReqType,
   SetVariableMonitoringResType
 > {
@@ -68,8 +68,8 @@ class SetVariableMonitoringOcppMessage extends OcppMessage<
   };
 }
 
-export const setVariableMonitoringOcppMessage =
-  new SetVariableMonitoringOcppMessage(
+export const setVariableMonitoringOcppIncoming =
+  new SetVariableMonitoringOcppIncoming(
     "SetVariableMonitoring",
     SetVariableMonitoringReqSchema,
     SetVariableMonitoringResSchema,

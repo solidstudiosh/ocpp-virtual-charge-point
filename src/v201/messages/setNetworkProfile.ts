@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppCallResult, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
@@ -52,7 +52,7 @@ const SetNetworkProfileResSchema = z.object({
 });
 type SetNetworkProfileResType = typeof SetNetworkProfileResSchema;
 
-class SetNetworkProfileOcppMessage extends OcppMessage<
+class SetNetworkProfileOcppIncoming extends OcppIncoming<
   SetNetworkProfileReqType,
   SetNetworkProfileResType
 > {
@@ -64,7 +64,7 @@ class SetNetworkProfileOcppMessage extends OcppMessage<
   };
 }
 
-export const setNetworkProfileOcppMessage = new SetNetworkProfileOcppMessage(
+export const setNetworkProfileOcppIncoming = new SetNetworkProfileOcppIncoming(
   "SetNetworkProfile",
   SetNetworkProfileReqSchema,
   SetNetworkProfileResSchema,

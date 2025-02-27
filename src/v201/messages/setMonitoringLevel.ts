@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppCallResult, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { GenericStatusEnumSchema, StatusInfoTypeSchema } from "./_common";
 
@@ -14,7 +14,7 @@ const SetMonitoringLevelResSchema = z.object({
 });
 type SetMonitoringLevelResType = typeof SetMonitoringLevelResSchema;
 
-class SetMonitoringLevelOcppMessage extends OcppMessage<
+class SetMonitoringLevelOcppIncoming extends OcppIncoming<
   SetMonitoringLevelReqType,
   SetMonitoringLevelResType
 > {
@@ -26,7 +26,7 @@ class SetMonitoringLevelOcppMessage extends OcppMessage<
   };
 }
 
-export const setMonitoringLevelOcppMessage = new SetMonitoringLevelOcppMessage(
+export const setMonitoringLevelOcppIncoming = new SetMonitoringLevelOcppIncoming(
   "SetMonitoringLevel",
   SetMonitoringLevelReqSchema,
   SetMonitoringLevelResSchema,

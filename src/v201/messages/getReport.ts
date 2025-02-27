@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { type OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
+import { type OcppCall, OcppCallResult, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
   ComponentTypeSchema,
   StatusInfoTypeSchema,
   VariableTypeSchema,
 } from "./_common";
-import { notifyReportOcppMessage } from "./notifyReport";
+import { notifyReportOcppIncoming } from "./notifyReport";
 
 const GetReportReqSchema = z.object({
   requestId: z.number().int(),
@@ -31,7 +31,7 @@ const GetReportResSchema = z.object({
 });
 type GetReportResType = typeof GetReportResSchema;
 
-class GetReportOcppMessage extends OcppMessage<
+class GetReportOcppIncoming extends OcppIncoming<
   GetReportReqType,
   GetReportResType
 > {
@@ -41,7 +41,7 @@ class GetReportOcppMessage extends OcppMessage<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
     vcp.send(
-      notifyReportOcppMessage.request({
+      notifyReportOcppIncoming.request({
         generatedAt: new Date().toISOString(),
         requestId: call.payload.requestId,
         seqNo: 1,
@@ -51,7 +51,7 @@ class GetReportOcppMessage extends OcppMessage<
   };
 }
 
-export const getReportOcppMessage = new GetReportOcppMessage(
+export const getReportOcppIncoming = new GetReportOcppIncoming(
   "GetReport",
   GetReportReqSchema,
   GetReportResSchema,

@@ -5,7 +5,7 @@
   "scripts": {
     "build": "rimraf ./build && tsc && cp .env ./build",
     "dev": "npx nodemon",
-    "start": "npm run build && node build/src/index.js"
+    "start": "node build/src/index.js"
   },
   "author": "Solidstudio",
   "license": "Apache-2.0",
@@ -15,7 +15,7 @@
     "fastify": "^5.2.1",
     "prettier": "^3.5.1",
     "rimraf": "^6.0.1",
-    "typescript": "^4.5.5",
+    "typescript": "^5.8.2",
     "uuid": "^8.3.2",
     "winston": "^3.5.1",
     "ws": "^8.4.2"

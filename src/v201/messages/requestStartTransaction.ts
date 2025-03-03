@@ -8,8 +8,8 @@ import {
   IdTokenTypeSchema,
   StatusInfoTypeSchema,
 } from "./_common";
-import { statusNotificationOcppIncoming } from "./statusNotification";
-import { transactionEventOcppIncoming } from "./transactionEvent";
+import { statusNotificationOcppOutgoing } from "./statusNotification";
+import { transactionEventOcppOutgoing } from "./transactionEvent";
 
 const RequestStartTransactionReqSchema = z.object({
   evseId: z.number().int().nullish(),
@@ -50,7 +50,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
       }),
     );
     vcp.send(
-      statusNotificationOcppIncoming.request({
+      statusNotificationOcppOutgoing.request({
         evseId: transactionEvseId,
         connectorId: transactionConnectorId,
         connectorStatus: "Occupied",
@@ -58,7 +58,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
       }),
     );
     vcp.send(
-      transactionEventOcppIncoming.request({
+      transactionEventOcppOutgoing.request({
         eventType: "Started",
         timestamp: new Date().toISOString(),
         seqNo: 0,

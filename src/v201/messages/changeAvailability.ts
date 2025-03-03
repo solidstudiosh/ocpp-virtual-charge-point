@@ -2,7 +2,7 @@ import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { EVSETypeSchema, StatusInfoTypeSchema } from "./_common";
-import { statusNotificationOcppIncoming } from "./statusNotification";
+import { statusNotificationOcppOutgoing } from "./statusNotification";
 
 const ChangeAvailabilityReqSchema = z.object({
   operationalStatus: z.enum(["Inoperative", "Operative"]),
@@ -27,7 +27,7 @@ class ChangeAvailabilityOcppIncoming extends OcppIncoming<
     vcp.respond(this.response(call, { status: "Accepted" }));
     if (call.payload.operationalStatus === "Inoperative") {
       vcp.send(
-        statusNotificationOcppIncoming.request({
+        statusNotificationOcppOutgoing.request({
           timestamp: new Date().toISOString(),
           connectorStatus: "Unavailable",
           evseId: call.payload.evse?.id ?? 1,

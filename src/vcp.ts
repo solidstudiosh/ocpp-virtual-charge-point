@@ -1,5 +1,5 @@
-import util from "node:util";
-import WebSocket, { WebSocketServer } from "ws";
+import * as util from "node:util";
+import { WebSocket, WebSocketServer } from "ws";
 
 import { logger } from "./logger";
 import type { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
@@ -9,7 +9,12 @@ import {
 } from "./ocppMessageHandler";
 import { ocppOutbox } from "./ocppOutbox";
 import { type OcppVersion, toProtocolVersion } from "./ocppVersion";
-import { validateOcppRequest, validateOcppResponse } from "./schemaValidator";
+import {
+  validateOcppIncomingRequest,
+  validateOcppIncomingResponse,
+  validateOcppOutgoingRequest,
+  validateOcppOutgoingResponse,
+} from "./schemaValidator";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
 
 interface VCPOptions {
@@ -82,7 +87,7 @@ export class VCP {
       ocppCall.payload,
     ]);
     logger.info(`Sending message ➡️  ${jsonMessage}`);
-    validateOcppRequest(
+    validateOcppOutgoingRequest(
       this.vcpOptions.ocppVersion,
       ocppCall.action,
       JSON.parse(JSON.stringify(ocppCall.payload)),
@@ -97,7 +102,7 @@ export class VCP {
     }
     const jsonMessage = JSON.stringify([3, result.messageId, result.payload]);
     logger.info(`Responding with ➡️  ${jsonMessage}`);
-    validateOcppResponse(
+    validateOcppIncomingResponse(
       this.vcpOptions.ocppVersion,
       result.action,
       JSON.parse(JSON.stringify(result.payload)),
@@ -147,7 +152,7 @@ export class VCP {
     const [type, ...rest] = data;
     if (type === 2) {
       const [messageId, action, payload] = rest;
-      validateOcppRequest(this.vcpOptions.ocppVersion, action, payload);
+      validateOcppIncomingRequest(this.vcpOptions.ocppVersion, action, payload);
       this.messageHandler.handleCall(this, { messageId, action, payload });
     } else if (type === 3) {
       const [messageId, payload] = rest;
@@ -157,7 +162,7 @@ export class VCP {
           `Received CallResult for unknown messageId=${messageId}`,
         );
       }
-      validateOcppResponse(
+      validateOcppOutgoingResponse(
         this.vcpOptions.ocppVersion,
         enqueuedCall.action,
         payload,

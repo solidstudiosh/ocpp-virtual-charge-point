@@ -41,7 +41,7 @@ const getOcppOutgoingMessages = (ocppVersion: OcppVersion) => {
   }
 };
 
-export const validateOcppRequest = (
+export const validateOcppIncomingRequest = (
   ocppVersion: OcppVersion,
   action: string,
   // biome-ignore lint/suspicious/noExplicitAny: ocpp message
@@ -53,13 +53,31 @@ export const validateOcppRequest = (
   const ocppMessages = getOcppIncomingMessages(ocppVersion);
   const ocppMessage = ocppMessages[action];
   if (!ocppMessage) {
-    logger.warn(`Unknown action ${action}`);
+    logger.warn(`Unknown incoming request action ${action}`);
     return;
   }
   ocppMessage.parseRequestPayload(payload);
 };
 
-export const validateOcppResponse = (
+export const validateOcppIncomingResponse = (
+  ocppVersion: OcppVersion,
+  action: string,
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp message
+  payload: any,
+) => {
+  if (!SCHEMA_VALIDATION_ENABLED) {
+    return;
+  }
+  const ocppMessages = getOcppIncomingMessages(ocppVersion);
+  const ocppMessage = ocppMessages[action];
+  if (!ocppMessage) {
+    logger.warn(`Unknown incoming response action ${action}`);
+    return;
+  }
+  ocppMessage.parseResponsePayload(payload);
+};
+
+export const validateOcppOutgoingRequest = (
   ocppVersion: OcppVersion,
   action: string,
   // biome-ignore lint/suspicious/noExplicitAny: ocpp message
@@ -71,7 +89,25 @@ export const validateOcppResponse = (
   const ocppMessages = getOcppOutgoingMessages(ocppVersion);
   const ocppMessage = ocppMessages[action];
   if (!ocppMessage) {
-    logger.warn(`Unknown action ${action}`);
+    logger.warn(`Unknown outgoing request action ${action}`);
+    return;
+  }
+  ocppMessage.parseRequestPayload(payload);
+};
+
+export const validateOcppOutgoingResponse = (
+  ocppVersion: OcppVersion,
+  action: string,
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp message
+  payload: any,
+) => {
+  if (!SCHEMA_VALIDATION_ENABLED) {
+    return;
+  }
+  const ocppMessages = getOcppOutgoingMessages(ocppVersion);
+  const ocppMessage = ocppMessages[action];
+  if (!ocppMessage) {
+    logger.warn(`Unknown outgoing response action ${action}`);
     return;
   }
   ocppMessage.parseResponsePayload(payload);

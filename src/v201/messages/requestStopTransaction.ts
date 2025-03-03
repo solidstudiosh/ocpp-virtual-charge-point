@@ -3,8 +3,8 @@ import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { transactionManager } from "../transactionManager";
 import { StatusInfoTypeSchema } from "./_common";
-import { statusNotificationOcppIncoming } from "./statusNotification";
-import { transactionEventOcppIncoming } from "./transactionEvent";
+import { statusNotificationOcppOutgoing } from "./statusNotification";
+import { transactionEventOcppOutgoing } from "./transactionEvent";
 
 const RequestStopTransactionReqSchema = z.object({
   transactionId: z.string(),
@@ -31,7 +31,7 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
       }),
     );
     vcp.send(
-      transactionEventOcppIncoming.request({
+      transactionEventOcppOutgoing.request({
         eventType: "Ended",
         timestamp: new Date().toISOString(),
         seqNo: 0,
@@ -46,7 +46,7 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
       }),
     );
     vcp.send(
-      statusNotificationOcppIncoming.request({
+      statusNotificationOcppOutgoing.request({
         evseId: 1,
         connectorId: 1,
         connectorStatus: "Available",

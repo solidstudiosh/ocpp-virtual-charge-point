@@ -6,7 +6,7 @@ import {
   StatusInfoTypeSchema,
   VariableTypeSchema,
 } from "./_common";
-import { notifyReportOcppIncoming } from "./notifyReport";
+import { notifyReportOcppOutgoing } from "./notifyReport";
 
 const GetReportReqSchema = z.object({
   requestId: z.number().int(),
@@ -41,7 +41,7 @@ class GetReportOcppIncoming extends OcppIncoming<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
     vcp.send(
-      notifyReportOcppIncoming.request({
+      notifyReportOcppOutgoing.request({
         generatedAt: new Date().toISOString(),
         requestId: call.payload.requestId,
         seqNo: 1,

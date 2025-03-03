@@ -10,8 +10,11 @@
   "author": "Solidstudio",
   "license": "Apache-2.0",
   "dependencies": {
+    "@hono/node-server": "^1.13.8",
+    "@hono/zod-validator": "^0.4.3",
     "ajv": "^6.12.6",
     "dotenv": "^16.0.0",
+    "hono": "^4.7.2",
     "typescript": "^5.8.2",
     "uuid": "^8.3.2",
     "winston": "^3.5.1",

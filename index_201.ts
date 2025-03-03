@@ -1,8 +1,8 @@
 require("dotenv").config();
 
 import { OcppVersion } from "./src/ocppVersion";
-import { bootNotificationOcppMessage } from "./src/v201/messages/bootNotification";
-import { statusNotificationOcppMessage } from "./src/v201/messages/statusNotification";
+import { bootNotificationOcppOutgoing } from "./src/v201/messages/bootNotification";
+import { statusNotificationOcppOutgoing } from "./src/v201/messages/statusNotification";
 import { VCP } from "./src/vcp";
 
 const vcp = new VCP({
@@ -10,13 +10,13 @@ const vcp = new VCP({
   chargePointId: process.env.CP_ID ?? "123456",
   ocppVersion: OcppVersion.OCPP_2_0_1,
   basicAuthPassword: process.env.PASSWORD ?? undefined,
-  adminWsPort: Number.parseInt(process.env.ADMIN_WS_PORT ?? "9999"),
+  adminPort: Number.parseInt(process.env.ADMIN_WS_PORT ?? "9999"),
 });
 
 (async () => {
   await vcp.connect();
   vcp.send(
-    bootNotificationOcppMessage.request({
+    bootNotificationOcppOutgoing.request({
       reason: "PowerUp",
       chargingStation: {
         model: "VirtualChargePoint",
@@ -25,7 +25,7 @@ const vcp = new VCP({
     }),
   );
   vcp.send(
-    statusNotificationOcppMessage.request({
+    statusNotificationOcppOutgoing.request({
       evseId: 1,
       connectorId: 1,
       connectorStatus: "Available",

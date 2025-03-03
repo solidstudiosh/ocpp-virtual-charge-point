@@ -10,7 +10,7 @@ const vcp = new VCP({
   chargePointId: process.env.CP_ID ?? "123456",
   ocppVersion: OcppVersion.OCPP_1_6,
   basicAuthPassword: process.env.PASSWORD ?? undefined,
-  adminWsPort: Number.parseInt(process.env.ADMIN_PORT ?? "9999"),
+  adminPort: Number.parseInt(process.env.ADMIN_PORT ?? "9999"),
 });
 
 (async () => {

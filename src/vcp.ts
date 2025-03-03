@@ -1,7 +1,12 @@
 import * as util from "node:util";
-import { WebSocket, WebSocketServer } from "ws";
+import { WebSocket } from "ws";
 
+import { serve } from "@hono/node-server";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { z } from "zod";
 import { logger } from "./logger";
+import { call } from "./messageFactory";
 import type { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
 import {
   type OcppMessageHandler,
@@ -22,26 +27,37 @@ interface VCPOptions {
   endpoint: string;
   chargePointId: string;
   basicAuthPassword?: string;
-  adminWsPort?: number;
+  adminPort?: number;
 }
 
 export class VCP {
   private ws?: WebSocket;
-  private adminWs?: WebSocketServer;
   private messageHandler: OcppMessageHandler;
 
   private isFinishing = false;
 
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
-    if (vcpOptions.adminWsPort) {
-      this.adminWs = new WebSocketServer({
-        port: vcpOptions.adminWsPort,
-      });
-      this.adminWs.on("connection", (_ws) => {
-        _ws.on("message", (data: string) => {
-          this.send(JSON.parse(data));
-        });
+    if (vcpOptions.adminPort) {
+      const adminApi = new Hono();
+      adminApi.post(
+        "/execute",
+        zValidator(
+          "json",
+          z.object({
+            action: z.string(),
+            payload: z.any(),
+          }),
+        ),
+        (c) => {
+          const validated = c.req.valid("json");
+          this.send(call(validated.action, validated.payload));
+          return c.text("OK");
+        },
+      );
+      serve({
+        fetch: adminApi.fetch,
+        port: vcpOptions.adminPort,
       });
     }
   }
@@ -140,9 +156,7 @@ export class VCP {
     }
     this.isFinishing = true;
     this.ws.close();
-    this.adminWs?.close();
     this.ws = undefined;
-    this.adminWs = undefined;
     process.exit(1);
   }
 

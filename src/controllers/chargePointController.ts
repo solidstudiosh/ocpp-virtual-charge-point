@@ -7,7 +7,11 @@ import { sleep } from "../utils";
 import "dotenv/config";
 import { v4 as uuid } from "uuid";
 import WebSocket from "ws";
-import { ChangeVcpStatusRequest, StartVcpRequest } from "../schema";
+import {
+  ChangeVcpStatusRequest,
+  StartVcpRequest,
+  StopVcpRequest,
+} from "../schema";
 
 let vcpList: VCP[] = [];
 
@@ -17,21 +21,43 @@ export const startVcp = async (
 ) => {
   const payload = request.body;
 
-  try {
-    run(payload);
+  // if count is greater than 1, require idPrefix
+  if (payload.chargePointId) {
+    startSingleVcp(payload);
 
-    reply.send({ message: `${vcpList.length} VCPs started` });
-  } catch (error) {
-    console.error("Error: " + error);
+    return reply.send({ message: `VCP with ${payload.chargePointId} started` });
+  } else {
+    startMultipleVcps(payload);
 
-    reply.code(500).send({ message: "Unable to start VCPs" });
+    return reply.send({ message: `${vcpList.length} VCPs started` });
   }
 };
 
-export const stopVcp = async (request: FastifyRequest, reply: FastifyReply) => {
-  vcpList = [];
+export const stopVcp = async (
+  request: FastifyRequest<{ Body: StopVcpRequest }>,
+  reply: FastifyReply,
+) => {
+  const { vcpId, vcpIdPrefix } = request.body;
 
-  reply.send({ message: "All VCPs stopped" });
+  if (!vcpId && !vcpIdPrefix) {
+    vcpList = [];
+
+    reply.send({ message: "All VCPs stopped" });
+  }
+
+  if (vcpId) {
+    vcpList = vcpList.filter((vcp) => vcp.vcpOptions.chargePointId !== vcpId);
+
+    reply.send({ message: `VCP with ID: ${vcpId} stopped` });
+  }
+
+  if (vcpIdPrefix) {
+    vcpList = vcpList.filter(
+      (vcp) => !vcp.vcpOptions.chargePointId.startsWith(vcpIdPrefix),
+    );
+
+    reply.send({ message: `VCPs with ID prefix: ${vcpIdPrefix} stopped` });
+  }
 };
 
 export const changeVcpStatus = async (
@@ -73,11 +99,12 @@ export const getVcpStatus = async (
     };
   });
 
-  reply.send({ data: response });
+  reply.send({ data: vcpList });
 };
 
-async function run(payload: StartVcpRequest) {
+async function startMultipleVcps(payload: StartVcpRequest) {
   const {
+    endpoint,
     idPrefix,
     count,
     sleepTime,
@@ -88,24 +115,23 @@ async function run(payload: StartVcpRequest) {
     isTwinGun,
     adminPort,
     adminPortIncrement,
+    ocppVersion,
   } = payload;
-
-  const endpoint = process.env.WS_URL || "ws://127.0.0.1:9000";
 
   const tasks: Promise<void>[] = [];
   let adminWsPort = undefined;
 
   for (let i = 1; i <= count; i++) {
     if ((i === 1 || adminPortIncrement) && adminPort !== undefined) {
-      adminWsPort = parseInt(adminPort) + (i - 1);
+      adminWsPort = adminPort + (i - 1);
     } else {
       adminWsPort = undefined;
     }
 
     const vcp = new VCP({
       endpoint,
-      chargePointId: idPrefix + i,
-      ocppVersion: OcppVersion.OCPP_1_6,
+      chargePointId: idPrefix! + i,
+      ocppVersion,
       isTwinGun,
       adminWsPort,
     });
@@ -143,4 +169,36 @@ async function run(payload: StartVcpRequest) {
 
     await Promise.all(chargeTasks);
   }
+}
+
+async function startSingleVcp(payload: StartVcpRequest) {
+  const {
+    endpoint,
+    chargePointId,
+    sleepTime,
+    testCharge,
+    duration,
+    isTwinGun,
+    ocppVersion,
+    adminPort,
+  } = payload;
+
+  const vcp = new VCP({
+    endpoint,
+    chargePointId: chargePointId!,
+    ocppVersion,
+    adminWsPort: adminPort,
+    isTwinGun,
+  });
+
+  vcpList.push(vcp);
+
+  (async () => {
+    await vcp.connect();
+    bootVCP(vcp, sleepTime);
+
+    if (testCharge) {
+      simulateCharge(vcp, duration, false);
+    }
+  })();
 }

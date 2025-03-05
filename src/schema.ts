@@ -1,5 +1,9 @@
+import { OcppVersion } from "./ocppVersion";
+
 export interface StartVcpRequest {
-  idPrefix: string;
+  endpoint: string;
+  chargePointId?: string;
+  idPrefix?: string;
   count: number;
   sleepTime: number;
   startChance: number;
@@ -7,9 +11,9 @@ export interface StartVcpRequest {
   duration: number;
   randomDelay: boolean;
   isTwinGun: boolean;
-  adminPort?: string;
+  adminPort?: number;
   adminPortIncrement?: boolean;
-  ocppVersion?: string;
+  ocppVersion: OcppVersion;
 }
 
 export enum StatusNotification {
@@ -43,4 +47,9 @@ export interface ChangeVcpStatusRequest {
   payload: object;
   // chargePointId: string;
   // status: StatusNotification;
+}
+
+export interface StopVcpRequest {
+  vcpId?: string;
+  vcpIdPrefix?: string;
 }

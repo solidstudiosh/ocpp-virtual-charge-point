@@ -4,15 +4,13 @@ export interface StartVcpRequest {
   endpoint: string;
   chargePointId?: string;
   idPrefix?: string;
-  count: number;
-  sleepTime: number;
+  count?: number;
+  sleepTime?: number;
   startChance: number;
   testCharge: boolean;
   duration: number;
   randomDelay: boolean;
   isTwinGun: boolean;
-  adminPort?: number;
-  adminPortIncrement?: boolean;
   ocppVersion: OcppVersion;
 }
 
@@ -43,10 +41,9 @@ export enum AdminAction {
 }
 
 export interface ChangeVcpStatusRequest {
+  chargePointId: string;
   action: AdminAction;
   payload: object;
-  // chargePointId: string;
-  // status: StatusNotification;
 }
 
 export interface StopVcpRequest {

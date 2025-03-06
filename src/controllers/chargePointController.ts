@@ -1,17 +1,15 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { VCP } from "../vcp";
-import { OcppVersion } from "../ocppVersion";
 import { simulateCharge } from "../vcp_commands/simulateCharge";
 import { bootVCP } from "../vcp_commands/bootVcp";
 import { sleep } from "../utils";
-import "dotenv/config";
 import { v4 as uuid } from "uuid";
-import WebSocket from "ws";
 import {
   ChangeVcpStatusRequest,
   StartVcpRequest,
   StopVcpRequest,
 } from "../schema";
+import { transactionManager } from "../v16/transactionManager";
 
 let vcpList: VCP[] = [];
 
@@ -64,21 +62,20 @@ export const changeVcpStatus = async (
   request: FastifyRequest<{ Body: ChangeVcpStatusRequest }>,
   reply: FastifyReply,
 ) => {
-  const { action, payload } = request.body;
+  const { chargePointId, action, payload } = request.body;
 
-  const adminWsUrl = process.env.ADMIN_WS_URL || "ws://127.0.0.1:9999";
-  const adminWs = new WebSocket(adminWsUrl);
+  const vcp = vcpList.find(
+    (vcp) => vcp.vcpOptions.chargePointId === chargePointId,
+  );
 
-  adminWs.on("open", () => {
-    adminWs.send(
-      JSON.stringify({
-        action,
-        messageId: uuid(),
-        payload,
-      }),
-    );
+  if (!vcp) {
+    return reply.send({ message: "VCP not found" });
+  }
 
-    adminWs.close();
+  await vcp.sendAndWait({
+    action,
+    messageId: uuid(),
+    payload,
   });
 
   reply.send({ message: "Status updated" });
@@ -99,6 +96,8 @@ export const getVcpStatus = async (
     };
   });
 
+  const data = transactionManager.vcpTransactionMap;
+
   reply.send({ data: vcpList });
 };
 
@@ -113,21 +112,13 @@ async function startMultipleVcps(payload: StartVcpRequest) {
     duration,
     randomDelay,
     isTwinGun,
-    adminPort,
-    adminPortIncrement,
     ocppVersion,
   } = payload;
 
   const tasks: Promise<void>[] = [];
   let adminWsPort = undefined;
 
-  for (let i = 1; i <= count; i++) {
-    if ((i === 1 || adminPortIncrement) && adminPort !== undefined) {
-      adminWsPort = adminPort + (i - 1);
-    } else {
-      adminWsPort = undefined;
-    }
-
+  for (let i = 1; i <= count!; i++) {
     const vcp = new VCP({
       endpoint,
       chargePointId: idPrefix! + i,
@@ -180,14 +171,12 @@ async function startSingleVcp(payload: StartVcpRequest) {
     duration,
     isTwinGun,
     ocppVersion,
-    adminPort,
   } = payload;
 
   const vcp = new VCP({
     endpoint,
     chargePointId: chargePointId!,
     ocppVersion,
-    adminWsPort: adminPort,
     isTwinGun,
   });
 
@@ -198,7 +187,7 @@ async function startSingleVcp(payload: StartVcpRequest) {
     bootVCP(vcp, sleepTime);
 
     if (testCharge) {
-      simulateCharge(vcp, duration, false);
+      simulateCharge(vcp, duration);
     }
   })();
 }

@@ -33,6 +33,7 @@ export class VCP {
   public lastAction: string = "";
   public isTwinGun: boolean = false;
   public connectorIDs: number[];
+  public status: string;
 
   constructor(public vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
@@ -40,6 +41,7 @@ export class VCP {
     this.vcpOptions.isTwinGun = this.vcpOptions.isTwinGun ?? false;
     this.isTwinGun = this.vcpOptions.isTwinGun ?? false;
     this.connectorIDs = this.initializeConnectorIDs();
+    this.status = "Available";
 
     if (vcpOptions.adminWsPort) {
       this.adminWs = new WebSocketServer({
@@ -107,6 +109,11 @@ export class VCP {
       JSON.parse(JSON.stringify(ocppCall.payload)),
     );
     this.lastAction = ocppCall.action;
+
+    if (ocppCall.action === "StatusNotification") {
+      this.status = ocppCall.payload.status;
+    }
+
     this.ws.send(jsonMessage);
   }
 

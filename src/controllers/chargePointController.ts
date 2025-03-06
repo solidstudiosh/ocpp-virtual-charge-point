@@ -9,7 +9,6 @@ import {
   StartVcpRequest,
   StopVcpRequest,
 } from "../schema";
-import { transactionManager } from "../v16/transactionManager";
 
 let vcpList: VCP[] = [];
 
@@ -82,23 +81,37 @@ export const changeVcpStatus = async (
 };
 
 export const getVcpStatus = async (
-  request: FastifyRequest,
+  request: FastifyRequest<{ Querystring: { verbose: boolean } }>,
   reply: FastifyReply,
 ) => {
-  const response = vcpList.map((vcp: VCP) => {
-    return {
-      uuid: uuid(),
-      isFinishing: vcp.isFinishing,
-      isWaiting: vcp.isWaiting,
-      lastAction: vcp.lastAction,
-      connectorIDs: vcp.connectorIDs,
-      ...vcp.vcpOptions,
-    };
-  });
+  const { verbose } = request.query;
+  let response;
 
-  const data = transactionManager.vcpTransactionMap;
+  if (!verbose || verbose === true) {
+    const response = vcpList.map((vcp: VCP) => {
+      return {
+        isFinishing: vcp.isFinishing,
+        isWaiting: vcp.isWaiting,
+        lastAction: vcp.lastAction,
+        connectorIDs: vcp.connectorIDs,
+        status: vcp.status,
+        ...vcp.vcpOptions,
+      };
+    });
+  } else {
+    response = vcpList.map((vcp: VCP) => {
+      return {
+        isFinishing: vcp.isFinishing,
+        isWaiting: vcp.isWaiting,
+        lastAction: vcp.lastAction,
+        connectorIDs: vcp.connectorIDs,
+        status: vcp.status,
+        ...vcp.vcpOptions,
+      };
+    });
+  }
 
-  reply.send({ data: vcpList });
+  reply.send({ data: response });
 };
 
 async function startMultipleVcps(payload: StartVcpRequest) {

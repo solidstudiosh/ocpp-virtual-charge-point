@@ -46,13 +46,13 @@ export const stopVcp = async (
   if (!vcpId && !vcpIdPrefix) {
     vcpList = [];
 
-    reply.send({ message: "All VCPs stopped" });
+    reply.send({ status: "sucess", message: "All VCPs stopped" });
   }
 
   if (vcpId) {
     vcpList = vcpList.filter((vcp) => vcp.vcpOptions.chargePointId !== vcpId);
 
-    reply.send({ message: `VCP with ID: ${vcpId} stopped` });
+    reply.send({ status: "sucess", message: `VCP with ID: ${vcpId} stopped` });
   }
 
   if (vcpIdPrefix) {

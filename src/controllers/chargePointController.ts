@@ -85,20 +85,9 @@ export const getVcpStatus = async (
   reply: FastifyReply,
 ) => {
   const { verbose } = request.query;
-  let response;
+  let response: any[] = [];
 
-  if (!verbose || verbose === true) {
-    const response = vcpList.map((vcp: VCP) => {
-      return {
-        isFinishing: vcp.isFinishing,
-        isWaiting: vcp.isWaiting,
-        lastAction: vcp.lastAction,
-        connectorIDs: vcp.connectorIDs,
-        status: vcp.status,
-        ...vcp.vcpOptions,
-      };
-    });
-  } else {
+  if (verbose) {
     response = vcpList.map((vcp: VCP) => {
       return {
         isFinishing: vcp.isFinishing,
@@ -109,6 +98,17 @@ export const getVcpStatus = async (
         ...vcp.vcpOptions,
       };
     });
+  } else {
+    const data = vcpList.map((vcp: VCP) => {
+      return {
+        chargePointId: vcp.vcpOptions.chargePointId,
+        status: vcp.status,
+        endpoint: vcp.vcpOptions.endpoint,
+      };
+    });
+
+    response.push(data);
+    response.push({ meta: { count: data.length } });
   }
 
   reply.send({ data: response });

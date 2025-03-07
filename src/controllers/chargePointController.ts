@@ -5,15 +5,16 @@ import { bootVCP } from "../vcp_commands/bootVcp";
 import { sleep } from "../utils";
 import { v4 as uuid } from "uuid";
 import {
-  ChangeVcpStatusRequest,
-  StartVcpRequest,
-  StopVcpRequest,
+  ChangeVcpStatusRequestSchema,
+  StartVcpRequestSchema,
+  StatusRequestSchema,
+  StopVcpRequestSchema,
 } from "../schema";
 
 let vcpList: VCP[] = [];
 
 export const startVcp = async (
-  request: FastifyRequest<{ Body: StartVcpRequest }>,
+  request: FastifyRequest<{ Body: StartVcpRequestSchema }>,
   reply: FastifyReply,
 ) => {
   const payload = request.body;
@@ -22,16 +23,22 @@ export const startVcp = async (
   if (payload.chargePointId) {
     startSingleVcp(payload);
 
-    return reply.send({ message: `VCP with ${payload.chargePointId} started` });
+    return reply.send({
+      status: "sucess",
+      message: `VCP with ${payload.chargePointId} started`,
+    });
   } else {
     startMultipleVcps(payload);
 
-    return reply.send({ message: `${vcpList.length} VCPs started` });
+    return reply.send({
+      status: "sucess",
+      message: `${vcpList.length} VCPs started`,
+    });
   }
 };
 
 export const stopVcp = async (
-  request: FastifyRequest<{ Body: StopVcpRequest }>,
+  request: FastifyRequest<{ Body: StopVcpRequestSchema }>,
   reply: FastifyReply,
 ) => {
   const { vcpId, vcpIdPrefix } = request.body;
@@ -53,12 +60,15 @@ export const stopVcp = async (
       (vcp) => !vcp.vcpOptions.chargePointId.startsWith(vcpIdPrefix),
     );
 
-    reply.send({ message: `VCPs with ID prefix: ${vcpIdPrefix} stopped` });
+    reply.send({
+      status: "sucess",
+      message: `VCPs with ID prefix: ${vcpIdPrefix} stopped`,
+    });
   }
 };
 
 export const changeVcpStatus = async (
-  request: FastifyRequest<{ Body: ChangeVcpStatusRequest }>,
+  request: FastifyRequest<{ Body: ChangeVcpStatusRequestSchema }>,
   reply: FastifyReply,
 ) => {
   const { chargePointId, action, payload } = request.body;
@@ -68,20 +78,20 @@ export const changeVcpStatus = async (
   );
 
   if (!vcp) {
-    return reply.send({ message: "VCP not found" });
+    return reply.send({ status: "error", message: "VCP not found" });
   }
 
-  await vcp.sendAndWait({
+  vcp.send({
     action,
     messageId: uuid(),
     payload,
   });
 
-  reply.send({ message: "Status updated" });
+  reply.send({ status: "sucess", message: "Status updated" });
 };
 
 export const getVcpStatus = async (
-  request: FastifyRequest<{ Querystring: { verbose: boolean } }>,
+  request: FastifyRequest<{ Querystring: StatusRequestSchema }>,
   reply: FastifyReply,
 ) => {
   const { verbose } = request.query;
@@ -111,10 +121,10 @@ export const getVcpStatus = async (
     response.push({ meta: { count: data.length } });
   }
 
-  reply.send({ data: response });
+  reply.send({ status: "sucess", data: response });
 };
 
-async function startMultipleVcps(payload: StartVcpRequest) {
+async function startMultipleVcps(payload: StartVcpRequestSchema) {
   const {
     endpoint,
     idPrefix,
@@ -175,7 +185,7 @@ async function startMultipleVcps(payload: StartVcpRequest) {
   }
 }
 
-async function startSingleVcp(payload: StartVcpRequest) {
+async function startSingleVcp(payload: StartVcpRequestSchema) {
   const {
     endpoint,
     chargePointId,

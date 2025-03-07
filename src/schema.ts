@@ -1,6 +1,30 @@
 import { OcppVersion } from "./ocppVersion";
 
-export interface StartVcpRequest {
+export const StartVcpValidationSchema = {
+  type: "object",
+  required: [
+    "endpoint",
+    "ocppVersion",
+    "startChance",
+    "testCharge",
+    "duration",
+  ],
+  properties: {
+    endpoint: { type: "string" },
+    chargePointId: { type: "string" },
+    idPrefix: { type: "string" },
+    count: { type: "integer" },
+    sleepTime: { type: "integer" },
+    startChance: { type: "number" },
+    testCharge: { type: "boolean" },
+    duration: { type: "number" },
+    randomDelay: { type: "boolean" },
+    isTwinGun: { type: "boolean" },
+    ocppVersion: { type: "string" },
+  },
+};
+
+export interface StartVcpRequestSchema {
   endpoint: string;
   chargePointId?: string;
   idPrefix?: string;
@@ -25,11 +49,6 @@ export enum StatusNotification {
   SuspendedEVSE = "SuspendedEVSE",
 }
 
-export enum SecurityEventNotification {
-  StartupOfTheDevice = "StartupOfTheDevice",
-  TamperDetectionActivated = "TamperDetectionActivated",
-}
-
 export enum AdminAction {
   Authorize = "Authorize",
   DataTransfer = "DataTransfer",
@@ -40,13 +59,42 @@ export enum AdminAction {
   StopTransaction = "StopTransaction",
 }
 
-export interface ChangeVcpStatusRequest {
+export interface ChangeVcpStatusRequestSchema {
   chargePointId: string;
   action: AdminAction;
   payload: object;
 }
 
-export interface StopVcpRequest {
+export const ChangeVcpStatusValidationSchema = {
+  type: "object",
+  required: ["chargePointId", "action", "payload"],
+  properties: {
+    chargePointId: { type: "string" },
+    action: { type: "string" },
+    payload: { type: "object" },
+  },
+};
+
+export interface StopVcpRequestSchema {
   vcpId?: string;
   vcpIdPrefix?: string;
+}
+
+export const StopVcpValidationSchema = {
+  type: "object",
+  properties: {
+    vcpId: { type: "string" },
+    vcpIdPrefix: { type: "string" },
+  },
+};
+
+export const StatusValidationSchema = {
+  type: "object",
+  properties: {
+    verbose: { type: "boolean" },
+  },
+};
+
+export interface StatusRequestSchema {
+  verbose: boolean;
 }

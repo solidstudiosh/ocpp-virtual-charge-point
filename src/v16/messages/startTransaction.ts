@@ -5,8 +5,8 @@ import {
   OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
-import { transactionManager } from "../transactionManager";
 import { ConnectorIdSchema, IdTagInfoSchema, IdTokenSchema } from "./_common";
+import { meterValuesOcppMessage } from "./meterValues";
 
 const StartTransactionReqSchema = z.object({
   connectorId: ConnectorIdSchema,
@@ -32,11 +32,31 @@ class StartTransactionOcppMessage extends OcppOutgoing<
     call: OcppCall<z.infer<StartTransactionReqType>>,
     result: OcppCallResult<z.infer<StartTransactionResType>>,
   ): Promise<void> => {
-    transactionManager.startTransaction(
-      vcp,
-      result.payload.transactionId,
-      call.payload.connectorId,
-    );
+    vcp.transactionManager.startTransaction(vcp, {
+      transactionId: result.payload.transactionId,
+      idTag: call.payload.idTag,
+      connectorId: call.payload.connectorId,
+      meterValuesCallback: async (transactionState) => {
+        vcp.send(
+          meterValuesOcppMessage.request({
+            connectorId: call.payload.connectorId,
+            transactionId: result.payload.transactionId,
+            meterValue: [
+              {
+                timestamp: new Date().toISOString(),
+                sampledValue: [
+                  {
+                    value: (transactionState.meterValue / 1000).toString(),
+                    measurand: "Energy.Active.Import.Register",
+                    unit: "kWh",
+                  },
+                ],
+              },
+            ],
+          }),
+        );
+      },
+    });
   };
 }
 

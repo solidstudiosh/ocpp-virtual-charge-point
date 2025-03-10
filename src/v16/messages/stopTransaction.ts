@@ -5,7 +5,6 @@ import {
   OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
-import { transactionManager } from "../transactionManager";
 import { IdTagInfoSchema, IdTokenSchema, MeterValueSchema } from "./_common";
 
 const StopTransactionReqSchema = z.object({
@@ -42,11 +41,11 @@ class StopTransactionOcppMessage extends OcppOutgoing<
   StopTransactionResType
 > {
   resHandler = async (
-    _vcp: VCP,
+    vcp: VCP,
     call: OcppCall<z.infer<StopTransactionReqType>>,
     _result: OcppCallResult<z.infer<StopTransactionResType>>,
   ): Promise<void> => {
-    transactionManager.stopTransaction(call.payload.transactionId);
+    vcp.transactionManager.stopTransaction(call.payload.transactionId);
   };
 }
 

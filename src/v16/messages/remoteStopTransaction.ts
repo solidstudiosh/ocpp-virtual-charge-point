@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
-import { transactionManager } from "../transactionManager";
 import { statusNotificationOcppMessage } from "./statusNotification";
 import { stopTransactionOcppMessage } from "./stopTransaction";
 
@@ -24,9 +23,7 @@ class RemoteStopTransactionOcppMessage extends OcppIncoming<
     call: OcppCall<z.infer<RemoteStopTransactionReqType>>,
   ): Promise<void> => {
     const transactionId = call.payload.transactionId;
-    const transaction = transactionManager.transactions.get(
-      transactionId.toString(),
-    );
+    const transaction = vcp.transactionManager.transactions.get(transactionId);
     if (!transaction) {
       vcp.respond(this.response(call, { status: "Rejected" }));
       return;
@@ -35,7 +32,9 @@ class RemoteStopTransactionOcppMessage extends OcppIncoming<
     vcp.send(
       stopTransactionOcppMessage.request({
         transactionId: transactionId,
-        meterStop: Math.floor(transactionManager.getMeterValue(transactionId)),
+        meterStop: Math.floor(
+          vcp.transactionManager.getMeterValue(transactionId),
+        ),
         timestamp: new Date().toISOString(),
       }),
     );

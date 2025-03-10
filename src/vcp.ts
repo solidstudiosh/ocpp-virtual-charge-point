@@ -20,6 +20,7 @@ import {
   validateOcppOutgoingRequest,
   validateOcppOutgoingResponse,
 } from "./schemaValidator";
+import { TransactionManager } from "./transactionManager";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
 
 interface VCPOptions {
@@ -35,6 +36,8 @@ export class VCP {
   private messageHandler: OcppMessageHandler;
 
   private isFinishing = false;
+
+  transactionManager = new TransactionManager();
 
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);

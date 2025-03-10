@@ -2,7 +2,6 @@ import * as uuid from "uuid";
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
-import { transactionManager } from "../transactionManager";
 import {
   ChargingProfileSchema,
   IdTokenTypeSchema,
@@ -38,12 +37,43 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
     const transactionId = uuid.v4();
     const transactionEvseId = call.payload.evseId ?? 1;
     const transactionConnectorId = 1;
-    transactionManager.startTransaction(
-      vcp,
-      transactionId,
-      transactionEvseId,
-      transactionConnectorId,
-    );
+    vcp.transactionManager.startTransaction(vcp, {
+      transactionId: transactionId,
+      idTag: call.payload.idToken.idToken,
+      evseId: transactionEvseId,
+      connectorId: transactionConnectorId,
+      meterValuesCallback: async (transactionStatus) => {
+        vcp.send(
+          transactionEventOcppOutgoing.request({
+            eventType: "Updated",
+            timestamp: new Date().toISOString(),
+            seqNo: 0,
+            triggerReason: "MeterValuePeriodic",
+            transactionInfo: {
+              transactionId: transactionId,
+            },
+            evse: {
+              id: transactionEvseId,
+              connectorId: transactionConnectorId,
+            },
+            meterValue: [
+              {
+                timestamp: new Date().toISOString(),
+                sampledValue: [
+                  {
+                    value: transactionStatus.meterValue,
+                    measurand: "Energy.Active.Import.Register",
+                    unitOfMeasure: {
+                      unit: "kWh",
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+        );
+      },
+    });
     vcp.respond(
       this.response(call, {
         status: "Accepted",

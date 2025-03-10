@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
-import { transactionManager } from "../transactionManager";
 import {
   ChargingProfileSchema,
   ConnectorIdSchema,
@@ -34,7 +33,7 @@ class RemoteStartTransactionOcppMessage extends OcppIncoming<
       vcp.respond(this.response(call, { status: "Rejected" }));
       return;
     }
-    if (!transactionManager.canStartNewTransaction(call.payload.connectorId)) {
+    if (!vcp.transactionManager.canStartNewTransaction(call.payload.connectorId)) {
       vcp.respond(this.response(call, { status: "Rejected" }));
       return;
     }

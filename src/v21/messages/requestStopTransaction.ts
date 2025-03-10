@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
-import { transactionManager } from "../transactionManager";
 import { StatusInfoTypeSchema } from "./_common";
 import { statusNotificationOcppOutgoing } from "./statusNotification";
 import { transactionEventOcppOutgoing } from "./transactionEvent";
@@ -53,7 +52,7 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
         timestamp: new Date().toISOString(),
       }),
     );
-    transactionManager.stopTransaction(call.payload.transactionId);
+    vcp.transactionManager.stopTransaction(call.payload.transactionId);
   };
 }
 

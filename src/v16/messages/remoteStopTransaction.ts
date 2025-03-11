@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { generateOCMF, getOCMFPublicKey } from "../../ocmfGenerator";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { statusNotificationOcppMessage } from "./statusNotification";
@@ -29,6 +30,15 @@ class RemoteStopTransactionOcppMessage extends OcppIncoming<
       return;
     }
     vcp.respond(this.response(call, { status: "Accepted" }));
+
+    const ocmf = generateOCMF({
+      startTime: transaction.startedAt,
+      startEnergy: 0,
+      endTime: new Date(),
+      endEnergy: vcp.transactionManager.getMeterValue(transactionId) / 1000,
+      idTag: transaction.idTag,
+    });
+
     vcp.send(
       stopTransactionOcppMessage.request({
         transactionId: transactionId,
@@ -36,6 +46,22 @@ class RemoteStopTransactionOcppMessage extends OcppIncoming<
           vcp.transactionManager.getMeterValue(transactionId),
         ),
         timestamp: new Date().toISOString(),
+        transactionData: [
+          {
+            timestamp: new Date().toISOString(),
+            sampledValue: [
+              {
+                value: JSON.stringify({
+                  signedMeterData: Buffer.from(ocmf).toString("base64"),
+                  encodingMethod: "OCMF",
+                  publicKey: getOCMFPublicKey().toString("base64"),
+                }),
+                format: "SignedData",
+                context: "Transaction.End",
+              },
+            ],
+          },
+        ],
       }),
     );
     vcp.send(

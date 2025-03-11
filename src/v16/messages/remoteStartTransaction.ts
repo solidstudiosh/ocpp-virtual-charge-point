@@ -33,7 +33,9 @@ class RemoteStartTransactionOcppMessage extends OcppIncoming<
       vcp.respond(this.response(call, { status: "Rejected" }));
       return;
     }
-    if (!vcp.transactionManager.canStartNewTransaction(call.payload.connectorId)) {
+    if (
+      !vcp.transactionManager.canStartNewTransaction(call.payload.connectorId)
+    ) {
       vcp.respond(this.response(call, { status: "Rejected" }));
       return;
     }

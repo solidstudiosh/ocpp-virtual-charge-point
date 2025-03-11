@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "biome lint src",
     "format": "biome format src",
-    "typecheck": "tsc --noEmit --skipLibCheck src/**/*.ts"
+    "typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck src/**/*.ts"
   },
   "author": "Solidstudio",
   "license": "Apache-2.0",
@@ -13,6 +13,7 @@
     "@hono/node-server": "^1.13.8",
     "@hono/zod-validator": "^0.4.3",
     "ajv": "^6.12.6",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "hono": "^4.7.4",
     "typescript": "^5.8.2",

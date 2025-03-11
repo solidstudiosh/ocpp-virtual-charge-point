@@ -73,10 +73,14 @@ export class VCP {
       const protocol = toProtocolVersion(this.vcpOptions.ocppVersion);
       this.ws = new WebSocket(websocketUrl, [protocol], {
         rejectUnauthorized: false,
-        auth: this.vcpOptions.basicAuthPassword
-          ? `${this.vcpOptions.chargePointId}:${this.vcpOptions.basicAuthPassword}`
-          : undefined,
         followRedirects: true,
+        headers: {
+          ...(this.vcpOptions.basicAuthPassword && {
+            Authorization: `Basic ${Buffer.from(
+              `${this.vcpOptions.chargePointId}:${this.vcpOptions.basicAuthPassword}`,
+            ).toString("base64")}`,
+          }),
+        },
       });
 
       this.ws.on("open", () => resolve());

@@ -12,6 +12,7 @@ import {
   StatusValidationSchema,
   StopVcpValidationSchema,
 } from "./schema";
+import fs from 'fs';
 
 const app = fastify({
   logger: true,
@@ -52,7 +53,10 @@ app.post(
   },
   changeVcpStatus,
 );
-
+app.get('/control', async (request, reply) => {
+    const stream = fs.readFileSync('./public/control.html').toString()
+    reply.type('text/html').send(stream);
+});
 const start = async () => {
   try {
     await app.listen({ port, host });

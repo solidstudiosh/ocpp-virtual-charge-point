@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Charge Point Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 60%;
+            background: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin: 10px 0;
+        }
+        input, button {
+            padding: 10px;
+            width: 100%;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        pre {
+            background: black;
+            color: limegreen;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            background: #f9f9f9;
+            margin-right: 5px;
+            border-radius: 8px 8px 0 0;
+        }
+        .tab.active {
+            background: white;
+            border-bottom: 2px solid white;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Virtual Charge Point Control</h1>
+
+    <div class="tabs">
+        <div class="tab active" onclick="openTab(event, 'startVCP')">Start VCPs</div>
+        <div class="tab" onclick="openTab(event, 'changeStatus')">Change Status</div>
+        <div class="tab" onclick="openTab(event, 'stopVCP')">Stop VCPs</div>
+        <div class="tab" onclick="openTab(event, 'getStatus')">Get Status</div>
+    </div>
+
+    <div id="startVCP" class="tab-content active">
+        <form id="startVCPForm">
+            <label>Charge Point ID: <input type="text" id="chargePointId" value="VCP_ALAN_01" required></label>
+            <label>Count: <input type="number" id="count" value="1" required></label>
+            <label>Endpoint: <input type="text" id="endpoint" value="ws://127.0.0.1:9000" required></label>
+            <label>Start Chance: <input type="number" id="startChance" value="20" required></label>
+            <label>Test Charge: <input type="checkbox" id="testCharge" checked></label>
+            <label>Duration: <input type="number" id="duration" value="1000" required></label>
+            <label>Random Delay: <input type="checkbox" id="randomDelay" checked></label>
+            <label>Is Twin Gun: <input type="checkbox" id="isTwinGun"></label>
+            <label>OCPP Version: <input type="text" id="ocppVersion" value="OCPP_1.6" required></label>
+            <button type="submit">Start</button>
+        </form>
+
+    </div>
+
+    <div id="changeStatus" class="tab-content">
+        <form id="changeStatusForm">
+            <label>Charge Point ID: <input type="text" id="statusChargePointId" value="VCP_ALAN_01" required></label>
+            <label>Connector ID: <input type="number" id="connectorId" value="1" required></label>
+            <label>Status: <input type="text" id="status" value="Charging" required></label>
+            <button type="submit">Change Status</button>
+        </form>
+
+    </div>
+
+    <div id="stopVCP" class="tab-content">
+        <form id="stopVCPForm">
+            <label>VCP ID: <input type="text" id="vcpId" value="VCP_ALAN_01" required></label>
+            <button type="submit">Stop</button>
+        </form>
+    </div>
+
+    <div id="getStatus" class="tab-content">
+        <button onclick="getVCPStatus()">Get Status</button>
+    </div>
+
+    <h2>Response</h2>
+    <pre id="response"></pre>
+</div>
+<script>
+    function openTab(event, tabId) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    async function sendRequest(url, method, body = null) {
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: body ? JSON.stringify(body) : null
+        };
+        const response = await fetch(url, options);
+        const data = await response.json();
+        document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+    }
+
+    document.getElementById('startVCPForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        sendRequest('/api/vcp/start', 'POST', {
+            chargePointId: document.getElementById('chargePointId').value,
+            count: Number(document.getElementById('count').value),
+            endpoint: document.getElementById('endpoint').value,
+            startChance: Number(document.getElementById('startChance').value),
+            testCharge: document.getElementById('testCharge').checked,
+            duration: Number(document.getElementById('duration').value),
+            randomDelay: document.getElementById('randomDelay').checked,
+            isTwinGun: document.getElementById('isTwinGun').checked,
+            ocppVersion: document.getElementById('ocppVersion').value
+        });
+    });
+
+    document.getElementById('changeStatusForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        sendRequest('/api/vcp/change-status', 'POST', {
+            chargePointId: document.getElementById('statusChargePointId').value,
+            action: "StatusNotification",
+            payload: {
+                connectorId: Number(document.getElementById('connectorId').value),
+                status: document.getElementById('status').value,
+                errorCode: "NoError",
+            }
+        });
+    });
+
+    document.getElementById('stopVCPForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        sendRequest('/api/vcp/stop', 'POST', {
+            vcpId: document.getElementById('vcpId').value
+        });
+    });
+
+    function getVCPStatus() {
+        sendRequest('/api/vcp/status?verbose=true', 'GET');
+    }
+</script>
+</body>
+</html>

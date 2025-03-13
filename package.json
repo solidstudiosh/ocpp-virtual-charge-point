@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Simple OCPP Virtual Charging Point",
   "scripts": {
-    "build": "rimraf ./build && tsc && cp .env ./build",
+    "build": "rimraf ./build && tsc && cp .env ./build && cp -r ./public ./build",
     "dev": "npx nodemon",
     "start": "node build/src/index.js"
   },

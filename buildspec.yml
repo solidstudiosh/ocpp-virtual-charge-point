@@ -24,7 +24,7 @@ phases:
       - echo Pushing the Docker image...
       - docker push $REPO_URI:$IMAGE_TAG
       - docker push $REPO_URI:latest
-      - printf '{"ImageURI":"%s"}' "$REPO_URI:$IMAGE_TAG" > ./ocpp_image/imageDetail.json
+      - printf '{"ImageURI":"%s"}' "$REPO_URI:$IMAGE_TAG" > ./vcp_image/imageDetail.json
 artifacts:
   files:
     - buildspec.yml
@@ -40,6 +40,6 @@ artifacts:
         - taskdef.json
         - appspec.yaml
     VCPImage:
-      base-directory: ./ocpp_image/
+      base-directory: ./vcp_image/
       files:
         - imageDetail.json

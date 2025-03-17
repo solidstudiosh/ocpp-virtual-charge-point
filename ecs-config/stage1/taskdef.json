@@ -1,0 +1,50 @@
+{
+    "containerDefinitions": [
+        {
+            "name": "vcp-stimulator",
+            "image": "<VCP_IMAGE_NAME>",
+            "memoryReservation": 400,
+            "portMappings": [
+                {
+                    "name": "vcp-3000-tcp",
+                    "containerPort": 3000,
+                    "hostPort": 0,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "HOST",
+                    "value": "0.0.0.0"
+                },
+                {
+                    "name": "PORT",
+                    "value": 3000
+                }
+            ],
+            "environmentFiles": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "/ecs/vcp-stimulator-stage1",
+                    "awslogs-region": "eu-west-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        }
+    ],
+    "family": "vcp-stimulator-app",
+    "taskRoleArn": "arn:aws:iam::162445988126:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::162445988126:role/ecsTaskExecutionRole",
+    "networkMode": "bridge",
+    "volumes": [],
+    "placementConstraints": [],
+    "requiresCompatibilities": [
+        "EC2"
+    ]
+}

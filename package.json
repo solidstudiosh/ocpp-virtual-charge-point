@@ -4,6 +4,7 @@
   "description": "Simple OCPP Virtual Charging Point",
   "scripts": {
     "build": "rimraf ./build && tsc && cp .env ./build && cp -r ./public ./build",
+    "build:win": "powershell -Command \"Remove-Item -Recurse -Force .\\build; tsc; Copy-Item .env -Destination .\\build; Copy-Item -Recurse .\\public -Destination .\\build\"",
     "dev": "npx nodemon",
     "start": "node build/src/index.js"
   },

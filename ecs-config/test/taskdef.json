@@ -38,7 +38,7 @@
             }
         }
     ],
-    "family": "ocpp-adapter-app",
+    "family": "vcp-stimulator-app",
     "taskRoleArn": "arn:aws:iam::162445988126:role/ecsTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::162445988126:role/ecsTaskExecutionRole",
     "networkMode": "bridge",

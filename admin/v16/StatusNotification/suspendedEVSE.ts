@@ -5,7 +5,7 @@ sendAdminCommand(
   statusNotificationOcppMessage.request({
     connectorId: 1,
     errorCode: "NoError",
-    status: "Preparing",
+    status: "SuspendedEVSE",
     timestamp: new Date().toISOString(),
   }),
 );

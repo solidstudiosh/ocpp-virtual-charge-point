@@ -130,5 +130,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+
+.idea/
+
 .vscode
 .history

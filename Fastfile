@@ -15,7 +15,7 @@ DEFAULT_CP_ID = "CS*SIMULATOR*1"
 
 goal start:
     - CP_ID DEFAULT_CP_ID
-    sh: docker run --rm -t -v $(pwd):/app  \
+    sh: docker run --rm -t \
         --name $name \
         -e WS_URL=$CLOUD_WS_URL \
         -e CP_ID=$CP_ID \
@@ -72,11 +72,11 @@ goal data:
 
 goal docker:
     goal build:
-        sh: docker buildx build -f ./devops/Dockerfile \
+        sh: docker buildx build --load -f ./devops/Dockerfile \
             -t ${name}:latest .
     goal shell:
         - CP_ID DEFAULT_CP_ID
-        sh: docker run -it --rm -v $(pwd):/app  \
+        sh: docker run -it --rm \
             --name $name \
             --entrypoint /bin/ash \
             -e WS_URL=$CLOUD_WS_URL \

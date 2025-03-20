@@ -118,3 +118,5 @@ We encourage contributions through pull requests and follow the standard "fork-a
 8. Once your pull request has been reviewed and accepted, it will be merged into the original repository.
 
 When creating your pull request, please include a clear description of the changes you have made, and any relevant context or reasoning behind those changes.
+
+Thank you!!!

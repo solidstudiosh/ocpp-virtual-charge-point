@@ -55,7 +55,7 @@ jobs:
         run: fast docker:login_ci
 
       - name: Run build task
-        run: fast app:pack --cache ci --platform "linux/amd64"
+        run: fast app:pack --cache local --platform "linux/amd64"
 
       - name: Pushing image
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || github.base_ref == 'main'

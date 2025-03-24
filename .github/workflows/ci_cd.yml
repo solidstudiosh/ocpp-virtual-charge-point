@@ -36,11 +36,8 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Download and Install Fast (Specific Version)
-        run: |
-          curl -fsSL -o /usr/local/bin/install_fast_linux.sh https://raw.githubusercontent.com/Obornes/install-fast/main/install_fast_linux.sh
-          chmod +x /usr/local/bin/install_fast_linux.sh
-          /bin/bash /usr/local/bin/install_fast_linux.sh $FAST_VERSION
+      - name: Install Fast (Specific Version)
+        run: curl -fsSL https://raw.githubusercontent.com/Obornes/install-fast/main/install_fast_linux.sh | bash -s $FAST_VERSION
 
       - name: Create Fast folder
         run: |
@@ -88,11 +85,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download and Install Fast (Specific Version)
-        run: |
-          curl -fsSL -o /usr/local/bin/install_fast_linux.sh https://raw.githubusercontent.com/Obornes/install-fast/main/install_fast_linux.sh
-          chmod +x /usr/local/bin/install_fast_linux.sh
-          /bin/bash /usr/local/bin/install_fast_linux.sh $FAST_VERSION
+      - name: Install Fast (Specific Version)
+        run: curl -fsSL https://raw.githubusercontent.com/Obornes/install-fast/main/install_fast_linux.sh | bash -s $FAST_VERSION
 
       - name: Create Fast folder
         run: |

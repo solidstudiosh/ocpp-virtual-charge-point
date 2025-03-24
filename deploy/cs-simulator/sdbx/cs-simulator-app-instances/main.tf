@@ -1,17 +1,10 @@
-# 🔹 Fetch secrets from Secrets Manager
-data "aws_secretsmanager_secret_version" "cp_password" {
-  secret_id = "cs_simulator/cp_password"
-}
-
 locals {
   cp_ids_map      = var.cp_ids
   sanitized_map   = {
     for k, v in local.cp_ids_map :
     replace(replace(v, "*", "-"), "/", "-") => v
   }
-
   ws_url      = var.cloud_ws_url
-  cp_password = jsondecode(data.aws_secretsmanager_secret_version.cp_password.secret_string)["cp_password"]
 }
 
 module "ecs_simulator" {
@@ -39,8 +32,14 @@ module "ecs_simulator" {
   app_task_environment = [
     { name = "ENV", value = var.app_task_environment },
     { name = "WS_URL", value = local.ws_url },
-    { name = "CP_ID", value = each.value },
-    { name = "PASSWORD", value = local.cp_password }
+    { name = "CP_ID", value = each.value }
+  ]
+
+  app_task_secrets = [
+    {
+      name      = "PASSWORD"
+      valueFrom = "arn:aws:secretsmanager:eu-west-1:192351105085:secret:cs_simulator/cp_password-XPcOCk:cp_password::"
+    }
   ]
 
 }

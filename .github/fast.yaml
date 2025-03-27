@@ -1,0 +1,6 @@
+store:
+  sources:
+      - type: github
+        url: https://github.com
+        credentials:
+          personal_access_token: fast_access_token

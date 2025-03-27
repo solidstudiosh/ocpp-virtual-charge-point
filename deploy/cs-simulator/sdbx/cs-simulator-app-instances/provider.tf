@@ -8,5 +8,9 @@ terraform {
 }
 
 provider "aws" {
- region = "eu-west-1"
+  region     = "eu-west-1"
+  assume_role {
+    role_arn = "arn:aws:iam::192351105085:role/AtlantisCrossAccountRole-sdbx"
+  }
 }
+

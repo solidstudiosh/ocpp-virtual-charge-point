@@ -4,9 +4,11 @@ terraform {
     bucket         = "tfstate.sdbx.oreve.com"
     key            = "cs-simulator-app.sdbx.ecs.tfstate"
     region         = "eu-west-1"
-
-    # Replace this with your DynamoDB table name!
-    dynamodb_table = "tfstate-locks"
+    assume_role = {
+      role_arn = "arn:aws:iam::192351105085:role/AtlantisCrossAccountRole-sdbx"
+    }
+    # use S3 State Locking
+    use_lockfile   = true
     encrypt        = true
   }
 }

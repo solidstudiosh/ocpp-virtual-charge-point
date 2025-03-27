@@ -35,11 +35,12 @@ module "ecs_simulator" {
     { name = "CP_ID", value = each.value }
   ]
 
+
   app_task_secrets = [
-    {
-      name      = "PASSWORD"
-      valueFrom = "arn:aws:secretsmanager:eu-west-1:192351105085:secret:cs_simulator/cp_password-XPcOCk:cp_password::"
-    }
-  ]
+  {
+    name      = "PASSWORD"
+    valueFrom = "${aws_secretsmanager_secret.cp_password.arn}:cp_password::"
+  }
+]
 
 }

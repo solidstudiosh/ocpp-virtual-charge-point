@@ -10,7 +10,7 @@ locals {
 module "ecs_simulator" {
   for_each = local.sanitized_map
 
-  source = "github.com/Obornes/terraform-modules.git//modules/compute/ecs-app?ref=main"
+  source = "../../../tf-modules/terraform-modules/modules/compute/ecs-app"
 
   base_name    = "cs-${each.key}"
   cluster_name = "obornes-sdbx"

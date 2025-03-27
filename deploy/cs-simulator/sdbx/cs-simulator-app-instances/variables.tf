@@ -21,10 +21,10 @@ variable "cp_ids" {
   description = "List of Charge Point IDs for cs-simulator instances"
   type        = list(string)
   default     = [
-    "FR*ORV*B0005",
-    "FR*ORV*B0006",
-    "FR*ORV*B0007",
-    "FR*ORV*B0008"
+    "FR*ORV*A0001",
+    "FR*ORV*A0002",
+    "FR*ORV*4901*AA001*5*AC",
+    "FR*ORV*A0004"
   ]
 }
 

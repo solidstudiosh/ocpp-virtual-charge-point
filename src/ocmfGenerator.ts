@@ -58,11 +58,14 @@ const generateOCMFData = (input: OCMFInput) => {
 const generateOCMFSignature = (data: string) => {
   const sign = crypto.createSign("sha256");
   sign.update(data);
+  const projectRoot = path.resolve(__dirname, '../');
+  const certPath = path.join(projectRoot, 'cert/vcp.pem');
+
   const signature = sign
-    .sign({
-      key: fs.readFileSync(path.resolve("./cert/vcp.pem"), "utf8"),
-    })
-    .toString("hex");
+      .sign({
+        key: fs.readFileSync(certPath, "utf8"),
+      })
+      .toString("hex");
   return { SA: "ECDSA-secp256k1-SHA256", SD: signature };
 };
 
@@ -73,5 +76,7 @@ export const generateOCMF = (input: OCMFInput) => {
 };
 
 export const getOCMFPublicKey = () => {
-  return fs.readFileSync(path.resolve("./cert/vcp.pub"));
+  const projectRoot = path.resolve(__dirname, '../');
+  const certPath = path.join(projectRoot, 'cert/vcp.pub');
+  return fs.readFileSync(certPath, "utf8");
 };

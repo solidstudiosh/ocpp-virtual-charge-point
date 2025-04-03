@@ -56,7 +56,7 @@ export async function bootVCP(vcp: VCP, sleepTime: number = 500) {
         chargePointVendor: "ATESS",
         chargePointModel: "EVA-07S-SE",
         chargePointSerialNumber: "S001",
-        firmwareVersion: "1.0.0",
+        firmwareVersion: "EVA-07S_SE-V4.2.9-20220610",
       },
     });
     await sleep(100);

@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Charge Point Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="/css/app.css">
+  </head>
+  <body class="bg-[#f4f4f4] min-h-full flex flex-col">
+    <div class="flex-1">
+      <div class="max-w-screen-lg mx-auto p-5">
+        <div class="p-5 bg-white rounded-lg shadow-sm">
+          <div class="navbar bg-primary rounded-lg">
+            <div class="flex-1">
+              <img title="Electric Miles" width="80px" src="data:image/png;base64,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">
+            </div>
+            <div class="flex-none">
+              <span id="first_name" class="text-white font-medium"></span>
+              <button id="logout" class="btn">Log out</button>
+            </div>
+          </div>
+
+          <div class="mt-5">
+            <h1 class="text-3xl">Virtual Charge Point Control</h1>
+            
+            <div class="mt-5 tabs tabs-box">
+              <input type="radio" name="my_tabs_2" class="tab" aria-label="Start VCPs" checked />
+            
+              <div id="startVCP" class="tab-content bg-base-100 border-base-300 p-5">
+                <form id="startVCPForm" class="space-y-4">
+                  <div>
+                    <label class="block mb-2 label">Endpoint</label>
+                    <select id="endpoint" class="w-full select" required>
+                      <option value="ws://ocpp.test.electricmiles.io">Test</option>
+                      <option value="ws://127.0.0.1:9000">Local</option>
+                      <option value="ws://ocpp.stage1.electricmiles.io">
+                        Stage 1
+                      </option>
+                      <option value="ws://ocpp.stage2.electricmiles.io">
+                        Stage 2
+                      </option>
+                      <option value="ws://ocpp.stage3.electricmiles.io">
+                        Stage 3
+                      </option>
+                      <option value="ws://ocpp.electricmiles.io">Production</option>
+                      <option value="ws://ocpp.monta.app">Monta</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block mb-2 label">OCPP Version</label>
+                    <select id="ocppVersion" class="w-full select" required>
+                      <option value="OCPP_1.6">OCPP_1.6</option>
+                      <option value="OCPP_2.0.1">OCPP_2.0.1</option>
+                    </select>
+                  </div>
+
+                  <div class="flex items-center space-x-4">
+                    <label for="testCharge" class="label">
+                      Test Charge
+                    </label>
+                    <input type="checkbox" class="checkbox" id="testCharge" />
+                  </div>
+                  
+                  <div>
+                    <label class="block mb-2 label">Duration</label>
+                    <input type="number" id="duration" class="w-full input" value="1000" min="1" required />
+                  </div>
+
+                  <div>
+                    <label class="block mb-2 label">Connectors</label>
+                    <input type="number" id="connectors" class="w-full input" min="1" value="1" />
+                  </div>
+
+                  <div>
+                    <label class="block mb-2 label">
+                      Charge Point ID <span class="optional">(optional)</span>
+                    </label>
+                    <input type="text" id="chargePointId" class="w-full input" placeholder="VCP_ALAN_01" />
+                    <span class="mt-0.5 block text-sm text-base-content/60">Required if ID prefix is not provided.</span>
+                  </div>
+            
+                  <div>
+                    <label class="block mb-2 label">
+                      ID Prefix <span class="optional">(optional)</span>
+                    </label>
+                    <input type="text" id="idPrefix" class="w-full input" placeholder="VCP_TEST_" />
+                    <span class="mt-0.5 block text-sm text-base-content/60">Required if charge point ID is not provided.</span>
+                  </div>
+            
+                  <div>
+                    <label class="block mb-2 label">
+                      Count <span class="optional">(optional)</span>
+                    </label>
+                    <input type="number" class="w-full input" id="count" min="1" />
+                    <span class="mt-0.5 block text-sm text-base-content/60">Required if ID prefix is provided.</span>
+                  </div>
+            
+                  <div>
+                    <label class="block mb-2 label">
+                      Start Chance <span class="optional">(optional)</span>
+                    </label>
+                    <input type="number" id="startChance" class="w-full input" placeholder="20" min="1" />
+                    <span class="mt-0.5 block text-sm text-base-content/60">Required when starting multiple VCPs.</span>
+                  </div>
+            
+                  <div>
+                    <div class="flex items-center space-x-4">
+                      <label for="randomDelay" class="label">
+                        Random Delay
+                      </label>
+                      <input type="checkbox" id="randomDelay" class="checkbox" />
+                    </div>
+                    <span class="mt-0.5 block text-sm text-base-content/60">Required when starting multiple VCPs.</span>
+                  </div>
+            
+                  <button type="submit" class="btn btn-primary btn-block">Start</button>
+                </form>
+              </div>
+            
+              <input type="radio" name="my_tabs_2" class="tab" aria-label="Change Status" />
+            
+              <div id="changeStatus" class="tab-content bg-base-100 border-base-300 p-5">
+                <form id="changeStatusForm" class="space-y-4">
+                  <div>
+                    <label class="block mb-2 label">Charge Point ID</label>
+                    <input type="text" id="statusChargePointId" class="w-full input" placeholder="VCP_ALAN_01" required />
+                  </div>
+            
+                  <div>
+                    <label class="block mb-2 label">connectorId</label>
+                    <input type="number" id="connectorId" class="w-full input" value="1" min="1" required />
+                  </div>
+            
+                  <div>
+                    <label class="block mb-2 label">Status</label>
+                    <select id="status" class="w-full select" required>
+                      <option value="Available">Available</option>
+                      <option value="Charging">Charging</option>
+                      <option value="Faulted">Faulted</option>
+                      <option value="Finishing">Finishing</option>
+                      <option value="Preparing">Preparing</option>
+                      <option value="Reserved">Reserved</option>
+                      <option value="SuspendedEV">SuspendedEV</option>
+                      <option value="SuspendedEVSE">SuspendedEVSE</option>
+                    </select>
+                  </div>
+            
+                  <div>
+                    <label class="block mb-2 label">Error Code</label>
+                    <select id="errorCode" class="w-full select" required>
+                      <option value="NoError">NoError</option>
+                      <option value="InternalError">InternalError</option>
+                      <option value="EVCommunicationError">EVCommunicationError</option>
+                      <option value="PeakWait">PeakWait</option>
+                    </select>
+                  </div>
+            
+                  <button type="submit" class="btn btn-primary btn-block">Change Status</button>
+                </form>
+              </div>
+            
+              <input type="radio" name="my_tabs_2" class="tab" aria-label="Stop VCPs" />
+            
+              <div id="stopVCP" class="tab-content bg-base-100 border-base-300 p-5">
+                <form id="stopVCPForm" class="space-y-4">
+                  <div>
+                    <label class="block mb-2 label">
+                      VCP ID <span class="optional">(optional)</span>
+                    </label>
+                    <input type="text" id="vcpId" class="w-full input" placeholder="VCP_ALAN_01" />
+                  </div>
+            
+                  <div>
+                    <label class="block mb-2 label">
+                      VCP ID Prefix <span class="optional">(optional)</span>
+                    </label>
+                    <input type="text" id="vcpIdPrefix" class="w-full input" placeholder="VCP_TEST_" />
+                  </div>
+            
+                  <p class="mt-0.5 block text-sm text-base-content/60">
+                    If neither VCP ID nor VCP ID prefix is provided, all running VCPs
+                    will be stopped.
+                  </p>
+            
+                  <button type="submit" class="btn btn-primary btn-block">Stop</button>
+                </form>
+              </div>
+            
+              <input type="radio" name="my_tabs_2" class="tab" aria-label="Get Status" />
+            
+              <div id="getStatus" class="tab-content bg-base-100 border-base-300 p-5">
+                <form id="getStatusForm">
+                  <div class="flex items-center space-x-4">
+                    <label for="verbose" class="label">Verbose</label>
+                    <input type="checkbox" id="verbose" class="checkbox" checked>
+                  </div>
+                  <button type="submit" class="mt-4 btn btn-primary btn-block">Get Status</button>
+                </form>
+              </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div>
+              <h2>Response</h2>
+              <pre id="response"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', (event) => {
+        fetch("/api/auth/user", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("vcp_access_token")}`,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status !== "success") {
+              window.location.href = "/login";
+            } else {
+              document.getElementById("first_name").textContent = data.data.first_name;
+
+              const chargePointId = localStorage.getItem("chargePointId");
+              const idPrefix = localStorage.getItem("idPrefix");
+
+              document.getElementById("statusChargePointId").value = chargePointId ?? idPrefix;
+              document.getElementById("vcpId").value = chargePointId;
+              document.getElementById("vcpIdPrefix").value = idPrefix;
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+
+      function openTab(event, tabId) {
+        document.querySelectorAll(".tab-content").forEach((tab) => tab.classList.remove("active"));
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+        document.getElementById(tabId).classList.add("active");
+        event.currentTarget.classList.add("active");
+      }
+
+      async function sendRequest(url, method, body = null) {
+        const options = {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("vcp_access_token")}`,
+          },
+          body: body ? JSON.stringify(body) : null,
+        };
+        const response = await fetch(url, options);
+        const data = await response.json();
+        document.getElementById("response").textContent = JSON.stringify(
+          data,
+          null,
+          2,
+        );
+      }
+
+      document
+        .getElementById("startVCPForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const chargePointId = document.getElementById("chargePointId").value;
+          const idPrefix = document.getElementById("idPrefix").value;
+
+          if (chargePointId) {
+            localStorage.setItem("chargePointId", chargePointId);
+          }
+
+          if (idPrefix) {
+            localStorage.setItem("idPrefix", idPrefix);
+          }
+
+          document.getElementById("statusChargePointId").value =
+            chargePointId ?? idPrefix;
+          document.getElementById("vcpId").value = chargePointId;
+          document.getElementById("vcpIdPrefix").value = idPrefix;
+
+          sendRequest("/api/vcp/start", "POST", {
+            chargePointId,
+            idPrefix,
+            count: Number(document.getElementById("count").value),
+            endpoint: document.getElementById("endpoint").value,
+            startChance: Number(document.getElementById("startChance").value),
+            testCharge: document.getElementById("testCharge").checked,
+            duration: Number(document.getElementById("duration").value),
+            randomDelay: document.getElementById("randomDelay").checked,
+            connectors: document.getElementById("connectors").value,
+            ocppVersion: document.getElementById("ocppVersion").value,
+          });
+        });
+
+      document
+        .getElementById("changeStatusForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          sendRequest("/api/vcp/change-status", "POST", {
+            chargePointId: document.getElementById("statusChargePointId").value,
+            action: "StatusNotification",
+            payload: {
+              connectorId: Number(document.getElementById("connectorId").value),
+              status: document.getElementById("status").value,
+              errorCode: document.getElementById("errorCode").value,
+            },
+          });
+        });
+
+      document
+        .getElementById("stopVCPForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          sendRequest("/api/vcp/stop", "POST", {
+            vcpId: document.getElementById("vcpId").value,
+            vcpIdPrefix: document.getElementById("vcpIdPrefix").value,
+          });
+        });
+
+      document.getElementById("getStatusForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const verbose = document.getElementById("verbose").checked
+
+        sendRequest(`/api/vcp/status?verbose=${verbose}`, "GET");
+      });
+
+      document.getElementById("logout").addEventListener("click", (event) => {
+        event.preventDefault();
+
+        localStorage.removeItem("vcp_access_token");
+
+        window.location.href = "/login";
+      });
+    </script>
+  </body>
+</html>

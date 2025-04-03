@@ -1,0 +1,46 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 20
+  pre_build:
+    commands:
+      - echo "Starting build phase..."
+      - echo "HOST=$HOST" >> .env
+      - cat .env
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 350769034865.dkr.ecr.eu-west-1.amazonaws.com
+      - REPO_URI=350769034865.dkr.ecr.eu-west-1.amazonaws.com/em/vcp-stimulator
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t $REPO_URI:$IMAGE_TAG .
+      - docker tag $REPO_URI:$IMAGE_TAG $REPO_URI:latest
+      - rm -rf .env
+  post_build:
+    commands:
+      - echo Pushing the Docker image...
+      - docker push $REPO_URI:$IMAGE_TAG
+      - docker push $REPO_URI:latest
+      - mkdir ./vcp_image
+      - printf '{"ImageURI":"%s"}' "$REPO_URI:$IMAGE_TAG" > ./vcp_image/imageDetail.json
+artifacts:
+  files:
+    - buildspec.yml
+  secondary-artifacts:
+    VCPStage1EnvTask:
+      base-directory: "./ecs-config/stage1"
+      files:
+        - taskdef.json
+        - appspec.yaml
+    VCPTestEnvTask:
+      base-directory: "./ecs-config/test"
+      files:
+        - taskdef.json
+        - appspec.yaml
+    VCPImage:
+      base-directory: ./vcp_image/
+      files:
+        - imageDetail.json

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Charge Point - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<body class="bg-[#f4f4f4] min-h-full flex flex-col">
+    <div class="flex-1">
+        <div class="max-w-2xl mx-auto p-5">
+            <div class="p-5 bg-white rounded-lg shadow-sm">
+                <h1 class="text-3xl mb-2">Log in</h1>
+
+                <div id="message"></div>
+
+                <form id="loginForm" class="mt-5 space-y-4">
+                    <div>
+                        <label class="block mb-2 label">Username</label>
+                        <input type="text" id="email" class="w-full input" required>
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2 label">Password</label>
+                        <input type="password" id="password" class="w-full input" required>
+                    </div>
+                
+                    <button type="submit" class="btn btn-primary btn-block">Log in</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                localStorage.setItem('vcp_access_token', data.data.access_token);
+
+                window.location.href = '/control';
+            } else {
+                // class="alert alert-error alert-soft"
+                const messageBox = document.getElementById('message')
+
+                messageBox.classList.add('alert', 'alert-error', 'alert-soft')
+                messageBox.textContent = data.message
+                console.log(`Login failed: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        })
+    })
+</script>
+</body>
+</html>

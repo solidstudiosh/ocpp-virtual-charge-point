@@ -1,0 +1,11 @@
+:root {
+  --color-primary: #945EFF;
+}
+
+pre {
+  background: black;
+  color: limegreen;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+}

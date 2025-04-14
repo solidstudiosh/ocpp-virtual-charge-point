@@ -225,13 +225,15 @@ async function startMultipleVcps(payload: StartVcpRequestSchema) {
 
   // After all VCPs have been initialized, start the simulateCharge function concurrently for each VCP
   if (testCharge) {
+    const durationInMiliseconds = duration * 1000;
+
     const chargeTasks = vcpList.map((vcp) => {
       // VCP performs simulateCharge based on startChance
       const randomChance = Math.floor(Math.random() * 100);
       console.log(`randomChance: ${randomChance}`);
 
       if (randomChance <= startChance) {
-        return simulateCharge(vcp, duration, randomDelay);
+        return simulateCharge(vcp, durationInMiliseconds, randomDelay);
       } else {
         return Promise.resolve();
       }
@@ -269,7 +271,9 @@ async function startSingleVcp(payload: StartVcpRequestSchema) {
     bootVCP(vcp);
 
     if (testCharge) {
-      simulateCharge(vcp, duration);
+      const durationInMiliseconds = duration * 1000;
+
+      simulateCharge(vcp, durationInMiliseconds);
     }
   })();
 }

@@ -181,7 +181,7 @@ async function startMultipleVcps(payload: StartVcpRequestSchema) {
     connectors,
     ocppVersion,
   } = payload;
-
+  const vcps: VCP[] = [];
   const tasks: Promise<void>[] = [];
 
   const isTwinGun = connectors > 1 ? true : false;
@@ -196,17 +196,19 @@ async function startMultipleVcps(payload: StartVcpRequestSchema) {
       connectorIds,
     });
 
-    vcpList.push(vcp);
+    vcps.push(vcp);
 
     const task = (async () => {
       // Start each VCP a second apart
-      await sleep(i * 1000);
-      await vcp.connect();
-      await bootVCP(vcp);
+      sleep(i * 1000);
+      vcp.connect();
+      bootVCP(vcp);
     })();
 
     tasks.push(task);
   }
+
+  vcpList.push(...vcps);
 
   // Wait for all VCPs to be connected and initialized
   await Promise.all(tasks);
@@ -220,7 +222,6 @@ async function startMultipleVcps(payload: StartVcpRequestSchema) {
     const chargeTasks = vcpList.map((vcp) => {
       // VCP performs simulateCharge based on startChance
       const randomChance = Math.floor(Math.random() * 100);
-      console.log(`randomChance: ${randomChance}`);
 
       if (randomChance <= startChance) {
         return simulateCharge(vcp, durationInMiliseconds, randomDelay);

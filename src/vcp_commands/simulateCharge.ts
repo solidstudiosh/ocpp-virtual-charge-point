@@ -3,13 +3,15 @@ import { VCP } from "../vcp";
 import {transactionManager} from "../v16/transactionManager";
 import { sleep } from "../utils"
 
-export async function simulateCharge(vcp: VCP, duration: number,randomDelay: boolean = false) {
+export async function simulateCharge(vcp: VCP, duration: number, randomDelay: boolean = false) {
   const validConnectors = vcp.connectorIDs.filter(connector => connector !== 0);
 
   const chargePromises = validConnectors.map(async (connector) => {
     console.log(`Starting test charge for connector: ${connector}`);
-    await sleep(500); 
-    for (let i = 1; i <= 2; i++) {
+    
+    await sleep(500);
+    
+    for (let i = 1; i <= validConnectors.length; i++) {
       console.log(`charge session count: ${i}`);
       // if randomDelay, test charge will start between 500-120,000ms
       if (!randomDelay) {

@@ -87,11 +87,7 @@ export const stopVcp = async (
 
     vcp.disconnect();
 
-    const vcpIndex = vcpList.findIndex(
-      (vcp: VCP) => vcp.vcpOptions.chargePointId === vcpId,
-    );
-
-    vcpList.splice(vcpIndex, 1);
+    vcpList.splice(vcpList.indexOf(vcp), 1);
 
     return reply.send({
       status: "success",
@@ -100,21 +96,15 @@ export const stopVcp = async (
   }
 
   if (vcpIdPrefix) {
-    const vcps = vcpList.filter((vcp: VCP, index, vcpList) => {
-      if (vcp.vcpOptions.chargePointId.startsWith(vcpIdPrefix)) {
-        vcpList.splice(index, 1);
+    vcpList
+      .filter((vcp: VCP) =>
+        vcp.vcpOptions.chargePointId.startsWith(vcpIdPrefix),
+      )
+      .forEach((vcp: VCP) => {
+        vcp.disconnect();
 
-        return true;
-      }
-
-      return false;
-    });
-
-    for (let index = 0; index < vcps.length; index++) {
-      const vcp = vcps[index];
-
-      vcp.disconnect();
-    }
+        vcpList.splice(vcpList.indexOf(vcp), 1);
+      });
 
     return reply.send({
       status: "success",

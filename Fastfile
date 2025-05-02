@@ -21,9 +21,10 @@ STAGING = "stg"
 PRODUCTION = "prod"
 ENVIRONMENTS = [SANDBOX, INTEGRATION, STAGING, PRODUCTION]
 
-image_name = DOCKER_REGISTRY + "/" + name + ":" + version
+image_name = DOCKER_REGISTRY + "/" + name
 hash_git = sh: git rev-parse --short HEAD
-full_image_name = image_name + "-" + hash_git
+full_image_name       = image_name + ":git-" + version + "-" + hash_git
+release_image_name    = image_name + ":v" + version
 
 
 
@@ -54,7 +55,7 @@ goal terraform:
 goal github:
     goal release:
         goal create:
-            do obornes.commons.github.github:release:create release_version=version image_tag=image_name
+            do obornes.commons.github.github:release:create release_version=version image_tag=release_image_name
 
 # Application management
 goal app:
@@ -151,5 +152,5 @@ goal app:
             docker pull "${full_image_name}"
 
         goal tag_base_image:
-            sh: docker tag ${full_image_name} ${image_name}
-            do docker:release tag=image_name
+            sh: docker tag ${full_image_name} ${release_image_name}
+            do docker:release tag=release_image_name

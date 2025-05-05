@@ -18,36 +18,34 @@ npm install
 
 ## Running VCP
 
-Configure env variables:
+Create `.env` file in the root directory and configure env variables:
 
 ```
 WS_URL - websocket endpoint
 CP_ID - ID of this VCP
 PASSWORD - if used for OCPP Authentication, otherwise can be left blank
+ADMIN_PORT - port for admin access (default is 9999), can be left blank
+CP_START_TYPE - available chargepoint types to start, allowed values: 16, 16_2_connectors, 201, 21 (default is 16)
 ```
 
-Run OCPP 1.6:
+To run OCPP 1.6 station you should set CP_START_TYPE=16; to run OCPP 2.0.1 station, set CP_START_TYPE=201, and so on.
 
+To start the station run:
 ```bash
-npx tsx index_16.ts
-```
-
-Run OCPP 2.0.1:
-
-```bash
-npx tsx index_201.ts
-```
-
-When testing different configurations, you can create multiple `.env` files and pass the env file as an argument, for example:
-
-```bash
-npm start -- --env-file=.env index_16.ts
+npm run start
 ```
 
 ## Example
 
+`.env`:
+```
+WS_URL=ws://localhost:3000
+CP_ID=vcp_16_test
+CP_START_TYPE=16
+```
+
 ```bash
-> WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npx tsx index_16.ts
+> npm run start
 
 2023-03-27 13:09:17 info: Connecting... | {
   endpoint: 'ws://localhost:3000',
@@ -68,6 +66,11 @@ npm start -- --env-file=.env index_16.ts
 2023-03-27 13:09:18 info: Responding with ➡️  [3,"d7610ad2-63d0-470f-9bd9-6e47d5483429",{"status":"Accepted"}]
 2023-03-27 13:10:17 info: Sending message ➡️  [2,"79a41b2e-2c4a-4a65-9d7e-417967a8f95f","Heartbeat",{}]
 2023-03-27 13:10:17 info: Receive message ⬅️  [3,"79a41b2e-2c4a-4a65-9d7e-417967a8f95f",{"currentTime":"2023-03-27T11:10:17.955Z"}]
+```
+
+## Running VCP in Docker
+```
+cd docker && docker compose up --build
 ```
 
 ## Executing Admin Commands

@@ -6,5 +6,5 @@ ARG MAX_OLD_SPACE_SIZE=768
 ENV NODE_OPTIONS="--stack-trace-limit=${STACK_TRACE_LIMIT} --max-old-space-size=${MAX_OLD_SPACE_SIZE}"
 
 COPY . ./
-RUN npm ci
+RUN npm install
 ENTRYPOINT [ "npm" "run" "start" ]

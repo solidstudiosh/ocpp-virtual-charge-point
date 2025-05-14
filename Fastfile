@@ -9,7 +9,7 @@ requires:
     package "https://github.com/Obornes/fast-packages.git#/libs/obornes-commons"
 
 name = "cs-simulator"
-version = "1.0.5"
+version = "1.0.6"
 CLOUD_WS_URL = "wss://cpc.eu-stable.uat.charge.ampeco.tech:443/obornes"
 CP_PASSWORD =  ""
 CP_ID = "CS*SIMULATOR*1"
@@ -51,6 +51,8 @@ goal terraform:
         rm -rf tf-modules
         mkdir -p tf-modules
         gh repo clone "https://github.com/Obornes/terraform-modules.git" tf-modules/terraform-modules || true
+
+    goal prepare_secrets:sh:
         rm -rf terraform-secrets
         mkdir -p terraform-secrets
         gh repo clone "https://github.com/Obornes/terraform-non-prod-secrets.git" terraform-secrets/terraform-non-prod-secrets || true

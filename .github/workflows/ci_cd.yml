@@ -105,6 +105,9 @@ jobs:
       - name: Install git-crypt
         run: sudo apt-get install -y git-crypt
 
+      - name: Clone secrets
+        run: fast terraform:prepare_secrets
+
       - name: Restore and unlock secrets
         run: |
           echo "${{ secrets.GIT_CRYPT_NONPROD_KEY }}" | base64 -d > git-crypt-non-prod.key

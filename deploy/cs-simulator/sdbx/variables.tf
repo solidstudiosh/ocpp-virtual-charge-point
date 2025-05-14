@@ -10,21 +10,14 @@ variable "app_task_environment" {
   default     = "sdbx"
 }
 
-variable "cloud_ws_url" {
-  description = "Websocket URL for cs-simulator"
-  type        = string
-  default     = "ws://server.16.ocpp.obornes.solidstudio.io"
+variable "cp_ws_map" {
+  description = "Map of charge point IDs to their corresponding WebSocket URL"
+  type        = map(string)
+  default = {
+    "FR*ORV*A0001"         = "ws://server.16.ocpp.obornes.solidstudio.io"
+    "FR*ORV*A0002"         = "ws://server.16.ocpp.obornes.solidstudio.io"
+    "FR*ORV*4901*AA001*5*AC" = "ws://server.16.ocpp.obornes.solidstudio.io"
+    "FR*ORV*A0004"         = "ws://server.16.ocpp.obornes.solidstudio.io"
+    "FR*ORV*B0016"         = "ws://cpc.eu-stable.uat.charge.ampeco.tech:80/obornes"
+  }
 }
-
-
-variable "cp_ids" {
-  description = "List of Charge Point IDs for cs-simulator instances"
-  type        = list(string)
-  default     = [
-    "FR*ORV*A0001",
-    "FR*ORV*A0002",
-    "FR*ORV*4901*AA001*5*AC",
-    "FR*ORV*A0004"
-  ]
-}
-

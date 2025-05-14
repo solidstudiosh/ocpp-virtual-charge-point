@@ -1,5 +1,5 @@
 data "local_file" "cp_password_json" {
-  filename = "${path.module}/../../../terraform-non-prod-secrets/cs-simulator/sdbx/cp-password.json"
+  filename = "${path.module}/../../../terraform-secrets/terraform-non-prod-secrets/cs-simulator/sdbx/cp-password.json"
 }
 
 locals {

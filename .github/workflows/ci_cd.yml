@@ -102,6 +102,9 @@ jobs:
           role-session-name: "GitHub_to_AWS_via_FederatedOIDC"
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Install git-crypt
+        run: sudo apt-get install -y git-crypt
+
       - name: Restore and unlock secrets
         run: |
           echo "${{ secrets.GIT_CRYPT_NONPROD_KEY }}" | base64 -d > git-crypt-non-prod.key

@@ -1,10 +1,11 @@
 locals {
-  cp_ids_map      = var.cp_ids
-  sanitized_map   = {
-    for k, v in local.cp_ids_map :
-    replace(replace(v, "*", "-"), "/", "-") => v
+  sanitized_map = {
+    for cp_id, ws_url in var.cp_ws_map :
+    replace(replace(cp_id, "*", "-"), "/", "-") => {
+      cp_id   = cp_id
+      ws_url  = ws_url
+    }
   }
-  ws_url      = var.cloud_ws_url
 }
 
 module "ecs_simulator" {
@@ -29,12 +30,11 @@ module "ecs_simulator" {
   enable_alb                = false
   app_collector = "disabled"
 
-  app_task_environment = [
-    { name = "ENV", value = var.app_task_environment },
-    { name = "WS_URL", value = local.ws_url },
-    { name = "CP_ID", value = each.value }
-  ]
-
+app_task_environment = [
+  { name = "ENV",     value = var.app_task_environment },
+  { name = "WS_URL",  value = each.value["ws_url"] },
+  { name = "CP_ID",   value = each.value["cp_id"] }
+]
 
   app_task_secrets = [
   {

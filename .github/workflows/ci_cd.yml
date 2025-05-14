@@ -106,6 +106,8 @@ jobs:
         uses: flydiverny/setup-git-crypt@v4
 
       - name: Clone secrets
+        env:
+          GH_TOKEN: ${{secrets.TOKEN_FAST_FOR_GITHUB_ACTIONS}}
         run: fast terraform:prepare_secrets
 
       - name: Restore and unlock secrets

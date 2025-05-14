@@ -53,7 +53,7 @@ goal terraform:
         gh repo clone "https://github.com/Obornes/terraform-modules.git" tf-modules/terraform-modules || true
         rm -rf terraform-secrets
         mkdir -p terraform-secrets
-        gh repo clone "https://github.com/Obornes/terraform-non-prod-secrets" terraform-secrets/terraform-non-prod-secrets || true
+        gh repo clone "https://github.com/Obornes/terraform-non-prod-secrets.git" terraform-secrets/terraform-non-prod-secrets || true
 
 
 goal github:

@@ -1,7 +1,9 @@
-locals {
-  secrets_path = "${path.module}/../../../terraform-non-prod-secrets/cs-simulator/sdbx"
+data "local_file" "cp_password_json" {
+  filename = "${path.module}/../../../terraform-non-prod-secrets/cs-simulator/sdbx/cp-password.json"
+}
 
-  cp_password       = jsondecode(file("${local.secrets_path}/cp-password.json"))
+locals {
+  cp_password = jsondecode(data.local_file.cp_password_json.content)
 }
 
 resource "aws_secretsmanager_secret" "cp_password" {

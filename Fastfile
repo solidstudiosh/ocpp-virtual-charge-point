@@ -51,8 +51,6 @@ goal terraform:
         rm -rf tf-modules
         mkdir -p tf-modules
         gh repo clone "https://github.com/Obornes/terraform-modules.git" tf-modules/terraform-modules || true
-
-    goal prepare_secrets:sh:
         rm -rf terraform-secrets
         mkdir -p terraform-secrets
         gh repo clone "https://github.com/Obornes/terraform-non-prod-secrets.git" terraform-secrets/terraform-non-prod-secrets || true
@@ -134,7 +132,6 @@ goal app:
     goal deploy:
         - env "sdbx" [*ENVIRONMENTS] !
         do terraform:prepare
-        do terraform:prepare_secrets
         sh.bind("hashicorp/terraform:latest/bin/ash?v=aws:/root/.aws&it=false&timeout=600")
         sh: terraform -chdir=deploy/${name}/${env} init
         goal plan:sh:

@@ -116,6 +116,10 @@ jobs:
           cd terraform-secrets/terraform-non-prod-secrets
           git-crypt unlock ../../git-crypt-non-prod.key
 
+      - name: Debug secrets directory
+        run: |
+          ls -alh terraform-secrets/terraform-non-prod-secrets/cs-simulator/sdbx/
+
       - name: Deploy on SDBX
         env:
           GH_TOKEN: ${{secrets.TOKEN_FAST_FOR_GITHUB_ACTIONS}}

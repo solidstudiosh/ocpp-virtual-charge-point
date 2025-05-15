@@ -39,7 +39,7 @@ app_task_environment = [
   app_task_secrets = [
   {
     name      = "PASSWORD"
-    valueFrom = "${aws_secretsmanager_secret.cp_password.arn}:cp_password::"
+    valueFrom = "arn:aws:secretsmanager:eu-west-1:192351105085:secret:cs_simulator/cp_password"
   }
 ]
 

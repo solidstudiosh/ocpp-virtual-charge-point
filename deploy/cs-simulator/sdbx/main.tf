@@ -8,6 +8,10 @@ locals {
   }
 }
 
+data "aws_secretsmanager_secret_version" "cp_password" {
+  secret_id = "cs_simulator/cp_password"
+}
+
 module "ecs_simulator" {
   for_each = local.sanitized_map
 
@@ -33,13 +37,10 @@ module "ecs_simulator" {
 app_task_environment = [
   { name = "ENV",     value = var.app_task_environment },
   { name = "WS_URL",  value = each.value["ws_url"] },
-  { name = "CP_ID",   value = each.value["cp_id"] }
-]
-
-  app_task_secrets = [
-  {
-    name      = "PASSWORD"
-    valueFrom = "arn:aws:secretsmanager:eu-west-1:192351105085:secret:cs_simulator/cp_password-JuxG2J"
+  { name = "CP_ID",   value = each.value["cp_id"] },
+    {
+    name  = "PASSWORD",
+    value = jsondecode(data.aws_secretsmanager_secret_version.cp_password.secret_string)["CP_PASSWORD"]
   }
 ]
 

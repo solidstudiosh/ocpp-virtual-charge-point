@@ -102,24 +102,6 @@ jobs:
           role-session-name: "GitHub_to_AWS_via_FederatedOIDC"
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup git-crypt
-        uses: flydiverny/setup-git-crypt@v4
-
-      - name: Clone secrets
-        env:
-          GH_TOKEN: ${{secrets.TOKEN_FAST_FOR_GITHUB_ACTIONS}}
-        run: fast terraform:prepare_secrets
-
-      - name: Restore and unlock secrets
-        run: |
-          echo "${{ secrets.GIT_CRYPT_NONPROD_KEY }}" | base64 -d > git-crypt-non-prod.key
-          cd terraform-secrets/terraform-non-prod-secrets
-          git-crypt unlock ../../git-crypt-non-prod.key
-
-      - name: Debug secrets directory
-        run: |
-          ls -alh terraform-secrets/terraform-non-prod-secrets/cs-simulator/sdbx/
-
       - name: Deploy on SDBX
         env:
           GH_TOKEN: ${{secrets.TOKEN_FAST_FOR_GITHUB_ACTIONS}}

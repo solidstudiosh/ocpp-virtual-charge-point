@@ -9,7 +9,7 @@ requires:
     package "https://github.com/Obornes/fast-packages.git#/libs/obornes-commons"
 
 name = "cs-simulator"
-version = "1.1.2"
+version = "1.1.3"
 CLOUD_WS_URL = "wss://cpc.eu-stable.uat.charge.ampeco.tech:443/obornes"
 CP_PASSWORD =  ""
 CP_ID = "CS*SIMULATOR*1"

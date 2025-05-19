@@ -16,6 +16,7 @@ variable "cp_ws_map" {
   default = {
     "FR*ORV*A0001"         = "ws://server.16.ocpp.obornes.solidstudio.io"
     "FR*ORV*A0002"         = "ws://server.16.ocpp.obornes.solidstudio.io"
+    "FR*ORV*A0003"         = "ws://server.16.ocpp.dev.solid.oreve.com"
     "FR*ORV*4901*AA001*5*AC" = "ws://server.16.ocpp.obornes.solidstudio.io"
     "FR*ORV*A0004"         = "ws://server.16.ocpp.obornes.solidstudio.io"
     "FR*ORV*B0016"         = "ws://cpc.eu-stable.uat.charge.ampeco.tech:80/obornes"

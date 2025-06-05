@@ -1,10 +1,7 @@
 locals {
-  sanitized_map = {
-    for cp_id, ws_url in var.cp_ws_map :
-    replace(replace(cp_id, "*", "-"), "/", "-") => {
-      cp_id   = cp_id
-      ws_url  = ws_url
-    }
+  cp_instances = {
+    for idx, cp in var.cp_ws_list :
+    "${replace(replace(cp.cp_id, "*", "-"), "/", "-")}-${idx}" => cp
   }
 }
 
@@ -13,7 +10,7 @@ data "aws_secretsmanager_secret_version" "cp_password" {
 }
 
 module "ecs_simulator" {
-  for_each = local.sanitized_map
+  for_each = local.cp_instances
 
   source = "../../../tf-modules/terraform-modules/modules/compute/ecs-app"
 

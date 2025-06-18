@@ -31,6 +31,14 @@ interface VCPOptions {
   adminPort?: number;
 }
 
+interface LogEntry {
+  type: 'Application';
+  timestamp: string;
+  level: string;
+  message: string;
+  metadata: Record<string, unknown>;
+}
+
 export class VCP {
   private ws?: WebSocket;
   private messageHandler: OcppMessageHandler;
@@ -165,6 +173,46 @@ export class VCP {
     this.ws.close();
     this.ws = undefined;
     process.exit(1);
+  }
+
+  async getDiagnosticData(): Promise<LogEntry[]> {
+    try {
+      // Get logs from Winston logger's memory
+      const transport = logger.transports[0];
+      
+      // Create a promise that resolves with collected logs
+      const logStream = new Promise<LogEntry[]>((resolve) => {
+        const entries: LogEntry[] = [];
+        
+        // Listen for new logs
+        transport.on('logged', (info: { 
+          timestamp: string;
+          level: string;
+          message: string;
+          [key: string]: unknown;
+        }) => {
+          entries.push({
+            type: 'Application',
+            timestamp: info.timestamp || new Date().toISOString(),
+            level: info.level,
+            message: info.message,
+            metadata: Object.fromEntries(
+              Object.entries(info).filter(([key]) => 
+                !['timestamp', 'level', 'message'].includes(key)
+              )
+            )
+          });
+        });
+        
+        // Resolve after a short delay to collect recent logs
+        setTimeout(() => resolve(entries), 5000);
+      });
+
+      return await logStream;
+    } catch (err) {
+      logger.error('Failed to read application logs:', err);
+      return [];
+    }
   }
 
   private _onMessage(message: string) {

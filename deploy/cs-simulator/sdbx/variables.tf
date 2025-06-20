@@ -21,7 +21,7 @@ variable "cp_ws_list" {
     # { cp_id = "FR*ORV*A0001", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
     { cp_id = "FR*ORV*A0002", ws_url = "ws://server.16.ocpp.obornes.solidstudio.io" },
     # { cp_id = "FR*ORV*A0002", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
-    { cp_id = "FR*ORV*A0003", ws_url = "ws://server.16.ocpp.dev.solid.oreve.com" },
+    # { cp_id = "FR*ORV*A0003", ws_url = "ws://server.16.ocpp.dev.solid.oreve.com" },
     # { cp_id = "FR*ORV*A0003", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
     # { cp_id = "FR*ORV*A0004", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
     { cp_id = "FR*ORV*A0004", ws_url = "ws://server.16.ocpp.obornes.solidstudio.io" },

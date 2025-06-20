@@ -29,16 +29,17 @@ module "ecs_simulator" {
   app_task_host_port        = 3000
   app_service_replicas      = 1
   enable_alb                = false
-  app_collector = "disabled"
+  app_collector             = "disabled"
+  app_target_alb            = "disabled"
 
-app_task_environment = [
-  { name = "ENV",     value = var.app_task_environment },
-  { name = "WS_URL",  value = each.value["ws_url"] },
-  { name = "CP_ID",   value = each.value["cp_id"] },
+  app_task_environment = [
+    { name = "ENV", value = var.app_task_environment },
+    { name = "WS_URL", value = each.value["ws_url"] },
+    { name = "CP_ID", value = each.value["cp_id"] },
     {
-    name  = "PASSWORD",
-    value = jsondecode(data.aws_secretsmanager_secret_version.cp_password.secret_string)["CP_PASSWORD"]
-  }
-]
+      name  = "PASSWORD",
+      value = jsondecode(data.aws_secretsmanager_secret_version.cp_password.secret_string)["CP_PASSWORD"]
+    }
+  ]
 
 }

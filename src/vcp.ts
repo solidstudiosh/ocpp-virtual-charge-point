@@ -205,7 +205,7 @@ export class VCP {
         });
         
         // Resolve after a short delay to collect recent logs
-        setTimeout(() => resolve(entries), 5000);
+        setTimeout(() => resolve(entries), 10000);
       });
 
       return await logStream;

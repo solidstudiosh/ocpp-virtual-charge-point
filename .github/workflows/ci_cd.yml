@@ -61,13 +61,13 @@ jobs:
             echo "::warning ::Error Image Release - Tag already exists"
           fi
 
-      - name: Creating a Github release
-        if: github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{secrets.TOKEN_FAST_FOR_GITHUB_ACTIONS}}
-        run: |
-          fast app:image:tag_base_image
-          fast github:release:create 
+#      - name: Creating a Github release
+#        if: github.ref == 'refs/heads/main'
+#        env:
+#          GH_TOKEN: ${{secrets.TOKEN_FAST_FOR_GITHUB_ACTIONS}}
+#        run: |
+#          fast app:image:tag_base_image
+#          fast github:release:create
 
 
   deploy:

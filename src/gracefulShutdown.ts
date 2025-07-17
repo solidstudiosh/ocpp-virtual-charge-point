@@ -140,17 +140,34 @@ export const createGracefulShutdown = (
             } else {
                 console.log("✅ Charger taken offline gracefully");
             }
-            console.log("💡 Press Enter to return to command prompt");
 
-            // Close the connection after a short delay to ensure message is sent
-            setTimeout(() => {
-                vcp.close();
-                process.exit(0);
-            }, 1000);
+            // Ensure stdin is properly restored before exit
+            try {
+                if (process.stdin.isRaw) {
+                    process.stdin.setRawMode(false);
+                }
+                process.stdin.pause();
+            } catch (e) {
+                // Ignore cleanup errors
+            }
+
+            // Close the connection and exit immediately
+            vcp.close();
+            process.exit(0);
 
         } catch (error) {
             console.error("❌ Error during shutdown:", error);
-            console.log("💡 Press Enter to return to command prompt");
+            
+            // Ensure stdin is restored even on error
+            try {
+                if (process.stdin.isRaw) {
+                    process.stdin.setRawMode(false);
+                }
+                process.stdin.pause();
+            } catch (e) {
+                // Ignore cleanup errors
+            }
+            
             process.exit(1);
         }
     };
@@ -163,9 +180,23 @@ const waitForForceConfirmation = (timeoutMs: number): Promise<boolean> => {
         let timeoutId: NodeJS.Timeout;
 
         const cleanup = () => {
-            process.stdin.removeAllListeners('data');
-            process.stdin.setRawMode(false);
-            clearTimeout(timeoutId);
+            try {
+                // Remove all data listeners
+                process.stdin.removeAllListeners('data');
+                
+                // Only set raw mode to false if it was previously true
+                if (process.stdin.isRaw) {
+                    process.stdin.setRawMode(false);
+                }
+                
+                // Pause stdin to prevent further input processing
+                process.stdin.pause();
+                
+                clearTimeout(timeoutId);
+            } catch (error) {
+                // Ignore cleanup errors, just ensure we continue
+                console.debug('Cleanup warning:', error);
+            }
         };
 
         // Set up timeout
@@ -174,23 +205,29 @@ const waitForForceConfirmation = (timeoutMs: number): Promise<boolean> => {
             resolve(false);
         }, timeoutMs);
 
-        // Set up stdin to detect key presses
-        process.stdin.setRawMode(true);
-        process.stdin.resume();
-        process.stdin.on('data', (key) => {
-            const keyCode = key[0];
+        try {
+            // Set up stdin to detect key presses
+            process.stdin.setRawMode(true);
+            process.stdin.resume();
+            process.stdin.on('data', (key) => {
+                const keyCode = key[0];
 
-            // Ctrl+Q is ASCII 17 (0x11)
-            if (keyCode === 17) {
-                confirmed = true;
-                cleanup();
-                resolve(true);
-            } else {
-                // Any other key cancels
-                cleanup();
-                resolve(false);
-            }
-        });
+                // Ctrl+Q is ASCII 17 (0x11)
+                if (keyCode === 17) {
+                    confirmed = true;
+                    cleanup();
+                    resolve(true);
+                } else {
+                    // Any other key cancels
+                    cleanup();
+                    resolve(false);
+                }
+            });
+        } catch (error) {
+            console.error('Error setting up key detection:', error);
+            cleanup();
+            resolve(false);
+        }
     });
 };// Register signal handlers for graceful shutdown
 export const registerShutdownHandlers = (gracefulShutdown: (signal: string) => Promise<void>) => {

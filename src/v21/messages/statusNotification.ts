@@ -12,6 +12,10 @@ const StatusNotificationReqSchema = z.object({
   connectorStatus: z.enum([
     "Available",
     "Occupied",
+    "Charging",
+    "SuspendedEVSE",
+    "SuspendedEV",
+    "Finishing",
     "Reserved",
     "Unavailable",
     "Faulted",

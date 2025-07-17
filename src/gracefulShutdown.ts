@@ -157,7 +157,7 @@ export const createGracefulShutdown = (
 
         } catch (error) {
             console.error("❌ Error during shutdown:", error);
-            
+
             // Ensure stdin is restored even on error
             try {
                 if (process.stdin.isRaw) {
@@ -167,7 +167,7 @@ export const createGracefulShutdown = (
             } catch (e) {
                 // Ignore cleanup errors
             }
-            
+
             process.exit(1);
         }
     };
@@ -183,15 +183,15 @@ const waitForForceConfirmation = (timeoutMs: number): Promise<boolean> => {
             try {
                 // Remove all data listeners
                 process.stdin.removeAllListeners('data');
-                
+
                 // Only set raw mode to false if it was previously true
                 if (process.stdin.isRaw) {
                     process.stdin.setRawMode(false);
                 }
-                
+
                 // Pause stdin to prevent further input processing
                 process.stdin.pause();
-                
+
                 clearTimeout(timeoutId);
             } catch (error) {
                 // Ignore cleanup errors, just ensure we continue

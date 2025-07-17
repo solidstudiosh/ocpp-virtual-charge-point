@@ -140,6 +140,8 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
         status: "Accepted",
       }),
     );
+
+    // Send "Occupied" first (cable connected)
     vcp.send(
       statusNotificationOcppOutgoing.request({
         evseId: transactionEvseId,
@@ -148,6 +150,8 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
         timestamp: new Date().toISOString(),
       }),
     );
+
+    // Send TransactionEvent "Started" immediately
     vcp.send(
       transactionEventOcppOutgoing.request({
         eventType: "Started",
@@ -178,6 +182,18 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
         ],
       }),
     );
+
+    // Wait briefly then send "Charging" status
+    setTimeout(() => {
+      vcp.send(
+        statusNotificationOcppOutgoing.request({
+          evseId: transactionEvseId,
+          connectorId: transactionConnectorId,
+          connectorStatus: "Charging",
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }, 500);
   };
 }
 

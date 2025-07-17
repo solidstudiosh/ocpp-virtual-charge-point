@@ -82,14 +82,29 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
         ],
       }),
     );
+
+    // Send "Finishing" status first  
     vcp.send(
       statusNotificationOcppOutgoing.request({
-        evseId: 1,
-        connectorId: 1,
-        connectorStatus: "Available",
+        evseId: transaction.evseId ?? 1,
+        connectorId: transaction.connectorId ?? 1,
+        connectorStatus: "Finishing",
         timestamp: new Date().toISOString(),
       }),
     );
+
+    // Wait for realistic cable unplugging time (human operation)
+    setTimeout(() => {
+      vcp.send(
+        statusNotificationOcppOutgoing.request({
+          evseId: transaction.evseId ?? 1,
+          connectorId: transaction.connectorId ?? 1,
+          connectorStatus: "Available",
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }, 4000);
+
     vcp.transactionManager.stopTransaction(transactionId);
   };
 }

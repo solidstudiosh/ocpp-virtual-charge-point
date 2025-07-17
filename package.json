@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@types/node": "^24.0.14",
     "@types/uuid": "^8.3.4",
     "@types/ws": "^8.18.0",
     "tsx": "^4.19.3"

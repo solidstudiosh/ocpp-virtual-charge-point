@@ -45,6 +45,8 @@ class StopTransactionOcppMessage extends OcppOutgoing<
     call: OcppCall<z.infer<StopTransactionReqType>>,
     _result: OcppCallResult<z.infer<StopTransactionResType>>,
   ): Promise<void> => {
+    console.log(`🛑 Stopping charging transaction ${call.payload.transactionId}`);
+    console.log(`💡 Charger protection disabled - single Ctrl+C will now stop immediately`);
     vcp.transactionManager.stopTransaction(call.payload.transactionId);
   };
 }

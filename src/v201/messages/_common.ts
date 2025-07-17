@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { flexibleDatetime } from "../../datetimeValidator";
 
 export const EVSETypeSchema = z.object({
   id: z.number().int().positive(),
@@ -49,7 +50,7 @@ export const IdTokenInfoTypeSchema = z.object({
     "NotAtThisTime",
     "Unknown",
   ]),
-  cacheExpiryDateTime: z.string().datetime().nullish(),
+  cacheExpiryDateTime: flexibleDatetime().nullish(),
   chargingPriority: z.number().int().min(-9).max(9).default(0).nullish(),
   language1: z.string().max(8).nullish(),
   evseId: z.array(z.number().int()).nullish(),
@@ -59,7 +60,7 @@ export const IdTokenInfoTypeSchema = z.object({
 });
 
 export const MeterValueTypeSchema = z.object({
-  timestamp: z.string().datetime(),
+  timestamp: flexibleDatetime(),
   sampledValue: z
     .array(
       z.object({
@@ -171,8 +172,8 @@ export const MessageInfoSchema = z.object({
   id: z.number().int(),
   priority: z.enum(["AlwaysFront", "InFront", "NormalCycle"]),
   state: z.enum(["Charging", "Faulted", "Idle", "Unavailable"]),
-  startDateTime: z.string().datetime().nullish(),
-  endDateTime: z.string().datetime().nullish(),
+  startDateTime: flexibleDatetime().nullish(),
+  endDateTime: flexibleDatetime().nullish(),
   transactionId: z.string().nullish(),
   message: MessageContentTypeSchema,
   display: ComponentTypeSchema.nullish(),
@@ -191,13 +192,13 @@ export const ChargingProfileSchema = z.object({
   chargingProfilePurpose: ChargingProfilePurposeSchema,
   chargingProfileKind: z.enum(["Absolute", "Recurring", "Relative"]),
   recurrencyKind: z.enum(["Daily", "Weekly"]).nullish(),
-  validFrom: z.string().datetime().nullish(),
-  validTo: z.string().datetime().nullish(),
+  validFrom: flexibleDatetime().nullish(),
+  validTo: flexibleDatetime().nullish(),
   transactionId: z.string().max(36).nullish(),
   chargingSchedule: z.array(
     z.object({
       id: z.number().int(),
-      startSchedule: z.string().datetime().nullish(),
+      startSchedule: flexibleDatetime().nullish(),
       duration: z.number().int().nullish(),
       chargingRateUnit: z.enum(["A", "W"]),
       minChargingRate: z.number().nullish(),

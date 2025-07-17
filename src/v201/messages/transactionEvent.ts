@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { flexibleDatetime } from "../../datetimeValidator";
 import {
   type OcppCall,
   type OcppCallResult,
@@ -15,7 +16,7 @@ import {
 
 const TransactionEventReqSchema = z.object({
   eventType: z.enum(["Started", "Updated", "Ended"]),
-  timestamp: z.string().datetime(),
+  timestamp: flexibleDatetime(),
   triggerReason: z.enum([
     "Authorized",
     "CablePluggedIn",

@@ -5,8 +5,7 @@ import {
   OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
-
-const BootNotificationReqSchema = z.object({
+import { flexibleDatetime } from "../../datetimeValidator"; const BootNotificationReqSchema = z.object({
   reason: z.enum([
     "ApplicationReset",
     "FirmwareUpdate",
@@ -34,7 +33,7 @@ const BootNotificationReqSchema = z.object({
 type BootNotificationReqType = typeof BootNotificationReqSchema;
 
 const BootNotificationResSchema = z.object({
-  currentTime: z.string().datetime(),
+  currentTime: flexibleDatetime(),
   interval: z.number().int(),
   status: z.enum(["Accepted", "Pending", "Rejected"]),
   statusInfo: z

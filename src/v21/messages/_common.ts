@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { flexibleDatetime } from "../../datetimeValidator";
 
 export const EVSETypeSchema = z.object({
   id: z.number().int().nonnegative(),
@@ -52,7 +53,7 @@ export const IdTokenInfoTypeSchema = z.object({
     "NotAtThisTime",
     "Unknown",
   ]),
-  cacheExpiryDateTime: z.string().datetime().nullish(),
+  cacheExpiryDateTime: flexibleDatetime().nullish(),
   chargingPriority: z.number().int().min(-9).max(9).default(0).nullish(),
   language1: z.string().max(8).nullish(),
   language2: z.string().max(8).nullish(),
@@ -62,7 +63,7 @@ export const IdTokenInfoTypeSchema = z.object({
 });
 
 export const MeterValueTypeSchema = z.object({
-  timestamp: z.string().datetime(),
+  timestamp: flexibleDatetime(),
   sampledValue: z
     .array(
       z.object({
@@ -214,8 +215,8 @@ export const MessageInfoSchema = z.object({
     "Suspended",
     "Discharging",
   ]),
-  startDateTime: z.string().datetime().nullish(),
-  endDateTime: z.string().datetime().nullish(),
+  startDateTime: flexibleDatetime().nullish(),
+  endDateTime: flexibleDatetime().nullish(),
   transactionId: z.string().nullish(),
   message: MessageContentTypeSchema,
   display: ComponentTypeSchema.nullish(),
@@ -237,13 +238,13 @@ export const ChargingProfileSchema = z.object({
   chargingProfilePurpose: ChargingProfilePurposeSchema,
   chargingProfileKind: z.enum(["Absolute", "Recurring", "Relative"]),
   recurrencyKind: z.enum(["Daily", "Weekly"]).nullish(),
-  validFrom: z.string().datetime().nullish(),
-  validTo: z.string().datetime().nullish(),
+  validFrom: flexibleDatetime().nullish(),
+  validTo: flexibleDatetime().nullish(),
   transactionId: z.string().max(36).nullish(),
   chargingSchedule: z.array(
     z.object({
       id: z.number().int(),
-      startSchedule: z.string().datetime().nullish(),
+      startSchedule: flexibleDatetime().nullish(),
       duration: z.number().int().nullish(),
       chargingRateUnit: z.enum(["A", "W"]),
       minChargingRate: z.number().nullish(),
@@ -412,7 +413,7 @@ export const Price = z.object({
 export const Tariff = z.object({
   tariffId: z.string().max(60),
   currency: z.string().max(3),
-  validFrom: z.string().datetime().nullish(),
+  validFrom: flexibleDatetime().nullish(),
   description: z.array(MessageContentTypeSchema).nullish(),
   energy: TariffEnergy.nullish(),
   chargingTime: TariffTime.nullish(),
@@ -456,7 +457,7 @@ export const RationalNumberType = z.object({
 
 export const ChargingScheduleSchema = z.object({
   id: z.number().int(),
-  startSchedule: z.string().datetime().nullish(),
+  startSchedule: flexibleDatetime().nullish(),
   duration: z.number().int().nullish(),
   chargingRateUnit: z.enum(["W", "A"]),
   minChargingRate: z.number().nullish(),
@@ -555,7 +556,7 @@ export const ChargingScheduleSchema = z.object({
     .max(1024),
   absolutePriceSchedule: z
     .object({
-      timeAnchor: z.string().datetime(),
+      timeAnchor: flexibleDatetime(),
       priceScheduleID: z.number().int(),
       priceScheduleDescription: z.string().max(160).nullish(),
       currency: z.string().max(3),
@@ -633,7 +634,7 @@ export const ChargingScheduleSchema = z.object({
     .nullish(),
   priceLevelSchedule: z
     .object({
-      timeAnchor: z.string().datetime(),
+      timeAnchor: flexibleDatetime(),
       priceScheduleId: z.number().int(),
       priceScheduleDescription: z.string().max(32).nullish(),
       numberOfPriceLevels: z.number().int(),
@@ -660,7 +661,7 @@ export const FixedPF = z.object({
   priority: z.number().int(),
   displacement: z.number(),
   excitation: z.boolean(),
-  startTime: z.string().datetime().nullish(),
+  startTime: flexibleDatetime().nullish(),
   duration: z.number().nullish(),
 });
 
@@ -675,7 +676,7 @@ export const FixedVar = z.object({
     "PctVarAvail",
     "PctEffectiveV",
   ]),
-  startTime: z.string().datetime().nullish(),
+  startTime: flexibleDatetime().nullish(),
   duration: z.number().nullish(),
 });
 
@@ -690,7 +691,7 @@ export const DERCurve = z.object({
     "PctEffectiveV",
   ]),
   responseTime: z.number().nullish(),
-  startTime: z.string().datetime().nullish(),
+  startTime: flexibleDatetime().nullish(),
   duration: z.number().nullish(),
   hysteresis: z
     .object({
@@ -727,7 +728,7 @@ export const DERCurve = z.object({
 export const LimitMaxDischarge = z.object({
   priority: z.number().int(),
   pctMaxDischargePower: z.number().nullish(),
-  startTime: z.string().datetime().nullish(),
+  startTime: flexibleDatetime().nullish(),
   duration: z.number().nullish(),
   powerMonitoringMustTrip: DERCurve.nullish(),
 });
@@ -739,7 +740,7 @@ export const FreqDroop = z.object({
   overDroop: z.number(),
   underDroop: z.number(),
   responseTime: z.number(),
-  startTime: z.string().datetime().nullish(),
+  startTime: flexibleDatetime().nullish(),
   duration: z.number().nullish(),
 });
 

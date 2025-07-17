@@ -3,7 +3,10 @@ require("dotenv").config();
 import { OcppVersion } from "./src/ocppVersion";
 import { bootNotificationOcppMessage } from "./src/v16/messages/bootNotification";
 import { statusNotificationOcppMessage } from "./src/v16/messages/statusNotification";
+import { meterValuesOcppMessage } from "./src/v16/messages/meterValues";
 import { VCP } from "./src/vcp";
+import { createGracefulShutdown, registerShutdownHandlers } from "./src/gracefulShutdown";
+import { MeterReadingsManager } from "./src/meterReadings";
 
 const vcp = new VCP({
   endpoint: process.env.WS_URL ?? "ws://localhost:3000",
@@ -13,59 +16,24 @@ const vcp = new VCP({
   adminPort: Number.parseInt(process.env.ADMIN_PORT ?? "9999"),
 });
 
-// Graceful shutdown handler
-const gracefulShutdown = async (signal: string) => {
-  console.log(`\n📴 Received ${signal}, taking charger offline...`);
+// Initialize meter readings manager for OCPP 1.6
+const meterManager = new MeterReadingsManager(
+  vcp,
+  meterValuesOcppMessage,
+  true, // isOcpp16
+  101   // connectorId
+);
 
-  try {
-    // Send "Unavailable" status to indicate charger is going offline
-    vcp.send(
-      statusNotificationOcppMessage.request({
-        connectorId: 101,
-        errorCode: "NoError",
-        status: "Unavailable",
-        timestamp: new Date().toISOString(),
-      }),
-    );
+// Create graceful shutdown handler
+const gracefulShutdown = createGracefulShutdown(
+  vcp,
+  statusNotificationOcppMessage,
+  { connectorId: 101 }, // OCPP 1.6 config
+  () => meterManager.stop() // cleanup callback
+);
 
-    console.log("✅ Charger taken offline gracefully");
-    console.log("💡 Press Enter to return to command prompt");
-
-    // Close the connection after a short delay to ensure message is sent
-    setTimeout(() => {
-      vcp.close();
-      process.exit(0);
-    }, 500);
-
-  } catch (error) {
-    console.error("❌ Error during shutdown:", error);
-    console.log("💡 Press Enter to return to command prompt");
-    process.exit(1);
-  }
-};
-
-// Register signal handlers for graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n🛑 Interrupt signal received...');
-  gracefulShutdown('SIGINT (Ctrl+C)');
-});
-process.on('SIGTERM', () => {
-  gracefulShutdown('SIGTERM');
-});
-process.on('SIGHUP', () => {
-  gracefulShutdown('SIGHUP');
-});
-
-// Handle unexpected exits
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
-});
+// Register signal handlers
+registerShutdownHandlers(gracefulShutdown);
 
 (async () => {
   await vcp.connect();
@@ -98,5 +66,9 @@ process.on('unhandledRejection', (reason, promise) => {
   console.log(`- Voltage: ${process.env.VOLTAGE_V ?? "230"}V per phase`);
   console.log(`- Connector: 101`);
   console.log(`\n🟢 Charger online`);
-  console.log(`💡 Press Ctrl+C to take charger offline gracefully`);
+  console.log(`💡 Press Ctrl+C to shutdown gracefully (blocked during charging)`);
+  console.log(`💡 During charging: Ctrl+C → then Ctrl+Q to force shutdown`);
+
+  // Start meter readings
+  meterManager.start();
 })();

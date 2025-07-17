@@ -43,6 +43,32 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
       evseId: transactionEvseId,
       connectorId: transactionConnectorId,
       meterValuesCallback: async (transactionStatus) => {
+        // Get max current and voltage from environment variables for realistic readings during transaction
+        const maxCurrent = Number(process.env.MAX_CURRENT_A ?? "32");
+        const baseVoltage = Number(process.env.VOLTAGE_V ?? "230");
+
+        // Simulate realistic readings based on Tesla Wall Connector specs during charging
+        const currentL1 = Number((Math.random() * maxCurrent * 0.3 + maxCurrent * 0.7).toFixed(1));
+        const currentL2 = Number((Math.random() * maxCurrent * 0.3 + maxCurrent * 0.7).toFixed(1));
+        const currentL3 = Number((Math.random() * maxCurrent * 0.3 + maxCurrent * 0.7).toFixed(1));
+
+        // Voltage with ±5% variation
+        const voltage = Number((baseVoltage + (Math.random() - 0.5) * baseVoltage * 0.1).toFixed(1));
+
+        // Calculate power based on actual current and voltage (3-phase)
+        const avgCurrent = (currentL1 + currentL2 + currentL3) / 3;
+        const power = Number((avgCurrent * voltage * Math.sqrt(3)).toFixed(0));
+
+        // Simulate realistic SoC progression during charging (increases over time)
+        const transactionDurationMinutes = (new Date().getTime() - new Date(transactionStatus.startedAt).getTime()) / (1000 * 60);
+        const baseSoC = 25; // Starting SoC
+        const chargingRatePerMinute = 0.5; // ~0.5% per minute (realistic for fast charging)
+        const currentSoC = Math.min(95, baseSoC + (transactionDurationMinutes * chargingRatePerMinute));
+        const soc = Number(currentSoC.toFixed(1));
+
+        // Add this power consumption to the transaction's energy accumulation
+        vcp.transactionManager.addEnergyToTransaction(transactionId, power, 15);
+
         vcp.send(
           transactionEventOcppOutgoing.request({
             eventType: "Updated",
@@ -61,10 +87,45 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
                 timestamp: new Date().toISOString(),
                 sampledValue: [
                   {
+                    value: currentL1,
+                    measurand: "Current.Import",
+                    phase: "L1",
+                    unitOfMeasure: { unit: "A" },
+                  },
+                  {
+                    value: currentL2,
+                    measurand: "Current.Import",
+                    phase: "L2",
+                    unitOfMeasure: { unit: "A" },
+                  },
+                  {
+                    value: currentL3,
+                    measurand: "Current.Import",
+                    phase: "L3",
+                    unitOfMeasure: { unit: "A" },
+                  },
+                  {
+                    value: voltage,
+                    measurand: "Voltage",
+                    unitOfMeasure: { unit: "V" },
+                  },
+                  {
+                    value: power,
+                    measurand: "Power.Active.Import",
+                    unitOfMeasure: { unit: "W" },
+                  },
+                  {
                     value: transactionStatus.meterValue,
                     measurand: "Energy.Active.Import.Register",
                     unitOfMeasure: {
                       unit: "kWh",
+                    },
+                  },
+                  {
+                    value: soc,
+                    measurand: "SoC",
+                    unitOfMeasure: {
+                      unit: "%",
                     },
                   },
                 ],

@@ -103,7 +103,7 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
           timestamp: new Date().toISOString(),
         }),
       );
-    }, 4000);
+    }, parseInt(process.env.CABLE_UNPLUGGING_TIMEOUT_MS ?? "4000"));
 
     vcp.transactionManager.stopTransaction(transactionId);
   };

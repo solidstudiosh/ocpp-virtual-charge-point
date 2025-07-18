@@ -179,6 +179,9 @@ const waitForForceConfirmation = (timeoutMs: number): Promise<boolean> => {
         let confirmed = false;
         let timeoutId: NodeJS.Timeout;
 
+        // Define the key code constant for better readability
+        const CTRL_Q_KEY_CODE = 17; // Ctrl+Q ASCII code
+
         const cleanup = () => {
             try {
                 // Remove all data listeners
@@ -212,8 +215,8 @@ const waitForForceConfirmation = (timeoutMs: number): Promise<boolean> => {
             process.stdin.on('data', (key) => {
                 const keyCode = key[0];
 
-                // Ctrl+Q is ASCII 17 (0x11)
-                if (keyCode === 17) {
+                // Check for Ctrl+Q using named constant
+                if (keyCode === CTRL_Q_KEY_CODE) {
                     confirmed = true;
                     cleanup();
                     resolve(true);

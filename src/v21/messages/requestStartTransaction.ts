@@ -61,9 +61,10 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
 
         // Simulate realistic SoC progression during charging (increases over time)
         const transactionDurationMinutes = (new Date().getTime() - new Date(transactionStatus.startedAt).getTime()) / (1000 * 60);
-        const baseSoC = 25; // Starting SoC
-        const chargingRatePerMinute = 0.5; // ~0.5% per minute (realistic for fast charging)
-        const currentSoC = Math.min(95, baseSoC + (transactionDurationMinutes * chargingRatePerMinute));
+        const baseSoC = parseInt(process.env.CAR_STARTING_SOC ?? "25"); // Starting SoC
+        const chargingRatePerMinute = parseFloat(process.env.CAR_CHARGING_SOC_RATE_PER_MINUTE ?? "0.5"); // SoC increase per minute
+        const maxSoC = parseInt(process.env.CAR_CHARGING_TO_MAX_SOC ?? "80"); // Maximum SoC
+        const currentSoC = Math.min(maxSoC, baseSoC + (transactionDurationMinutes * chargingRatePerMinute));
         const soc = Number(currentSoC.toFixed(1));
 
         // Add this power consumption to the transaction's energy accumulation

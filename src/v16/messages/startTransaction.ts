@@ -44,10 +44,20 @@ class StartTransactionOcppMessage extends OcppOutgoing<
         const maxCurrent = Number(process.env.MAX_CURRENT_A ?? "32");
         const baseVoltage = Number(process.env.VOLTAGE_V ?? "230");
 
+        // Calculate transaction duration for realistic progression
+        const transactionDurationMinutes = (new Date().getTime() - new Date(transactionState.startedAt).getTime()) / (1000 * 60);
+
         // Simulate realistic readings based on Tesla Wall Connector specs during charging
-        const currentL1 = (Math.random() * maxCurrent * 0.3 + maxCurrent * 0.7).toFixed(1); // 70-100% of max current
-        const currentL2 = (Math.random() * maxCurrent * 0.3 + maxCurrent * 0.7).toFixed(1);
-        const currentL3 = (Math.random() * maxCurrent * 0.3 + maxCurrent * 0.7).toFixed(1);
+        // Start with gradual current ramp-up from 0 to max current (realistic EV charging behavior)
+        const rampUpTimeMinutes = parseFloat(process.env.CHARGING_RAMP_UP_TIME_MINUTES ?? "2.0"); // Time to reach max current
+        const currentRampProgress = Math.min(1, transactionDurationMinutes / rampUpTimeMinutes); // 0 to 1 over ramp time
+        const targetCurrent = maxCurrent * currentRampProgress; // Gradually increase from 0 to max
+
+        // Add some realistic variation (±10%) once we're past initial ramp-up
+        const variationFactor = currentRampProgress > 0.1 ? 0.1 : 0; // No variation during initial ramp-up
+        const currentL1 = (targetCurrent + (Math.random() - 0.5) * targetCurrent * variationFactor).toFixed(1);
+        const currentL2 = (targetCurrent + (Math.random() - 0.5) * targetCurrent * variationFactor).toFixed(1);
+        const currentL3 = (targetCurrent + (Math.random() - 0.5) * targetCurrent * variationFactor).toFixed(1);
 
         // Voltage with ±5% variation
         const voltage = (baseVoltage + (Math.random() - 0.5) * baseVoltage * 0.1).toFixed(1);
@@ -57,7 +67,6 @@ class StartTransactionOcppMessage extends OcppOutgoing<
         const power = (avgCurrent * Number(voltage) * Math.sqrt(3)).toFixed(0);
 
         // Simulate realistic SoC progression during charging (increases over time)
-        const transactionDurationMinutes = (new Date().getTime() - new Date(transactionState.startedAt).getTime()) / (1000 * 60);
         const baseSoC = parseInt(process.env.CAR_STARTING_SOC ?? "25"); // Starting SoC
         const chargingRatePerMinute = parseFloat(process.env.CAR_CHARGING_SOC_RATE_PER_MINUTE ?? "0.5"); // SoC increase per minute
         const maxSoC = parseInt(process.env.CAR_CHARGING_TO_MAX_SOC ?? "80"); // Maximum SoC

@@ -1,0 +1,14 @@
+services:
+  ocpp-virtual-charge-point:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        STACK_TRACE_LIMIT: 1024
+        MAX_OLD_SPACE_SIZE: 768
+    restart: unless-stopped
+    entrypoint: [ "npm", "run", "start" ]
+    environment:
+      - WS_URL=ws://localhost:3000
+      - CP_ID=vcp_16_test
+      - CP_START_TYPE=16

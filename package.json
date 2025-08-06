@@ -6,7 +6,8 @@
     "lint": "biome lint src",
     "format": "biome format src",
     "typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck src/**/*.ts",
-    "check": "npm run lint && npm run format && npm run typecheck"
+    "check": "npm run lint && npm run format && npm run typecheck",
+    "start": "npx tsx src/start.ts"
   },
   "author": "Solidstudio",
   "license": "Apache-2.0",

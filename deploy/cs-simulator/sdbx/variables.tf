@@ -19,6 +19,7 @@ variable "cp_ws_list" {
   default = [
     { cp_id = "FR*ORV*A0014", ws_url = "ws://server.16.ocpp.sdbx.solid.oreve.com" },
     { cp_id = "FR*ORV*A0015", ws_url = "ws://server.16.ocpp.sdbx.solid.oreve.com" }
+    { cp_id = "CS*SIMULATOR*1", ws_url = "wss://cpc.eu-stable.uat.charge.ampeco.tech:443/obornes" }
     # { cp_id = "FR*ORV*A0001", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
     #{ cp_id = "FR*ORV*A0002", ws_url = "ws://server.16.ocpp.obornes.solidstudio.io" },
     # { cp_id = "FR*ORV*A0002", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },

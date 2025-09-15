@@ -18,19 +18,7 @@ variable "cp_ws_list" {
   }))
   default = [
     { cp_id = "FR*ORV*A0014", ws_url = "ws://server.16.ocpp.sdbx.solid.oreve.com" },
-    { cp_id = "FR*ORV*A0015", ws_url = "ws://server.16.ocpp.sdbx.solid.oreve.com" }
+    { cp_id = "FR*ORV*A0015", ws_url = "ws://server.16.ocpp.sdbx.solid.oreve.com" },
     { cp_id = "CS*SIMULATOR*1", ws_url = "wss://cpc.eu-stable.uat.charge.ampeco.tech:443/obornes" }
-    # { cp_id = "FR*ORV*A0001", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
-    #{ cp_id = "FR*ORV*A0002", ws_url = "ws://server.16.ocpp.obornes.solidstudio.io" },
-    # { cp_id = "FR*ORV*A0002", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
-    # { cp_id = "FR*ORV*A0003", ws_url = "ws://server.16.ocpp.dev.solid.oreve.com" },
-    # { cp_id = "FR*ORV*A0003", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
-    # { cp_id = "FR*ORV*A0004", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
-    #{ cp_id = "FR*ORV*A0004", ws_url = "ws://server.16.ocpp.obornes.solidstudio.io" },
-    #{ cp_id = "FR*ORV*A0005", ws_url = "wss://proxy.ocpp.custom.solid.oreve.com" },
-    #{ cp_id = "FR*ORV*A0014", ws_url = "wss://proxy.ocpp-proxy.test.oreve.com" },
-    # { cp_id = "FR*ORV*4901*AA001*5*AC", ws_url = "ws://server.16.ocpp.sandbox.solid.oreve.com" },
-    #{ cp_id = "FR*ORV*4901*AA001*5*AC", ws_url = "ws://server.16.ocpp.obornes.solidstudio.io" },
-    #{ cp_id = "FR*ORV*B0016", ws_url = "ws://cpc.eu-stable.uat.charge.ampeco.tech:80/obornes" }
   ]
 }

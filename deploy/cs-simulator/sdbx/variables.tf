@@ -23,7 +23,7 @@ variable "cp_ws_list" {
     { cp_id = "FR*ORV*A0017", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
     { cp_id = "FR*ORV*B9019", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
     { cp_id = "FR*ORV*A9998", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "CS*SIMULATOR*1", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
+    { cp_id = "CS*SIMULATOR*2", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
     { cp_id = "TEST*SIMULATOR*1", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
     { cp_id = "TEST*SIMULATOR*2", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
     { cp_id = "CS*SIMULATOR*1", ws_url = "wss://cpc.eu-stable.uat.charge.ampeco.tech:443/obornes" }

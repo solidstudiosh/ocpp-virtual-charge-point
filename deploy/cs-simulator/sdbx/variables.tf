@@ -25,6 +25,6 @@ variable "cp_ws_list" {
     { cp_id = "FR*ORV*A9998", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
     { cp_id = "TEST2*SIMULATOR*2", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
     { cp_id = "TEST*SIMULATOR*1", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "CS*SIMULATOR*1", ws_url = "ws://cpc.eu-stable.uat.charge.ampeco.tech:80/obornes" }
+    { cp_id = "CS*SIMULATOR*1", ws_url = "wss://cpc.eu-stable.uat.charge.ampeco.tech/obornes" }
   ]
 }

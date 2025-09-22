@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const LogStatusNotificationReqSchema = z.object({
   status: z.enum([
@@ -20,7 +24,7 @@ type LogStatusNotificationReqType = typeof LogStatusNotificationReqSchema;
 const LogStatusNotificationResSchema = z.object({});
 type LogStatusNotificationResType = typeof LogStatusNotificationResSchema;
 
-class LogStatusNotificationOcppMessage extends OcppMessage<
+class LogStatusNotificationOcppOutgoing extends OcppOutgoing<
   LogStatusNotificationReqType,
   LogStatusNotificationResType
 > {
@@ -33,8 +37,8 @@ class LogStatusNotificationOcppMessage extends OcppMessage<
   };
 }
 
-export const logStatusNotificationOcppMessage =
-  new LogStatusNotificationOcppMessage(
+export const logStatusNotificationOcppOutgoing =
+  new LogStatusNotificationOcppOutgoing(
     "LogStatusNotification",
     LogStatusNotificationReqSchema,
     LogStatusNotificationResSchema,

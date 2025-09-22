@@ -1,5 +1,5 @@
-import { sendAdminCommand } from "../../admin";
 import { securityEventNotificationOcppMessage } from "../../../src/v16/messages/securityEventNotification";
+import { sendAdminCommand } from "../../admin";
 
 sendAdminCommand(
   securityEventNotificationOcppMessage.request({

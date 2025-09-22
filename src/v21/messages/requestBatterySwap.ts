@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import {
   GenericStatusEnumSchema,
   IdTokenTypeSchema,
@@ -19,7 +23,7 @@ const RequestBatterySwapResSchema = z.object({
 });
 type RequestBatterySwapResType = typeof RequestBatterySwapResSchema;
 
-class RequestBatterySwapOcppMessage extends OcppMessage<
+class RequestBatterySwapOcppOutgoing extends OcppOutgoing<
   RequestBatterySwapReqType,
   RequestBatterySwapResType
 > {
@@ -32,8 +36,9 @@ class RequestBatterySwapOcppMessage extends OcppMessage<
   };
 }
 
-export const requestBatterySwapOcppMessage = new RequestBatterySwapOcppMessage(
-  "RequestBatterySwap",
-  RequestBatterySwapReqSchema,
-  RequestBatterySwapResSchema,
-);
+export const requestBatterySwapOcppOutgoing =
+  new RequestBatterySwapOcppOutgoing(
+    "RequestBatterySwap",
+    RequestBatterySwapReqSchema,
+    RequestBatterySwapResSchema,
+  );

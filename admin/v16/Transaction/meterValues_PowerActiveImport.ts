@@ -1,7 +1,7 @@
 import * as uuid from "uuid";
 import { sendAdminCommand } from "../../admin";
 
-const transactionId = parseInt(process.env["TRANSACTION_ID"] ?? "1");
+const transactionId = Number.parseInt(process.env.TRANSACTION_ID ?? "1");
 
 sendAdminCommand({
   action: "MeterValues",

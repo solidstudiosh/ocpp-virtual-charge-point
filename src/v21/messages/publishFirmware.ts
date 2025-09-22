@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { GenericStatusEnumSchema, StatusInfoTypeSchema } from "./_common";
 
 const PublishFirmwareReqSchema = z.object({
@@ -18,7 +18,7 @@ const PublishFirmwareResSchema = z.object({
 });
 type PublishFirmwareResType = typeof PublishFirmwareResSchema;
 
-class PublishFirmwareOcppMessage extends OcppMessage<
+class PublishFirmwareOcppIncoming extends OcppIncoming<
   PublishFirmwareReqType,
   PublishFirmwareResType
 > {
@@ -30,7 +30,7 @@ class PublishFirmwareOcppMessage extends OcppMessage<
   };
 }
 
-export const publishFirmwareOcppMessage = new PublishFirmwareOcppMessage(
+export const publishFirmwareOcppIncoming = new PublishFirmwareOcppIncoming(
   "PublishFirmware",
   PublishFirmwareReqSchema,
   PublishFirmwareResSchema,

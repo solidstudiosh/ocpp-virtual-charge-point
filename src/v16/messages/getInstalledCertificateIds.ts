@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const GetInstalledCertificateIdsReqSchema = z.object({
   certificateType: z.enum([
@@ -13,7 +13,7 @@ type GetInstalledCertificateIdsReqType =
 
 const GetInstalledCertificateIdsResSchema = z.object({
   status: z.enum(["Accepted", "NotFound"]),
-  certificateHashDataChain: z
+  certificateHashData: z
     .array(
       z.object({
         hashAlgorithm: z.enum(["SHA256", "SHA384", "SHA512"]),
@@ -27,7 +27,7 @@ const GetInstalledCertificateIdsResSchema = z.object({
 type GetInstalledCertificateIdsResType =
   typeof GetInstalledCertificateIdsResSchema;
 
-class GetInstalledCertificateIdsOcppMessage extends OcppMessage<
+class GetInstalledCertificateIdsOcppMessage extends OcppIncoming<
   GetInstalledCertificateIdsReqType,
   GetInstalledCertificateIdsResType
 > {

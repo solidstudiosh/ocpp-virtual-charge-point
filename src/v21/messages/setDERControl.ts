@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import {
   DERControlType,
   DERCurve,
@@ -34,7 +38,7 @@ const SetDERControlResSchema = z.object({
 });
 type SetDERControlResType = typeof SetDERControlResSchema;
 
-class SetDERControlOcppMessage extends OcppMessage<
+class SetDERControlOcppOutgoing extends OcppOutgoing<
   SetDERControlReqType,
   SetDERControlResType
 > {
@@ -47,7 +51,7 @@ class SetDERControlOcppMessage extends OcppMessage<
   };
 }
 
-export const setDERControlOcppMessage = new SetDERControlOcppMessage(
+export const setDERControlOcppOutgoing = new SetDERControlOcppOutgoing(
   "SetDERControl",
   SetDERControlReqSchema,
   SetDERControlResSchema,

@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const PublishFirmwareStatusNotificationReqSchema = z.object({
@@ -27,7 +31,7 @@ const PublishFirmwareStatusNotificationResSchema = z.object({});
 type PublishFirmwareStatusNotificationResType =
   typeof PublishFirmwareStatusNotificationResSchema;
 
-class PublishFirmwareStatusNotificationOcppMessage extends OcppMessage<
+class PublishFirmwareStatusNotificationOcppOutgoing extends OcppOutgoing<
   PublishFirmwareStatusNotificationReqType,
   PublishFirmwareStatusNotificationResType
 > {
@@ -40,8 +44,8 @@ class PublishFirmwareStatusNotificationOcppMessage extends OcppMessage<
   };
 }
 
-export const publishFirmwareStatusNotificationOcppMessage =
-  new PublishFirmwareStatusNotificationOcppMessage(
+export const publishFirmwareStatusNotificationOcppOutgoing =
+  new PublishFirmwareStatusNotificationOcppOutgoing(
     "PublishFirmwareStatusNotification",
     PublishFirmwareStatusNotificationReqSchema,
     PublishFirmwareStatusNotificationResSchema,

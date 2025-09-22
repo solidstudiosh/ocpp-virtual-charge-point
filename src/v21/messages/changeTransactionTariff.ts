@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema, Tariff } from "./_common";
 
 const ChangeTransactionTariffReqSchema = z.object({
@@ -22,7 +22,7 @@ const ChangeTransactionTariffResSchema = z.object({
 });
 type ChangeTransactionTariffResType = typeof ChangeTransactionTariffResSchema;
 
-class ChangeTransactionTariffOcppMessage extends OcppMessage<
+class ChangeTransactionTariffOcppIncoming extends OcppIncoming<
   ChangeTransactionTariffReqType,
   ChangeTransactionTariffResType
 > {
@@ -34,8 +34,8 @@ class ChangeTransactionTariffOcppMessage extends OcppMessage<
   };
 }
 
-export const changeTransactionTariffOcppMessage =
-  new ChangeTransactionTariffOcppMessage(
+export const changeTransactionTariffOcppIncoming =
+  new ChangeTransactionTariffOcppIncoming(
     "ChangeTransactionTariff",
     ChangeTransactionTariffReqSchema,
     ChangeTransactionTariffResSchema,

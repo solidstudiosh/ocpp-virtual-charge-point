@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const GetPeriodicEventStreamReqSchema = z.object({});
 type GetPeriodicEventStreamReqType = typeof GetPeriodicEventStreamReqSchema;
@@ -21,7 +21,7 @@ const GetPeriodicEventStreamResSchema = z.object({
 });
 type GetPeriodicEventStreamResType = typeof GetPeriodicEventStreamResSchema;
 
-class GetPeriodicEventStreamOcppMessage extends OcppMessage<
+class GetPeriodicEventStreamOcppIncoming extends OcppIncoming<
   GetPeriodicEventStreamReqType,
   GetPeriodicEventStreamResType
 > {
@@ -33,8 +33,8 @@ class GetPeriodicEventStreamOcppMessage extends OcppMessage<
   };
 }
 
-export const getPeriodicEventStreamOcppMessage =
-  new GetPeriodicEventStreamOcppMessage(
+export const getPeriodicEventStreamOcppIncoming =
+  new GetPeriodicEventStreamOcppIncoming(
     "GetPeriodicEventStream",
     GetPeriodicEventStreamReqSchema,
     GetPeriodicEventStreamResSchema,

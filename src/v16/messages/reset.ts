@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import { delay } from "../../utils";
+import type { VCP } from "../../vcp";
 
 const ResetReqSchema = z.object({
   type: z.enum(["Hard", "Soft"]),
@@ -13,7 +13,7 @@ const ResetResSchema = z.object({
 });
 type ResetResType = typeof ResetResSchema;
 
-class ResetOcppMessage extends OcppMessage<ResetReqType, ResetResType> {
+class ResetOcppMessage extends OcppIncoming<ResetReqType, ResetResType> {
   reqHandler = async (
     vcp: VCP,
     call: OcppCall<z.infer<ResetReqType>>,

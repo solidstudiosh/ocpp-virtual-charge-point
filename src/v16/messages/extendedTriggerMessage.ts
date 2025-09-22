@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const ExtendedTriggerMessageReqSchema = z.object({
   requestedMessage: z.enum([
@@ -21,7 +21,7 @@ const ExtendedTriggerMessageResSchema = z.object({
 });
 type ExtendedTriggerMessageResType = typeof ExtendedTriggerMessageResSchema;
 
-class ExtendedTriggerMessageOcppMessage extends OcppMessage<
+class ExtendedTriggerMessageOcppMessage extends OcppIncoming<
   ExtendedTriggerMessageReqType,
   ExtendedTriggerMessageResType
 > {

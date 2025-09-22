@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ConnectorIdSchema, IdTokenSchema } from "./_common";
 
 const ReserveNowReqSchema = z.object({
@@ -23,7 +23,7 @@ const ReserveNowResSchema = z.object({
 });
 type ReserveNowResType = typeof ReserveNowResSchema;
 
-class ReserveNowOcppMessage extends OcppMessage<
+class ReserveNowOcppMessage extends OcppIncoming<
   ReserveNowReqType,
   ReserveNowResType
 > {

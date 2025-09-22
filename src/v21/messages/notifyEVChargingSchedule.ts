@@ -1,7 +1,11 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
 import { ChargingScheduleSchema } from "../../v16/messages/_common";
+import type { VCP } from "../../vcp";
 import { GenericStatusEnumSchema, StatusInfoTypeSchema } from "./_common";
 
 const NotifyEVChargingScheduleReqSchema = z.object({
@@ -19,7 +23,7 @@ const NotifyEVChargingScheduleResSchema = z.object({
 });
 type NotifyEVChargingScheduleResType = typeof NotifyEVChargingScheduleResSchema;
 
-class NotifyEVChargingScheduleOcppMessage extends OcppMessage<
+class NotifyEVChargingScheduleOcppOutgoing extends OcppOutgoing<
   NotifyEVChargingScheduleReqType,
   NotifyEVChargingScheduleResType
 > {
@@ -32,8 +36,8 @@ class NotifyEVChargingScheduleOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyEVChargingScheduleOcppMessage =
-  new NotifyEVChargingScheduleOcppMessage(
+export const notifyEVChargingScheduleOcppOutgoing =
+  new NotifyEVChargingScheduleOcppOutgoing(
     "NotifyEVChargingSchedule",
     NotifyEVChargingScheduleReqSchema,
     NotifyEVChargingScheduleResSchema,

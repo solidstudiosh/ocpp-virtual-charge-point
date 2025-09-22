@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const NotifyCustomerInformationReqSchema = z.object({
   data: z.string().max(512),
@@ -16,7 +20,7 @@ const NotifyCustomerInformationResSchema = z.object({});
 type NotifyCustomerInformationResType =
   typeof NotifyCustomerInformationResSchema;
 
-class NotifyCustomerInformationOcppMessage extends OcppMessage<
+class NotifyCustomerInformationOcppOutgoing extends OcppOutgoing<
   NotifyCustomerInformationReqType,
   NotifyCustomerInformationResType
 > {
@@ -29,8 +33,8 @@ class NotifyCustomerInformationOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyCustomerInformationOcppMessage =
-  new NotifyCustomerInformationOcppMessage(
+export const notifyCustomerInformationOcppOutgoing =
+  new NotifyCustomerInformationOcppOutgoing(
     "NotifyCustomerInformation",
     NotifyCustomerInformationReqSchema,
     NotifyCustomerInformationResSchema,

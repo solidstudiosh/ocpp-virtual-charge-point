@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppCallResult, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const UsePriorityChargingReqSchema = z.object({
@@ -15,7 +15,7 @@ const UsePriorityChargingResSchema = z.object({
 });
 type UsePriorityChargingResType = typeof UsePriorityChargingResSchema;
 
-class UsePriorityChargingOcppMessage extends OcppMessage<
+class UsePriorityChargingOcppIncoming extends OcppIncoming<
   UsePriorityChargingReqType,
   UsePriorityChargingResType
 > {
@@ -27,8 +27,8 @@ class UsePriorityChargingOcppMessage extends OcppMessage<
   };
 }
 
-export const usePriorityChargingOcppMessage =
-  new UsePriorityChargingOcppMessage(
+export const usePriorityChargingOcppIncoming =
+  new UsePriorityChargingOcppIncoming(
     "UsePriorityCharging",
     UsePriorityChargingReqSchema,
     UsePriorityChargingResSchema,

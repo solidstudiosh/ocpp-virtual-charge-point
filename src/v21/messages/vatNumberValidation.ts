@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { GenericStatusEnumSchema, StatusInfoTypeSchema } from "./_common";
 
 const VatNumberValidationReqSchema = z.object({
@@ -27,7 +31,7 @@ const VatNumberValidationResSchema = z.object({
 });
 type VatNumberValidationResType = typeof VatNumberValidationResSchema;
 
-class VatNumberValidationOcppMessage extends OcppMessage<
+class VatNumberValidationOcppOutgoing extends OcppOutgoing<
   VatNumberValidationReqType,
   VatNumberValidationResType
 > {
@@ -40,8 +44,8 @@ class VatNumberValidationOcppMessage extends OcppMessage<
   };
 }
 
-export const vatNumberValidationOcppMessage =
-  new VatNumberValidationOcppMessage(
+export const vatNumberValidationOcppOutgoing =
+  new VatNumberValidationOcppOutgoing(
     "VatNumberValidation",
     VatNumberValidationReqSchema,
     VatNumberValidationResSchema,

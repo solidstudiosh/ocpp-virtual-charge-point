@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const CancelReservationReqSchema = z.object({
   reservationId: z.number().int(),
@@ -12,7 +12,7 @@ const CancelReservationResSchema = z.object({
 });
 type CancelReservationResType = typeof CancelReservationResSchema;
 
-class CancelReservationOcppMessage extends OcppMessage<
+class CancelReservationOcppMessage extends OcppIncoming<
   CancelReservationReqType,
   CancelReservationResType
 > {

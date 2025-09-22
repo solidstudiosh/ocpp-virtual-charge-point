@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { DERControlType, StatusInfoTypeSchema } from "./_common";
 
 const GetDERControlReqSchema = z.object({
@@ -17,7 +17,7 @@ const GetDERControlResSchema = z.object({
 });
 type GetDERControlResType = typeof GetDERControlResSchema;
 
-class GetDERControlOcppMessage extends OcppMessage<
+class GetDERControlOcppIncoming extends OcppIncoming<
   GetDERControlReqType,
   GetDERControlResType
 > {
@@ -29,7 +29,7 @@ class GetDERControlOcppMessage extends OcppMessage<
   };
 }
 
-export const getDERControlOcppMessage = new GetDERControlOcppMessage(
+export const getDERControlOcppIncoming = new GetDERControlOcppIncoming(
   "GetDERControl",
   GetDERControlReqSchema,
   GetDERControlResSchema,

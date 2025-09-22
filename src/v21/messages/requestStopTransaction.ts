@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { generateOCMF, getOCMFPublicKey } from "../../ocmfGenerator";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
-import { transactionEventOcppMessage } from "./transactionEvent";
-import { transactionManager } from "../transactionManager";
-import { statusNotificationOcppMessage } from "./statusNotification";
+import { statusNotificationOcppOutgoing } from "./statusNotification";
+import { transactionEventOcppOutgoing } from "./transactionEvent";
 
 const RequestStopTransactionReqSchema = z.object({
   transactionId: z.string(),
@@ -17,7 +17,7 @@ const RequestStopTransactionResSchema = z.object({
 });
 type RequestStopTransactionResType = typeof RequestStopTransactionResSchema;
 
-class RequestStopTransactionOcppMessage extends OcppMessage<
+class RequestStopTransactionOcppIncoming extends OcppIncoming<
   RequestStopTransactionReqType,
   RequestStopTransactionResType
 > {
@@ -25,40 +25,77 @@ class RequestStopTransactionOcppMessage extends OcppMessage<
     vcp: VCP,
     call: OcppCall<z.infer<RequestStopTransactionReqType>>,
   ): Promise<void> => {
+    const { transactionId } = call.payload;
+    const transaction = vcp.transactionManager.transactions.get(transactionId);
+    if (!transaction) {
+      vcp.respond(
+        this.response(call, {
+          status: "Rejected",
+        }),
+      );
+      return;
+    }
+
     vcp.respond(
       this.response(call, {
         status: "Accepted",
       }),
     );
+
+    const ocmf = generateOCMF({
+      startTime: transaction.startedAt,
+      startEnergy: 0,
+      endTime: new Date(),
+      endEnergy: vcp.transactionManager.getMeterValue(transactionId) / 1000,
+      idTag: transaction.idTag,
+    });
+
     vcp.send(
-      transactionEventOcppMessage.request({
+      transactionEventOcppOutgoing.request({
         eventType: "Ended",
         timestamp: new Date().toISOString(),
         seqNo: 0,
         triggerReason: "RemoteStop",
         transactionInfo: {
-          transactionId: call.payload.transactionId,
+          transactionId: transactionId,
         },
         evse: {
           id: 1,
           connectorId: 1,
         },
+        meterValue: [
+          {
+            timestamp: new Date().toISOString(),
+            sampledValue: [
+              {
+                value: vcp.transactionManager.getMeterValue(transactionId),
+                signedMeterValue: {
+                  signedMeterData: Buffer.from(ocmf).toString("base64"),
+                  signingMethod: "", // Already included in the signedMeterData
+                  encodingMethod: "OCMF",
+                  publicKey: getOCMFPublicKey().toString("base64"),
+                },
+                context: "Transaction.End",
+              },
+            ],
+          },
+        ],
       }),
     );
     vcp.send(
-      statusNotificationOcppMessage.request({
+      statusNotificationOcppOutgoing.request({
         evseId: 1,
         connectorId: 1,
         connectorStatus: "Available",
         timestamp: new Date().toISOString(),
       }),
     );
-    transactionManager.stopTransaction(call.payload.transactionId);
+    vcp.transactionManager.stopTransaction(transactionId);
   };
 }
 
-export const requestStopTransactionOcppMessage =
-  new RequestStopTransactionOcppMessage(
+export const requestStopTransactionOcppIncoming =
+  new RequestStopTransactionOcppIncoming(
     "RequestStopTransaction",
     RequestStopTransactionReqSchema,
     RequestStopTransactionResSchema,

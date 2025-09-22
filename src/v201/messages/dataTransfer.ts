@@ -1,6 +1,11 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppIncoming,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const DataTransferReqSchema = z.object({
@@ -22,7 +27,7 @@ const DataTransferResSchema = z.object({
 });
 type DataTransferResType = typeof DataTransferResSchema;
 
-class DataTransferOcppMessage extends OcppMessage<
+class DataTransferIncomingOcppMessage extends OcppIncoming<
   DataTransferReqType,
   DataTransferResType
 > {
@@ -32,7 +37,12 @@ class DataTransferOcppMessage extends OcppMessage<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
   };
+}
 
+class DataTransferOutgoingOcppMessage extends OcppOutgoing<
+  DataTransferReqType,
+  DataTransferResType
+> {
   resHandler = async (
     _vcp: VCP,
     _call: OcppCall<z.infer<DataTransferReqType>>,
@@ -42,8 +52,16 @@ class DataTransferOcppMessage extends OcppMessage<
   };
 }
 
-export const dataTransferOcppMessage = new DataTransferOcppMessage(
-  "DataTransfer",
-  DataTransferReqSchema,
-  DataTransferResSchema,
-);
+export const dataTransferIncomingOcppMessage =
+  new DataTransferIncomingOcppMessage(
+    "DataTransfer",
+    DataTransferReqSchema,
+    DataTransferResSchema,
+  );
+
+export const dataTransferOutgoingOcppMessage =
+  new DataTransferOutgoingOcppMessage(
+    "DataTransfer",
+    DataTransferReqSchema,
+    DataTransferResSchema,
+  );

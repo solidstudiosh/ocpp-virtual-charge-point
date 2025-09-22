@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const SecurityEventNotificationReqSchema = z.object({
   type: z.string().max(50),
@@ -14,7 +18,7 @@ const SecurityEventNotificationResSchema = z.object({});
 type SecurityEventNotificationResType =
   typeof SecurityEventNotificationResSchema;
 
-class SecurityEventNotificationOcppMessage extends OcppMessage<
+class SecurityEventNotificationOcppOutgoing extends OcppOutgoing<
   SecurityEventNotificationReqType,
   SecurityEventNotificationResType
 > {
@@ -27,8 +31,8 @@ class SecurityEventNotificationOcppMessage extends OcppMessage<
   };
 }
 
-export const securityEventNotificationOcppMessage =
-  new SecurityEventNotificationOcppMessage(
+export const securityEventNotificationOcppOutgoing =
+  new SecurityEventNotificationOcppOutgoing(
     "SecurityEventNotification",
     SecurityEventNotificationReqSchema,
     SecurityEventNotificationResSchema,

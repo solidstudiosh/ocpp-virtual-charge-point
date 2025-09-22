@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const DiagnosticsStatusNotificationReqSchema = z.object({
   status: z.enum(["Idle", "Uploaded", "UploadFailed", "Uploading"]),
@@ -12,7 +16,7 @@ const DiagnosticsStatusNotificationResSchema = z.object({});
 type DiagnosticsStatusNotificationResType =
   typeof DiagnosticsStatusNotificationResSchema;
 
-class DiagnosticsStatusNotificationOcppMessage extends OcppMessage<
+class DiagnosticsStatusNotificationOcppMessage extends OcppOutgoing<
   DiagnosticsStatusNotificationReqType,
   DiagnosticsStatusNotificationResType
 > {

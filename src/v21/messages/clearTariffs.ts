@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const ClearTariffsReqSchema = z.object({
@@ -20,7 +20,7 @@ const ClearTariffsResSchema = z.object({
 });
 type ClearTariffsResType = typeof ClearTariffsResSchema;
 
-class ClearTariffsOcppMessage extends OcppMessage<
+class ClearTariffsOcppIncoming extends OcppIncoming<
   ClearTariffsReqType,
   ClearTariffsResType
 > {
@@ -40,7 +40,7 @@ class ClearTariffsOcppMessage extends OcppMessage<
   };
 }
 
-export const clearTariffsOcppMessage = new ClearTariffsOcppMessage(
+export const clearTariffsOcppIncoming = new ClearTariffsOcppIncoming(
   "ClearTariffs",
   ClearTariffsReqSchema,
   ClearTariffsResSchema,

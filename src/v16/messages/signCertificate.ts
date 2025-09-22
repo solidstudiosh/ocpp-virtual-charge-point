@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const SignCertificateReqSchema = z.object({
   csr: z.string().max(5500),
@@ -12,7 +16,7 @@ const SignCertificateResSchema = z.object({
 });
 type SignCertificateResType = typeof SignCertificateResSchema;
 
-class SignCertificateOcppMessage extends OcppMessage<
+class SignCertificateOcppMessage extends OcppOutgoing<
   SignCertificateReqType,
   SignCertificateResType
 > {

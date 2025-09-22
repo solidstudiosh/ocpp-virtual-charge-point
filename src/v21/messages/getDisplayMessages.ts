@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const GetDisplayMessagesReqSchema = z.object({
@@ -26,7 +26,7 @@ const GetDisplayMessagesResSchema = z.object({
 });
 type GetDisplayMessagesResType = typeof GetDisplayMessagesResSchema;
 
-class GetDisplayMessagesOcppMessage extends OcppMessage<
+class GetDisplayMessagesOcppIncoming extends OcppIncoming<
   GetDisplayMessagesReqType,
   GetDisplayMessagesResType
 > {
@@ -38,8 +38,9 @@ class GetDisplayMessagesOcppMessage extends OcppMessage<
   };
 }
 
-export const getDisplayMessagesOcppMessage = new GetDisplayMessagesOcppMessage(
-  "GetDisplayMessages",
-  GetDisplayMessagesReqSchema,
-  GetDisplayMessagesResSchema,
-);
+export const getDisplayMessagesOcppIncoming =
+  new GetDisplayMessagesOcppIncoming(
+    "GetDisplayMessages",
+    GetDisplayMessagesReqSchema,
+    GetDisplayMessagesResSchema,
+  );

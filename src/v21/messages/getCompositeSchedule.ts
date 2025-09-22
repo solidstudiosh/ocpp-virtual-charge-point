@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { GenericStatusEnumSchema, StatusInfoTypeSchema } from "./_common";
 
 const GetCompositeScheduleReqSchema = z.object({
@@ -76,7 +76,7 @@ const GetCompositeScheduleResSchema = z.object({
 });
 type GetCompositeScheduleResType = typeof GetCompositeScheduleResSchema;
 
-class GetCompositeScheduleOcppMessage extends OcppMessage<
+class GetCompositeScheduleOcppIncoming extends OcppIncoming<
   GetCompositeScheduleReqType,
   GetCompositeScheduleResType
 > {
@@ -88,8 +88,8 @@ class GetCompositeScheduleOcppMessage extends OcppMessage<
   };
 }
 
-export const getCompositeScheduleOcppMessage =
-  new GetCompositeScheduleOcppMessage(
+export const getCompositeScheduleOcppIncoming =
+  new GetCompositeScheduleOcppIncoming(
     "GetCompositeSchedule",
     GetCompositeScheduleReqSchema,
     GetCompositeScheduleResSchema,

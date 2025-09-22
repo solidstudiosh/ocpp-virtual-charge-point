@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const CostUpdatedReqSchema = z.object({
   totalCost: z.number(),
@@ -11,7 +11,7 @@ type CostUpdatedReqType = typeof CostUpdatedReqSchema;
 const CostUpdatedResSchema = z.object({});
 type CostUpdatedResType = typeof CostUpdatedResSchema;
 
-class CostUpdatedOcppMessage extends OcppMessage<
+class CostUpdatedOcppIncoming extends OcppIncoming<
   CostUpdatedReqType,
   CostUpdatedResType
 > {
@@ -23,7 +23,7 @@ class CostUpdatedOcppMessage extends OcppMessage<
   };
 }
 
-export const costUpdatedOcppMessage = new CostUpdatedOcppMessage(
+export const costUpdatedOcppIncoming = new CostUpdatedOcppIncoming(
   "CostUpdated",
   CostUpdatedReqSchema,
   CostUpdatedResSchema,

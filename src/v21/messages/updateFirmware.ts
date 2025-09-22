@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const UpdateFirmwareReqSchema = z.object({
@@ -29,7 +29,7 @@ const UpdateFirmwareResSchema = z.object({
 });
 type UpdateFirmwareResType = typeof UpdateFirmwareResSchema;
 
-class UpdateFirmwareOcppMessage extends OcppMessage<
+class UpdateFirmwareOcppIncoming extends OcppIncoming<
   UpdateFirmwareReqType,
   UpdateFirmwareResType
 > {
@@ -41,7 +41,7 @@ class UpdateFirmwareOcppMessage extends OcppMessage<
   };
 }
 
-export const updateFirmwareOcppMessage = new UpdateFirmwareOcppMessage(
+export const updateFirmwareOcppIncoming = new UpdateFirmwareOcppIncoming(
   "UpdateFirmware",
   UpdateFirmwareReqSchema,
   UpdateFirmwareResSchema,

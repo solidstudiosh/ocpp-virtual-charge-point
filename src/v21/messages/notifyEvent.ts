@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ComponentTypeSchema, VariableTypeSchema } from "./_common";
 
 const NotifyEventReqSchema = z.object({
@@ -36,7 +40,7 @@ type NotifyEventReqType = typeof NotifyEventReqSchema;
 const NotifyEventResSchema = z.object({});
 type NotifyEventResType = typeof NotifyEventResSchema;
 
-class NotifyEventOcppMessage extends OcppMessage<
+class NotifyEventOcppOutgoing extends OcppOutgoing<
   NotifyEventReqType,
   NotifyEventResType
 > {
@@ -49,7 +53,7 @@ class NotifyEventOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyEventOcppMessage = new NotifyEventOcppMessage(
+export const notifyEventOcppOutgoing = new NotifyEventOcppOutgoing(
   "NotifyEvent",
   NotifyEventReqSchema,
   NotifyEventResSchema,

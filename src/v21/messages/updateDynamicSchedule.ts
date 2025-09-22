@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppCallResult, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ChargingScheduleUpdate, StatusInfoTypeSchema } from "./_common";
 
 const UpdateDynamicScheduleReqSchema = z.object({
@@ -15,7 +15,7 @@ const UpdateDynamicScheduleResSchema = z.object({
 });
 type UpdateDynamicScheduleResType = typeof UpdateDynamicScheduleResSchema;
 
-class UpdateDynamicScheduleOcppMessage extends OcppMessage<
+class UpdateDynamicScheduleOcppIncoming extends OcppIncoming<
   UpdateDynamicScheduleReqType,
   UpdateDynamicScheduleResType
 > {
@@ -27,8 +27,8 @@ class UpdateDynamicScheduleOcppMessage extends OcppMessage<
   };
 }
 
-export const updateDynamicScheduleOcppMessage =
-  new UpdateDynamicScheduleOcppMessage(
+export const updateDynamicScheduleOcppIncoming =
+  new UpdateDynamicScheduleOcppIncoming(
     "UpdateDynamicSchedule",
     UpdateDynamicScheduleReqSchema,
     UpdateDynamicScheduleResSchema,

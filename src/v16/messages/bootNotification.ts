@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const BootNotificationReqSchema = z.object({
   chargeBoxSerialNumber: z.string().max(25).nullish(),
@@ -22,7 +26,7 @@ const BootNotificationResSchema = z.object({
 });
 type BootNotificationResType = typeof BootNotificationResSchema;
 
-class BootNotificationOcppMessage extends OcppMessage<
+class BootNotificationOcppMessage extends OcppOutgoing<
   BootNotificationReqType,
   BootNotificationResType
 > {

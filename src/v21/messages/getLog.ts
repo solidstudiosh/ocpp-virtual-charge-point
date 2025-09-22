@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const GetLogReqSchema = z.object({
@@ -23,7 +23,7 @@ const GetLogResSchema = z.object({
 });
 type GetLogResType = typeof GetLogResSchema;
 
-class GetLogOcppMessage extends OcppMessage<GetLogReqType, GetLogResType> {
+class GetLogOcppIncoming extends OcppIncoming<GetLogReqType, GetLogResType> {
   reqHandler = async (
     vcp: VCP,
     call: OcppCall<z.infer<GetLogReqType>>,
@@ -32,7 +32,7 @@ class GetLogOcppMessage extends OcppMessage<GetLogReqType, GetLogResType> {
   };
 }
 
-export const getLogOcppMessage = new GetLogOcppMessage(
+export const getLogOcppIncoming = new GetLogOcppIncoming(
   "GetLog",
   GetLogReqSchema,
   GetLogResSchema,

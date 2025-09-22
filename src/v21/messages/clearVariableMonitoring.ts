@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const ClearVariableMonitoringReqSchema = z.object({
@@ -19,7 +19,7 @@ const ClearVariableMonitoringResSchema = z.object({
 });
 type ClearVariableMonitoringResType = typeof ClearVariableMonitoringResSchema;
 
-class ClearVariableMonitoringOcppMessage extends OcppMessage<
+class ClearVariableMonitoringOcppIncoming extends OcppIncoming<
   ClearVariableMonitoringReqType,
   ClearVariableMonitoringResType
 > {
@@ -38,8 +38,8 @@ class ClearVariableMonitoringOcppMessage extends OcppMessage<
   };
 }
 
-export const clearVariableMonitoringOcppMessage =
-  new ClearVariableMonitoringOcppMessage(
+export const clearVariableMonitoringOcppIncoming =
+  new ClearVariableMonitoringOcppIncoming(
     "ClearVariableMonitoring",
     ClearVariableMonitoringReqSchema,
     ClearVariableMonitoringResSchema,

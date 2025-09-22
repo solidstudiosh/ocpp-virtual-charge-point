@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const GetTariffsReqSchema = z.object({
@@ -25,7 +25,7 @@ const GetTariffsResSchema = z.object({
 });
 type GetTariffsResType = typeof GetTariffsResSchema;
 
-class GetTariffsOcppMessage extends OcppMessage<
+class GetTariffsOcppIncoming extends OcppIncoming<
   GetTariffsReqType,
   GetTariffsResType
 > {
@@ -37,7 +37,7 @@ class GetTariffsOcppMessage extends OcppMessage<
   };
 }
 
-export const getTariffsOcppMessage = new GetTariffsOcppMessage(
+export const getTariffsOcppIncoming = new GetTariffsOcppIncoming(
   "GetTariffs",
   GetTariffsReqSchema,
   GetTariffsResSchema,

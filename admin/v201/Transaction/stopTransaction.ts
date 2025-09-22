@@ -2,7 +2,7 @@ import * as uuid from "uuid";
 import { sendAdminCommand } from "../../admin";
 
 const date = new Date();
-const transactionId = process.env["TRANSACTION_ID"] ?? uuid.v4();
+const transactionId = process.env.TRANSACTION_ID ?? uuid.v4();
 
 sendAdminCommand({
   action: "TransactionEvent",

@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const NotifyWebPaymentStartedReqSchema = z.object({
   evseId: z.number().int(),
@@ -11,7 +15,7 @@ type NotifyWebPaymentStartedReqType = typeof NotifyWebPaymentStartedReqSchema;
 const NotifyWebPaymentStartedResSchema = z.object({});
 type NotifyWebPaymentStartedResType = typeof NotifyWebPaymentStartedResSchema;
 
-class NotifyWebPaymentStartedOcppMessage extends OcppMessage<
+class NotifyWebPaymentStartedOcppOutgoing extends OcppOutgoing<
   NotifyWebPaymentStartedReqType,
   NotifyWebPaymentStartedResType
 > {
@@ -24,8 +28,8 @@ class NotifyWebPaymentStartedOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyWebPaymentStartedOcppMessage =
-  new NotifyWebPaymentStartedOcppMessage(
+export const notifyWebPaymentStartedOcppOutgoing =
+  new NotifyWebPaymentStartedOcppOutgoing(
     "NotifyWebPaymentStarted",
     NotifyWebPaymentStartedReqSchema,
     NotifyWebPaymentStartedResSchema,

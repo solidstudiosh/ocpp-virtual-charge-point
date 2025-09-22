@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import {
   ComponentTypeSchema,
   StatusInfoTypeSchema,
@@ -32,7 +32,7 @@ const GetMonitoringReportResSchema = z.object({
 });
 type GetMonitoringReportResType = typeof GetMonitoringReportResSchema;
 
-class GetMonitoringReportOcppMessage extends OcppMessage<
+class GetMonitoringReportOcppIncoming extends OcppIncoming<
   GetMonitoringReportReqType,
   GetMonitoringReportResType
 > {
@@ -44,8 +44,8 @@ class GetMonitoringReportOcppMessage extends OcppMessage<
   };
 }
 
-export const getMonitoringReportOcppMessage =
-  new GetMonitoringReportOcppMessage(
+export const getMonitoringReportOcppIncoming =
+  new GetMonitoringReportOcppIncoming(
     "GetMonitoringReport",
     GetMonitoringReportReqSchema,
     GetMonitoringReportResSchema,

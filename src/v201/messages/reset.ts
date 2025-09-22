@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
-import { StatusInfoTypeSchema } from "./_common";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import { delay } from "../../utils";
+import type { VCP } from "../../vcp";
+import { StatusInfoTypeSchema } from "./_common";
 
 const ResetReqSchema = z.object({
   type: z.enum(["Immediate", "OnIdle"]),
@@ -16,7 +16,7 @@ const ResetResSchema = z.object({
 });
 type ResetResType = typeof ResetResSchema;
 
-class ResetOcppMessage extends OcppMessage<ResetReqType, ResetResType> {
+class ResetOcppIncoming extends OcppIncoming<ResetReqType, ResetResType> {
   reqHandler = async (
     vcp: VCP,
     call: OcppCall<z.infer<ResetReqType>>,
@@ -27,7 +27,7 @@ class ResetOcppMessage extends OcppMessage<ResetReqType, ResetResType> {
   };
 }
 
-export const resetOcppMessage = new ResetOcppMessage(
+export const resetOcppIncoming = new ResetOcppIncoming(
   "Reset",
   ResetReqSchema,
   ResetResSchema,

@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ChargingProfileSchema } from "./_common";
 
 const ReportChargingProfilesReqSchema = z.object({
@@ -15,7 +19,7 @@ type ReportChargingProfilesReqType = typeof ReportChargingProfilesReqSchema;
 const ReportChargingProfilesResSchema = z.object({});
 type ReportChargingProfilesResType = typeof ReportChargingProfilesResSchema;
 
-class ReportChargingProfilesOcppMessage extends OcppMessage<
+class ReportChargingProfilesOcppOutgoing extends OcppOutgoing<
   ReportChargingProfilesReqType,
   ReportChargingProfilesResType
 > {
@@ -28,8 +32,8 @@ class ReportChargingProfilesOcppMessage extends OcppMessage<
   };
 }
 
-export const reportChargingProfilesOcppMessage =
-  new ReportChargingProfilesOcppMessage(
+export const reportChargingProfilesOcppOutgoing =
+  new ReportChargingProfilesOcppOutgoing(
     "ReportChargingProfiles",
     ReportChargingProfilesReqSchema,
     ReportChargingProfilesResSchema,

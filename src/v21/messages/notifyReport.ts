@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ComponentTypeSchema, VariableTypeSchema } from "./_common";
 
 const NotifyReportReqSchema = z.object({
@@ -56,7 +60,7 @@ type NotifyReportReqType = typeof NotifyReportReqSchema;
 const NotifyReportResSchema = z.object({});
 type NotifyReportResType = typeof NotifyReportResSchema;
 
-class NotifyReportOcppMessage extends OcppMessage<
+class NotifyReportOcppOutgoing extends OcppOutgoing<
   NotifyReportReqType,
   NotifyReportResType
 > {
@@ -69,7 +73,7 @@ class NotifyReportOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyReportOcppMessage = new NotifyReportOcppMessage(
+export const notifyReportOcppOutgoing = new NotifyReportOcppOutgoing(
   "NotifyReport",
   NotifyReportReqSchema,
   NotifyReportResSchema,

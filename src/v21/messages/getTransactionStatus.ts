@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const GetTransactionStatusReqSchema = z.object({
   transactionId: z.string().nullish(),
@@ -13,7 +13,7 @@ const GetTransactionStatusResSchema = z.object({
 });
 type GetTransactionStatusResType = typeof GetTransactionStatusResSchema;
 
-class GetTransactionStatusOcppMessage extends OcppMessage<
+class GetTransactionStatusOcppIncoming extends OcppIncoming<
   GetTransactionStatusReqType,
   GetTransactionStatusResType
 > {
@@ -30,8 +30,8 @@ class GetTransactionStatusOcppMessage extends OcppMessage<
   };
 }
 
-export const getTransactionStatusOcppMessage =
-  new GetTransactionStatusOcppMessage(
+export const getTransactionStatusOcppIncoming =
+  new GetTransactionStatusOcppIncoming(
     "GetTransactionStatus",
     GetTransactionStatusReqSchema,
     GetTransactionStatusResSchema,

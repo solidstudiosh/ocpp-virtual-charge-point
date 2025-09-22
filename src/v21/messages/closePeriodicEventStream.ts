@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const ClosePeriodicEventStreamReqSchema = z.object({
@@ -14,7 +18,7 @@ const ClosePeriodicEventStreamResSchema = z.object({
 });
 type ClosePeriodicEventStreamResType = typeof ClosePeriodicEventStreamResSchema;
 
-class ClosePeriodicEventStreamOcppMessage extends OcppMessage<
+class ClosePeriodicEventStreamOcppOutgoing extends OcppOutgoing<
   ClosePeriodicEventStreamReqType,
   ClosePeriodicEventStreamResType
 > {
@@ -27,8 +31,8 @@ class ClosePeriodicEventStreamOcppMessage extends OcppMessage<
   };
 }
 
-export const closePeriodicEventStreamOcppMessage =
-  new ClosePeriodicEventStreamOcppMessage(
+export const closePeriodicEventStreamOcppOutgoing =
+  new ClosePeriodicEventStreamOcppOutgoing(
     "ClosePeriodicEventStream",
     ClosePeriodicEventStreamReqSchema,
     ClosePeriodicEventStreamResSchema,

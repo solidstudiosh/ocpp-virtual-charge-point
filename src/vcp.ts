@@ -1,15 +1,26 @@
-import util from "util";
-import WebSocket, { WebSocketServer } from "ws";
+import * as util from "node:util";
+import { WebSocket } from "ws";
 
-import { validateOcppRequest, validateOcppResponse } from "./schemaValidator";
+import { serve } from "@hono/node-server";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { z } from "zod";
 import { logger } from "./logger";
-import { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
+import { call } from "./messageFactory";
+import type { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
 import {
-  OcppMessageHandler,
+  type OcppMessageHandler,
   resolveMessageHandler,
 } from "./ocppMessageHandler";
 import { ocppOutbox } from "./ocppOutbox";
-import { OcppVersion, toProtocolVersion } from "./ocppVersion";
+import { type OcppVersion, toProtocolVersion } from "./ocppVersion";
+import {
+  validateOcppIncomingRequest,
+  validateOcppIncomingResponse,
+  validateOcppOutgoingRequest,
+  validateOcppOutgoingResponse,
+} from "./schemaValidator";
+import { TransactionManager } from "./transactionManager";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
 
 interface VCPOptions {
@@ -17,26 +28,47 @@ interface VCPOptions {
   endpoint: string;
   chargePointId: string;
   basicAuthPassword?: string;
-  adminWsPort?: number;
+  adminPort?: number;
+}
+
+interface LogEntry {
+  type: 'Application';
+  timestamp: string;
+  level: string;
+  message: string;
+  metadata: Record<string, unknown>;
 }
 
 export class VCP {
   private ws?: WebSocket;
-  private adminWs?: WebSocketServer;
   private messageHandler: OcppMessageHandler;
 
-  private isFinishing: boolean = false;
+  private isFinishing = false;
+
+  transactionManager = new TransactionManager();
 
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
-    if (vcpOptions.adminWsPort) {
-      this.adminWs = new WebSocketServer({
-        port: vcpOptions.adminWsPort,
-      });
-      this.adminWs.on("connection", (_ws) => {
-        _ws.on("message", (data: string) => {
-          this.send(JSON.parse(data));
-        });
+    if (vcpOptions.adminPort) {
+      const adminApi = new Hono();
+      adminApi.post(
+        "/execute",
+        zValidator(
+          "json",
+          z.object({
+            action: z.string(),
+            payload: z.any(),
+          }),
+        ),
+        (c) => {
+          const validated = c.req.valid("json");
+          this.send(call(validated.action, validated.payload));
+          return c.text("OK");
+        },
+      );
+      serve({
+        fetch: adminApi.fetch,
+        port: vcpOptions.adminPort,
       });
     }
   }
@@ -49,10 +81,14 @@ export class VCP {
       const protocol = toProtocolVersion(this.vcpOptions.ocppVersion);
       this.ws = new WebSocket(websocketUrl, [protocol], {
         rejectUnauthorized: false,
-        auth: this.vcpOptions.basicAuthPassword
-          ? `${this.vcpOptions.chargePointId}:${this.vcpOptions.basicAuthPassword}`
-          : undefined,
         followRedirects: true,
+        headers: {
+          ...(this.vcpOptions.basicAuthPassword && {
+            Authorization: `Basic ${Buffer.from(
+              `${this.vcpOptions.chargePointId}:${this.vcpOptions.basicAuthPassword}`,
+            ).toString("base64")}`,
+          }),
+        },
       });
 
       this.ws.on("open", () => resolve());
@@ -69,6 +105,7 @@ export class VCP {
     });
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   send(ocppCall: OcppCall<any>) {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
@@ -81,7 +118,7 @@ export class VCP {
       ocppCall.payload,
     ]);
     logger.info(`Sending message ➡️  ${jsonMessage}`);
-    validateOcppRequest(
+    validateOcppOutgoingRequest(
       this.vcpOptions.ocppVersion,
       ocppCall.action,
       JSON.parse(JSON.stringify(ocppCall.payload)),
@@ -89,13 +126,14 @@ export class VCP {
     this.ws.send(jsonMessage);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   respond(result: OcppCallResult<any>) {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
     }
     const jsonMessage = JSON.stringify([3, result.messageId, result.payload]);
     logger.info(`Responding with ➡️  ${jsonMessage}`);
-    validateOcppResponse(
+    validateOcppIncomingResponse(
       this.vcpOptions.ocppVersion,
       result.action,
       JSON.parse(JSON.stringify(result.payload)),
@@ -103,6 +141,7 @@ export class VCP {
     this.ws.send(jsonMessage);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   respondError(error: OcppCallError<any>) {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
@@ -132,10 +171,48 @@ export class VCP {
     }
     this.isFinishing = true;
     this.ws.close();
-    this.adminWs?.close();
-    delete this.ws;
-    delete this.adminWs;
+    this.ws = undefined;
     process.exit(1);
+  }
+
+  async getDiagnosticData(): Promise<LogEntry[]> {
+    try {
+      // Get logs from Winston logger's memory
+      const transport = logger.transports[0];
+      
+      // Create a promise that resolves with collected logs
+      const logStream = new Promise<LogEntry[]>((resolve) => {
+        const entries: LogEntry[] = [];
+        
+        // Listen for new logs
+        transport.on('logged', (info: { 
+          timestamp: string;
+          level: string;
+          message: string;
+          [key: string]: unknown;
+        }) => {
+          entries.push({
+            type: 'Application',
+            timestamp: info.timestamp || new Date().toISOString(),
+            level: info.level,
+            message: info.message,
+            metadata: Object.fromEntries(
+              Object.entries(info).filter(([key]) => 
+                !['timestamp', 'level', 'message'].includes(key)
+              )
+            )
+          });
+        });
+        
+        // Resolve after a short delay to collect recent logs
+        setTimeout(() => resolve(entries), 10000);
+      });
+
+      return await logStream;
+    } catch (err) {
+      logger.error('Failed to read application logs:', err);
+      return [];
+    }
   }
 
   private _onMessage(message: string) {
@@ -144,7 +221,7 @@ export class VCP {
     const [type, ...rest] = data;
     if (type === 2) {
       const [messageId, action, payload] = rest;
-      validateOcppRequest(this.vcpOptions.ocppVersion, action, payload);
+      validateOcppIncomingRequest(this.vcpOptions.ocppVersion, action, payload);
       this.messageHandler.handleCall(this, { messageId, action, payload });
     } else if (type === 3) {
       const [messageId, payload] = rest;
@@ -154,7 +231,7 @@ export class VCP {
           `Received CallResult for unknown messageId=${messageId}`,
         );
       }
-      validateOcppResponse(
+      validateOcppOutgoingResponse(
         this.vcpOptions.ocppVersion,
         enqueuedCall.action,
         payload,

@@ -132,3 +132,6 @@ dist
 
 
 .idea/
+
+.vscode
+.history

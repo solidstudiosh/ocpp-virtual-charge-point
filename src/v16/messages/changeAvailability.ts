@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ConnectorIdSchema } from "./_common";
 import { statusNotificationOcppMessage } from "./statusNotification";
 
@@ -15,7 +15,7 @@ const ChangeAvailabilityResSchema = z.object({
 });
 type ChangeAvailabilityResType = typeof ChangeAvailabilityResSchema;
 
-class ChangeAvailabilityOcppMessage extends OcppMessage<
+class ChangeAvailabilityOcppMessage extends OcppIncoming<
   ChangeAvailabilityReqType,
   ChangeAvailabilityResType
 > {

@@ -1,8 +1,12 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ConnectorIdSchema, IdTagInfoSchema, IdTokenSchema } from "./_common";
-import { transactionManager } from "../transactionManager";
+import { meterValuesOcppMessage } from "./meterValues";
 
 const StartTransactionReqSchema = z.object({
   connectorId: ConnectorIdSchema,
@@ -19,7 +23,7 @@ const StartTransactionResSchema = z.object({
 });
 type StartTransactionResType = typeof StartTransactionResSchema;
 
-class StartTransactionOcppMessage extends OcppMessage<
+class StartTransactionOcppMessage extends OcppOutgoing<
   StartTransactionReqType,
   StartTransactionResType
 > {
@@ -28,11 +32,31 @@ class StartTransactionOcppMessage extends OcppMessage<
     call: OcppCall<z.infer<StartTransactionReqType>>,
     result: OcppCallResult<z.infer<StartTransactionResType>>,
   ): Promise<void> => {
-    transactionManager.startTransaction(
-      vcp,
-      result.payload.transactionId,
-      call.payload.connectorId,
-    );
+    vcp.transactionManager.startTransaction(vcp, {
+      transactionId: result.payload.transactionId,
+      idTag: call.payload.idTag,
+      connectorId: call.payload.connectorId,
+      meterValuesCallback: async (transactionState) => {
+        vcp.send(
+          meterValuesOcppMessage.request({
+            connectorId: call.payload.connectorId,
+            transactionId: result.payload.transactionId,
+            meterValue: [
+              {
+                timestamp: new Date().toISOString(),
+                sampledValue: [
+                  {
+                    value: (transactionState.meterValue / 1000).toString(),
+                    measurand: "Energy.Active.Import.Register",
+                    unit: "kWh",
+                  },
+                ],
+              },
+            ],
+          }),
+        );
+      },
+    });
   };
 }
 

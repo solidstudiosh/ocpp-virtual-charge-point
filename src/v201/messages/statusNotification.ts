@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const StatusNotificationReqSchema = z.object({
@@ -20,7 +24,7 @@ type StatusNotificationReqType = typeof StatusNotificationReqSchema;
 const StatusNotificationResSchema = z.object({});
 type StatusNotificationResType = typeof StatusNotificationResSchema;
 
-class StatusNotificationOcppMessage extends OcppMessage<
+class StatusNotificationOcppOutgoing extends OcppOutgoing<
   StatusNotificationReqType,
   StatusNotificationResType
 > {
@@ -33,8 +37,9 @@ class StatusNotificationOcppMessage extends OcppMessage<
   };
 }
 
-export const statusNotificationOcppMessage = new StatusNotificationOcppMessage(
-  "StatusNotification",
-  StatusNotificationReqSchema,
-  StatusNotificationResSchema,
-);
+export const statusNotificationOcppOutgoing =
+  new StatusNotificationOcppOutgoing(
+    "StatusNotification",
+    StatusNotificationReqSchema,
+    StatusNotificationResSchema,
+  );

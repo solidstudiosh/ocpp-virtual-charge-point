@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const SignedFirmwareStatusNotificationReqSchema = z.object({
   status: z.enum([
@@ -28,7 +32,7 @@ const SignedFirmwareStatusNotificationResSchema = z.object({});
 type SignedFirmwareStatusNotificationResType =
   typeof SignedFirmwareStatusNotificationResSchema;
 
-class SignedFirmwareStatusNotificationOcppMessage extends OcppMessage<
+class SignedFirmwareStatusNotificationOcppMessage extends OcppOutgoing<
   SignedFirmwareStatusNotificationReqType,
   SignedFirmwareStatusNotificationResType
 > {

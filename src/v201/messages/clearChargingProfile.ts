@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ChargingProfilePurposeSchema, StatusInfoTypeSchema } from "./_common";
 
 const ClearChargingProfileReqSchema = z.object({
@@ -21,7 +21,7 @@ const ClearChargingProfileResSchema = z.object({
 });
 type ClearChargingProfileResType = typeof ClearChargingProfileResSchema;
 
-class ClearChargingProfileOcppMessage extends OcppMessage<
+class ClearChargingProfileOcppIncoming extends OcppIncoming<
   ClearChargingProfileReqType,
   ClearChargingProfileResType
 > {
@@ -33,8 +33,8 @@ class ClearChargingProfileOcppMessage extends OcppMessage<
   };
 }
 
-export const clearChargingProfileOcppMessage =
-  new ClearChargingProfileOcppMessage(
+export const clearChargingProfileOcppIncoming =
+  new ClearChargingProfileOcppIncoming(
     "ClearChargingProfile",
     ClearChargingProfileReqSchema,
     ClearChargingProfileResSchema,

@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ConnectorIdSchema, MeterValueSchema } from "./_common";
 
 const MeterValuesReqSchema = z.object({
@@ -13,7 +17,7 @@ type MeterValuesReqType = typeof MeterValuesReqSchema;
 const MeterValuesResSchema = z.object({});
 type MeterValuesResType = typeof MeterValuesResSchema;
 
-class MeterValuesOcppMessage extends OcppMessage<
+class MeterValuesOcppMessage extends OcppOutgoing<
   MeterValuesReqType,
   MeterValuesResType
 > {

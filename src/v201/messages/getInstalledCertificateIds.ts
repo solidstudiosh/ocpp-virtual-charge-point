@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { CertificateHashDataTypeSchema, StatusInfoTypeSchema } from "./_common";
 
 const GetInstalledCertificateIdsReqSchema = z.object({
@@ -44,7 +44,7 @@ const GetInstalledCertificateIdsResSchema = z.object({
 type GetInstalledCertificateIdsResType =
   typeof GetInstalledCertificateIdsResSchema;
 
-class GetInstalledCertificateIdsOcppMessage extends OcppMessage<
+class GetInstalledCertificateIdsOcppIncoming extends OcppIncoming<
   GetInstalledCertificateIdsReqType,
   GetInstalledCertificateIdsResType
 > {
@@ -56,8 +56,8 @@ class GetInstalledCertificateIdsOcppMessage extends OcppMessage<
   };
 }
 
-export const getInstalledCertificateIdsOcppMessage =
-  new GetInstalledCertificateIdsOcppMessage(
+export const getInstalledCertificateIdsOcppIncoming =
+  new GetInstalledCertificateIdsOcppIncoming(
     "GetInstalledCertificateIds",
     GetInstalledCertificateIdsReqSchema,
     GetInstalledCertificateIdsResSchema,

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const GetConfigurationReqSchema = z.object({
   key: z.array(z.string().max(50)).nullish(),
@@ -21,7 +21,7 @@ const GetConfigurationResSchema = z.object({
 });
 type GetConfigurationResType = typeof GetConfigurationResSchema;
 
-class GetConfigurationOcppMessage extends OcppMessage<
+class GetConfigurationOcppMessage extends OcppIncoming<
   GetConfigurationReqType,
   GetConfigurationResType
 > {

@@ -1,6 +1,11 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppIncoming,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const SignedUpdateFirmwareReqSchema = z.object({
   retries: z.number().int().nullish(),
@@ -27,7 +32,7 @@ const SignedUpdateFirmwareResSchema = z.object({
 });
 type SignedUpdateFirmwareResType = typeof SignedUpdateFirmwareResSchema;
 
-class SignedUpdateFirmwareOcppMessage extends OcppMessage<
+class SignedUpdateFirmwareIncomingOcppMessage extends OcppIncoming<
   SignedUpdateFirmwareReqType,
   SignedUpdateFirmwareResType
 > {
@@ -37,7 +42,12 @@ class SignedUpdateFirmwareOcppMessage extends OcppMessage<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
   };
+}
 
+class SignedUpdateFirmwareOutgoingOcppMessage extends OcppOutgoing<
+  SignedUpdateFirmwareReqType,
+  SignedUpdateFirmwareResType
+> {
   resHandler = async (
     _vcp: VCP,
     _call: OcppCall<z.infer<SignedUpdateFirmwareReqType>>,
@@ -47,8 +57,15 @@ class SignedUpdateFirmwareOcppMessage extends OcppMessage<
   };
 }
 
-export const signedUpdateFirmwareOcppMessage =
-  new SignedUpdateFirmwareOcppMessage(
+export const signedUpdateFirmwareIncomingOcppMessage =
+  new SignedUpdateFirmwareIncomingOcppMessage(
+    "SignedUpdateFirmware",
+    SignedUpdateFirmwareReqSchema,
+    SignedUpdateFirmwareResSchema,
+  );
+
+export const signedUpdateFirmwareOutgoingOcppMessage =
+  new SignedUpdateFirmwareOutgoingOcppMessage(
     "SignedUpdateFirmware",
     SignedUpdateFirmwareReqSchema,
     SignedUpdateFirmwareResSchema,

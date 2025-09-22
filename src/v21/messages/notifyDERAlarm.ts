@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { DERControlType } from "./_common";
 
 const NotifyDERAlarmReqSchema = z.object({
@@ -29,7 +33,7 @@ type NotifyDERAlarmReqType = typeof NotifyDERAlarmReqSchema;
 const NotifyDERAlarmResSchema = z.object({});
 type NotifyDERAlarmResType = typeof NotifyDERAlarmResSchema;
 
-class NotifyDERAlarmOcppMessage extends OcppMessage<
+class NotifyDERAlarmOcppOutgoing extends OcppOutgoing<
   NotifyDERAlarmReqType,
   NotifyDERAlarmResType
 > {
@@ -42,7 +46,7 @@ class NotifyDERAlarmOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyDERAlarmOcppMessage = new NotifyDERAlarmOcppMessage(
+export const notifyDERAlarmOcppOutgoing = new NotifyDERAlarmOcppOutgoing(
   "NotifyDERAlarm",
   NotifyDERAlarmReqSchema,
   NotifyDERAlarmResSchema,

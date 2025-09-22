@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { DERControlType, StatusInfoTypeSchema } from "./_common";
 
 const ClearDERControlReqSchema = z.object({
@@ -16,7 +16,7 @@ const ClearDERControlResSchema = z.object({
 });
 type ClearDERControlResType = typeof ClearDERControlResSchema;
 
-class ClearDERControlOcppMessage extends OcppMessage<
+class ClearDERControlOcppIncoming extends OcppIncoming<
   ClearDERControlReqType,
   ClearDERControlResType
 > {
@@ -28,7 +28,7 @@ class ClearDERControlOcppMessage extends OcppMessage<
   };
 }
 
-export const clearDERControlOcppMessage = new ClearDERControlOcppMessage(
+export const clearDERControlOcppIncoming = new ClearDERControlOcppIncoming(
   "ClearDERControl",
   ClearDERControlReqSchema,
   ClearDERControlResSchema,

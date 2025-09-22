@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppCallResult, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { IdTokenTypeSchema, StatusInfoTypeSchema } from "./_common";
 
 const ReserveNowReqSchema = z.object({
@@ -50,7 +50,7 @@ const ReserveNowResSchema = z.object({
 });
 type ReserveNowResType = typeof ReserveNowResSchema;
 
-class ReserveNowOcppMessage extends OcppMessage<
+class ReserveNowOcppIncoming extends OcppIncoming<
   ReserveNowReqType,
   ReserveNowResType
 > {
@@ -62,7 +62,7 @@ class ReserveNowOcppMessage extends OcppMessage<
   };
 }
 
-export const reserveNowOcppMessage = new ReserveNowOcppMessage(
+export const reserveNowOcppIncoming = new ReserveNowOcppIncoming(
   "ReserveNow",
   ReserveNowReqSchema,
   ReserveNowResSchema,

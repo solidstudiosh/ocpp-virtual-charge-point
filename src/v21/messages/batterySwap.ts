@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { IdTokenTypeSchema } from "./_common";
 
 const BatterySwapReqSchema = z.object({
@@ -23,7 +27,7 @@ type BatterySwapReqType = typeof BatterySwapReqSchema;
 const BatterySwapResSchema = z.object({});
 type BatterySwapResType = typeof BatterySwapResSchema;
 
-class BatterySwapOcppMessage extends OcppMessage<
+class BatterySwapOcppOutgoing extends OcppOutgoing<
   BatterySwapReqType,
   BatterySwapResType
 > {
@@ -36,7 +40,7 @@ class BatterySwapOcppMessage extends OcppMessage<
   };
 }
 
-export const batterySwapOcppMessage = new BatterySwapOcppMessage(
+export const batterySwapOcppOutgoing = new BatterySwapOcppOutgoing(
   "BatterySwap",
   BatterySwapReqSchema,
   BatterySwapResSchema,

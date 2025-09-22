@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import {
   DERControlType,
   EnergyTransferMode,
@@ -177,7 +181,7 @@ const NotifyEVChargingNeedsResSchema = z.object({
 });
 type NotifyEVChargingNeedsResType = typeof NotifyEVChargingNeedsResSchema;
 
-class NotifyEVChargingNeedsOcppMessage extends OcppMessage<
+class NotifyEVChargingNeedsOcppOutgoing extends OcppOutgoing<
   NotifyEVChargingNeedsReqType,
   NotifyEVChargingNeedsResType
 > {
@@ -190,8 +194,8 @@ class NotifyEVChargingNeedsOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyEVChargingNeedsOcppMessage =
-  new NotifyEVChargingNeedsOcppMessage(
+export const notifyEVChargingNeedsOcppOutgoing =
+  new NotifyEVChargingNeedsOcppOutgoing(
     "NotifyEVChargingNeeds",
     NotifyEVChargingNeedsReqSchema,
     NotifyEVChargingNeedsResSchema,

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const SetMonitoringBaseReqSchema = z.object({
@@ -14,7 +14,7 @@ const SetMonitoringBaseResSchema = z.object({
 });
 type SetMonitoringBaseResType = typeof SetMonitoringBaseResSchema;
 
-class SetMonitoringBaseOcppMessage extends OcppMessage<
+class SetMonitoringBaseOcppIncoming extends OcppIncoming<
   SetMonitoringBaseReqType,
   SetMonitoringBaseResType
 > {
@@ -26,7 +26,7 @@ class SetMonitoringBaseOcppMessage extends OcppMessage<
   };
 }
 
-export const setMonitoringBaseOcppMessage = new SetMonitoringBaseOcppMessage(
+export const setMonitoringBaseOcppIncoming = new SetMonitoringBaseOcppIncoming(
   "SetMonitoringBase",
   SetMonitoringBaseReqSchema,
   SetMonitoringBaseResSchema,

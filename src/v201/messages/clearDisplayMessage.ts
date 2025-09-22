@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const ClearDisplayMessageReqSchema = z.object({
@@ -14,7 +14,7 @@ const ClearDisplayMessageResSchema = z.object({
 });
 type ClearDisplayMessageResType = typeof ClearDisplayMessageResSchema;
 
-class ClearDisplayMessageOcppMessage extends OcppMessage<
+class ClearDisplayMessageOcppIncoming extends OcppIncoming<
   ClearDisplayMessageReqType,
   ClearDisplayMessageResType
 > {
@@ -26,8 +26,8 @@ class ClearDisplayMessageOcppMessage extends OcppMessage<
   };
 }
 
-export const clearDisplayMessageOcppMessage =
-  new ClearDisplayMessageOcppMessage(
+export const clearDisplayMessageOcppIncoming =
+  new ClearDisplayMessageOcppIncoming(
     "ClearDisplayMessage",
     ClearDisplayMessageReqSchema,
     ClearDisplayMessageResSchema,

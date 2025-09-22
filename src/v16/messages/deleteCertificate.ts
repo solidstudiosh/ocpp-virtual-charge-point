@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const DeleteCertificateReqSchema = z.object({
   certificateHashData: z.object({
@@ -17,7 +17,7 @@ const DeleteCertificateResSchema = z.object({
 });
 type DeleteCertificateResType = typeof DeleteCertificateResSchema;
 
-class DeleteCertificateOcppMessage extends OcppMessage<
+class DeleteCertificateOcppMessage extends OcppIncoming<
   DeleteCertificateReqType,
   DeleteCertificateResType
 > {

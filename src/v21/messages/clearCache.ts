@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
 const ClearCacheReqSchema = z.object({});
@@ -12,7 +12,7 @@ const ClearCacheResSchema = z.object({
 });
 type ClearCacheResType = typeof ClearCacheResSchema;
 
-class ClearCacheOcppMessage extends OcppMessage<
+class ClearCacheOcppIncoming extends OcppIncoming<
   ClearCacheReqType,
   ClearCacheResType
 > {
@@ -24,7 +24,7 @@ class ClearCacheOcppMessage extends OcppMessage<
   };
 }
 
-export const clearCacheOcppMessage = new ClearCacheOcppMessage(
+export const clearCacheOcppIncoming = new ClearCacheOcppIncoming(
   "ClearCache",
   ClearCacheReqSchema,
   ClearCacheResSchema,

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { IdTagInfoSchema, IdTokenSchema } from "./_common";
 
 const SendLocalListReqSchema = z
@@ -35,7 +35,7 @@ const SendLocalListResSchema = z.object({
 });
 type SendLocalListResType = typeof SendLocalListResSchema;
 
-class SendLocalListOcppMessage extends OcppMessage<
+class SendLocalListOcppMessage extends OcppIncoming<
   SendLocalListReqType,
   SendLocalListResType
 > {

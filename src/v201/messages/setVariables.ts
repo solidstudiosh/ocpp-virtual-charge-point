@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import {
   ComponentTypeSchema,
   StatusInfoTypeSchema,
@@ -39,7 +39,7 @@ const SetVariablesResSchema = z.object({
 });
 type SetVariablesResType = typeof SetVariablesResSchema;
 
-class SetVariablesOcppMessage extends OcppMessage<
+class SetVariablesOcppIncoming extends OcppIncoming<
   SetVariablesReqType,
   SetVariablesResType
 > {
@@ -60,7 +60,7 @@ class SetVariablesOcppMessage extends OcppMessage<
   };
 }
 
-export const setVariablesOcppMessage = new SetVariablesOcppMessage(
+export const setVariablesOcppIncoming = new SetVariablesOcppIncoming(
   "SetVariables",
   SetVariablesReqSchema,
   SetVariablesResSchema,

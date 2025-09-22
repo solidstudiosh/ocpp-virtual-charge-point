@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { ConnectorIdSchema } from "./_common";
 
 const UnlockConnectorReqSchema = z.object({
@@ -13,7 +13,7 @@ const UnlockConnectorResSchema = z.object({
 });
 type UnlockConnectorResType = typeof UnlockConnectorResSchema;
 
-class UnlockConnectorOcppMessage extends OcppMessage<
+class UnlockConnectorOcppMessage extends OcppIncoming<
   UnlockConnectorReqType,
   UnlockConnectorResType
 > {

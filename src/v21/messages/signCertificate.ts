@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import {
   CertificateHashDataTypeSchema,
   GenericStatusEnumSchema,
@@ -23,7 +27,7 @@ const SignCertificateResSchema = z.object({
 });
 type SignCertificateResType = typeof SignCertificateResSchema;
 
-class SignCertificateOcppMessage extends OcppMessage<
+class SignCertificateOcppOutgoing extends OcppOutgoing<
   SignCertificateReqType,
   SignCertificateResType
 > {
@@ -36,7 +40,7 @@ class SignCertificateOcppMessage extends OcppMessage<
   };
 }
 
-export const signCertificateOcppMessage = new SignCertificateOcppMessage(
+export const signCertificateOcppOutgoing = new SignCertificateOcppOutgoing(
   "SignCertificate",
   SignCertificateReqSchema,
   SignCertificateResSchema,

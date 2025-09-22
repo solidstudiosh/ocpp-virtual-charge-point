@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 
 const UpdateFirmwareReqSchema = z.object({
   location: z.string().url(),
@@ -13,7 +13,7 @@ type UpdateFirmwareReqType = typeof UpdateFirmwareReqSchema;
 const UpdateFirmwareResSchema = z.object({});
 type UpdateFirmwareResType = typeof UpdateFirmwareResSchema;
 
-class UpdateFirmwareOcppMessage extends OcppMessage<
+class UpdateFirmwareOcppMessage extends OcppIncoming<
   UpdateFirmwareReqType,
   UpdateFirmwareResType
 > {

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { EnergyTransferMode, StatusInfoTypeSchema } from "./_common";
 
 const NotifyAllowedEnergyTransferReqSchema = z.object({
@@ -17,7 +17,7 @@ const NotifyAllowedEnergyTransferResSchema = z.object({
 type NotifyAllowedEnergyTransferResType =
   typeof NotifyAllowedEnergyTransferResSchema;
 
-class NotifyAllowedEnergyTransferOcppMessage extends OcppMessage<
+class NotifyAllowedEnergyTransferOcppIncoming extends OcppIncoming<
   NotifyAllowedEnergyTransferReqType,
   NotifyAllowedEnergyTransferResType
 > {
@@ -29,8 +29,8 @@ class NotifyAllowedEnergyTransferOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyAllowedEnergyTransferOcppMessage =
-  new NotifyAllowedEnergyTransferOcppMessage(
+export const notifyAllowedEnergyTransferOcppIncoming =
+  new NotifyAllowedEnergyTransferOcppIncoming(
     "NotifyAllowedEnergyTransfer",
     NotifyAllowedEnergyTransferReqSchema,
     NotifyAllowedEnergyTransferResSchema,

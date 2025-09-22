@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { OcppCall, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import { GenericStatusEnumSchema, StatusInfoTypeSchema } from "./_common";
 
 const AFRRSignalReqSchema = z.object({
@@ -15,7 +15,7 @@ const AFRRSignalResSchema = z.object({
 });
 type AFRRSignalResType = typeof AFRRSignalResSchema;
 
-class AFRRSignalOcppMessage extends OcppMessage<
+class AFRRSignalOcppIncoming extends OcppIncoming<
   AFRRSignalReqType,
   AFRRSignalResType
 > {
@@ -27,7 +27,7 @@ class AFRRSignalOcppMessage extends OcppMessage<
   };
 }
 
-export const afrrSignalOcppMessage = new AFRRSignalOcppMessage(
+export const afrrSignalOcppIncoming = new AFRRSignalOcppIncoming(
   "AFRRSignal",
   AFRRSignalReqSchema,
   AFRRSignalResSchema,

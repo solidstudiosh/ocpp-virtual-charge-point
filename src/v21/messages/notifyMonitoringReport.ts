@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { OcppCall, OcppCallResult, OcppMessage } from "../../ocppMessage";
-import { VCP } from "../../vcp";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
+import type { VCP } from "../../vcp";
 import {
   ComponentTypeSchema,
   MonitorTypeSchema,
@@ -41,7 +45,7 @@ type NotifyMonitoringReportReqType = typeof NotifyMonitoringReportReqSchema;
 const NotifyMonitoringReportResSchema = z.object({});
 type NotifyMonitoringReportResType = typeof NotifyMonitoringReportResSchema;
 
-class NotifyMonitoringReportOcppMessage extends OcppMessage<
+class NotifyMonitoringReportOcppOutgoing extends OcppOutgoing<
   NotifyMonitoringReportReqType,
   NotifyMonitoringReportResType
 > {
@@ -54,8 +58,8 @@ class NotifyMonitoringReportOcppMessage extends OcppMessage<
   };
 }
 
-export const notifyMonitoringReportOcppMessage =
-  new NotifyMonitoringReportOcppMessage(
+export const notifyMonitoringReportOcppOutgoing =
+  new NotifyMonitoringReportOcppOutgoing(
     "NotifyMonitoringReport",
     NotifyMonitoringReportReqSchema,
     NotifyMonitoringReportResSchema,

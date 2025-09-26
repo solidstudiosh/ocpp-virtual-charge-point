@@ -1,0 +1,7 @@
+name: "Charging Station Simulator"
+services:
+  ocpp-simulator:
+    build: .
+    ports:
+      - "9999:9999"
+    restart: always

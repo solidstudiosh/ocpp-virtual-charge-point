@@ -4,7 +4,7 @@ import type { VCP } from "../../vcp";
 
 const GetInstalledCertificateIdsReqSchema = z.object({
   certificateType: z.enum([
-    "CentralSystemRootCertificate",
+    "CSMSRootCertificate",
     "ManufacturerRootCertificate",
   ]),
 });

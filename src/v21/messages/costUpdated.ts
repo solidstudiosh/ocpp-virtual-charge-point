@@ -16,10 +16,10 @@ class CostUpdatedOcppIncoming extends OcppIncoming<
   CostUpdatedResType
 > {
   reqHandler = async (
-    _vcp: VCP,
-    _call: OcppCall<z.infer<CostUpdatedReqType>>,
+    vcp: VCP,
+    call: OcppCall<z.infer<CostUpdatedReqType>>,
   ): Promise<void> => {
-    // NOOP
+    vcp.respond(this.response(call, {}));
   };
 }
 

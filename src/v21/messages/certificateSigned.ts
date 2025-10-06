@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  type OcppCall,
-  type OcppCallResult,
-  OcppOutgoing,
-} from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
@@ -22,20 +18,19 @@ const CertificateSignedResSchema = z.object({
 });
 type CertificateSignedResType = typeof CertificateSignedResSchema;
 
-class CertificateSignedOcppOutgoing extends OcppOutgoing<
+class CertificateSignedOcppIncoming extends OcppIncoming<
   CertificateSignedReqType,
   CertificateSignedResType
 > {
-  resHandler = async (
-    _vcp: VCP,
-    _call: OcppCall<z.infer<CertificateSignedReqType>>,
-    _result: OcppCallResult<z.infer<CertificateSignedResType>>,
+  reqHandler = async (
+    vcp: VCP,
+    call: OcppCall<z.infer<CertificateSignedReqType>>,
   ): Promise<void> => {
-    // NOOP
+    vcp.respond(this.response(call, { status: "Accepted" }));
   };
 }
 
-export const certificateSignedOcppOutgoing = new CertificateSignedOcppOutgoing(
+export const certificateSignedOcppIncoming = new CertificateSignedOcppIncoming(
   "CertificateSigned",
   CertificateSignedReqSchema,
   CertificateSignedResSchema,

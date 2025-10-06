@@ -29,7 +29,20 @@ class GetPeriodicEventStreamOcppIncoming extends OcppIncoming<
     vcp: VCP,
     call: OcppCall<z.infer<GetPeriodicEventStreamReqType>>,
   ): Promise<void> => {
-    vcp.respond(this.response(call, { constantStreamData: [] }));
+    vcp.respond(
+      this.response(call, {
+        constantStreamData: [
+          {
+            id: 1,
+            variableMonitoringId: 1,
+            params: {
+              interval: 10,
+              values: 10,
+            },
+          },
+        ],
+      }),
+    );
   };
 }
 

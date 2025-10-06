@@ -3,8 +3,8 @@ import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { diagnosticsStatusNotificationOcppMessage } from "./diagnosticsStatusNotification";
 import { Client as FtpClient } from "basic-ftp";
-import { URL } from "url";
-import { Readable } from "stream";
+import { URL } from "node:url";
+import { Readable } from "node:stream";
 
 const GetDiagnosticsReqSchema = z.object({
   location: z.string().url(),
@@ -41,11 +41,17 @@ class GetDiagnosticsOcppMessage extends OcppIncoming<
   };
 }
 
-const asyncUploadDiagnostics= async (vcp: VCP, call: OcppCall<z.infer<GetDiagnosticsReqType>>, fileName: string) => {
-  vcp.send(diagnosticsStatusNotificationOcppMessage.request({
-    status: "Uploading",
-  }));
-  
+const asyncUploadDiagnostics = async (
+  vcp: VCP,
+  call: OcppCall<z.infer<GetDiagnosticsReqType>>,
+  fileName: string,
+) => {
+  vcp.send(
+    diagnosticsStatusNotificationOcppMessage.request({
+      status: "Uploading",
+    }),
+  );
+
   const diagnosticData = await vcp.getDiagnosticData();
 
   try {
@@ -53,7 +59,7 @@ const asyncUploadDiagnostics= async (vcp: VCP, call: OcppCall<z.infer<GetDiagnos
     let diagnosticContent: string;
     try {
       // If diagnosticData is already a string, use it directly
-      if (typeof diagnosticData === 'string') {
+      if (typeof diagnosticData === "string") {
         diagnosticContent = diagnosticData;
       } else {
         // If it's an object/array, stringify it
@@ -71,16 +77,16 @@ const asyncUploadDiagnostics= async (vcp: VCP, call: OcppCall<z.infer<GetDiagnos
 
     await ftpClient.access({
       host: ftpUrl.hostname,
-      port: ftpUrl.port ? parseInt(ftpUrl.port, 10) : 21,
+      port: ftpUrl.port ? Number.parseInt(ftpUrl.port, 10) : 21,
       user: ftpUrl.username || "anonymous",
       password: ftpUrl.password || "guest",
       secure: false,
     });
 
     // Extract the directory path and ensure it exists
-    const pathParts = ftpUrl.pathname.split('/').filter(Boolean);
+    const pathParts = ftpUrl.pathname.split("/").filter(Boolean);
     const remoteFileName = fileName;
-    
+
     // If there are path parts, try to navigate to the directory
     if (pathParts.length > 0) {
       for (const part of pathParts) {
@@ -88,14 +94,14 @@ const asyncUploadDiagnostics= async (vcp: VCP, call: OcppCall<z.infer<GetDiagnos
           await ftpClient.cd(part);
         } catch (e) {
           // If directory doesn't exist, try to create it
-          await ftpClient.send("MKD " + part);
+          await ftpClient.send(`MKD ${part}`);
           await ftpClient.cd(part);
         }
       }
     }
 
     // Create a buffer from the content and then a stream
-    const buffer = Buffer.from(diagnosticContent, 'utf8');
+    const buffer = Buffer.from(diagnosticContent, "utf8");
     const contentStream = Readable.from(buffer);
 
     // Upload the file using a stream
@@ -103,20 +109,22 @@ const asyncUploadDiagnostics= async (vcp: VCP, call: OcppCall<z.infer<GetDiagnos
 
     await ftpClient.close();
 
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    vcp.send(diagnosticsStatusNotificationOcppMessage.request({
-      status: "Uploaded",
-    }));
-
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+    vcp.send(
+      diagnosticsStatusNotificationOcppMessage.request({
+        status: "Uploaded",
+      }),
+    );
   } catch (err) {
     console.error("Error uploading diagnostic file via FTP:", err);
-    vcp.send(diagnosticsStatusNotificationOcppMessage.request({
-      status: "UploadFailed",
-    }));
+    vcp.send(
+      diagnosticsStatusNotificationOcppMessage.request({
+        status: "UploadFailed",
+      }),
+    );
     throw err;
   }
-
-}
+};
 
 export const getDiagnosticsOcppMessage = new GetDiagnosticsOcppMessage(
   "GetDiagnostics",

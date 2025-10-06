@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  type OcppCall,
-  type OcppCallResult,
-  OcppOutgoing,
-} from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
@@ -18,20 +14,19 @@ const CancelReservationResSchema = z.object({
 });
 type CancelReservationResType = typeof CancelReservationResSchema;
 
-class CancelReservationOcppOutgoing extends OcppOutgoing<
+class CancelReservationOcppIncoming extends OcppIncoming<
   CancelReservationReqType,
   CancelReservationResType
 > {
-  resHandler = async (
-    _vcp: VCP,
-    _call: OcppCall<z.infer<CancelReservationReqType>>,
-    _result: OcppCallResult<z.infer<CancelReservationResType>>,
+  reqHandler = async (
+    vcp: VCP,
+    call: OcppCall<z.infer<CancelReservationReqType>>,
   ): Promise<void> => {
-    // NOOP
+    vcp.respond(this.response(call, { status: "Accepted" }));
   };
 }
 
-export const cancelReservationOcppOutgoing = new CancelReservationOcppOutgoing(
+export const cancelReservationOcppIncoming = new CancelReservationOcppIncoming(
   "CancelReservation",
   CancelReservationReqSchema,
   CancelReservationResSchema,

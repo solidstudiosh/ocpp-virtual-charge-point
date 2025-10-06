@@ -1,8 +1,7 @@
 import { z } from "zod";
 import {
   type OcppCall,
-  type OcppCallResult,
-  OcppOutgoing,
+  OcppIncoming,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 
@@ -15,21 +14,20 @@ type NotifyWebPaymentStartedReqType = typeof NotifyWebPaymentStartedReqSchema;
 const NotifyWebPaymentStartedResSchema = z.object({});
 type NotifyWebPaymentStartedResType = typeof NotifyWebPaymentStartedResSchema;
 
-class NotifyWebPaymentStartedOcppOutgoing extends OcppOutgoing<
+class NotifyWebPaymentStartedOcppIncoming extends OcppIncoming<
   NotifyWebPaymentStartedReqType,
   NotifyWebPaymentStartedResType
 > {
-  resHandler = async (
-    _vcp: VCP,
-    _call: OcppCall<z.infer<NotifyWebPaymentStartedReqType>>,
-    _result: OcppCallResult<z.infer<NotifyWebPaymentStartedResType>>,
+  reqHandler = async (
+    vcp: VCP,
+    call: OcppCall<z.infer<NotifyWebPaymentStartedReqType>>,
   ): Promise<void> => {
-    // NOOP
+    vcp.respond(this.response(call, {}));
   };
 }
 
-export const notifyWebPaymentStartedOcppOutgoing =
-  new NotifyWebPaymentStartedOcppOutgoing(
+export const notifyWebPaymentStartedOcppIncoming =
+  new NotifyWebPaymentStartedOcppIncoming(
     "NotifyWebPaymentStarted",
     NotifyWebPaymentStartedReqSchema,
     NotifyWebPaymentStartedResSchema,

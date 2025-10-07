@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  type OcppCall,
-  OcppIncoming,
-} from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
   DERControlType,

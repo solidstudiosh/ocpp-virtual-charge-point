@@ -95,7 +95,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
         triggerReason: "Authorized",
         transactionInfo: {
           transactionId: transactionId,
-          remoteStartId: call.payload.remoteStartId
+          remoteStartId: call.payload.remoteStartId,
         },
         idToken: call.payload.idToken,
         evse: {

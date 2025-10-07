@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  type OcppCall,
-  type OcppCallResult,
-  OcppOutgoing,
-} from "../../ocppMessage";
+import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
   DERControlType,
@@ -38,20 +34,19 @@ const SetDERControlResSchema = z.object({
 });
 type SetDERControlResType = typeof SetDERControlResSchema;
 
-class SetDERControlOcppOutgoing extends OcppOutgoing<
+class SetDERControlOcppIncoming extends OcppIncoming<
   SetDERControlReqType,
   SetDERControlResType
 > {
-  resHandler = async (
-    _vcp: VCP,
-    _call: OcppCall<z.infer<SetDERControlReqType>>,
-    _result: OcppCallResult<z.infer<SetDERControlResType>>,
+  reqHandler = async (
+    vcp: VCP,
+    call: OcppCall<z.infer<SetDERControlReqType>>,
   ): Promise<void> => {
-    // NOOP
+    vcp.respond(this.response(call, { status: "Accepted" }));
   };
 }
 
-export const setDERControlOcppOutgoing = new SetDERControlOcppOutgoing(
+export const setDERControlOcppIncoming = new SetDERControlOcppIncoming(
   "SetDERControl",
   SetDERControlReqSchema,
   SetDERControlResSchema,

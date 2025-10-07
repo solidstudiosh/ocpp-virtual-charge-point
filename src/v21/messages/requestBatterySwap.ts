@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   type OcppCall,
   type OcppCallResult,
+  OcppIncoming,
   OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
@@ -22,6 +23,25 @@ const RequestBatterySwapResSchema = z.object({
   statusInfo: StatusInfoTypeSchema.nullish(),
 });
 type RequestBatterySwapResType = typeof RequestBatterySwapResSchema;
+
+class RequestBatterySwapOcppIncoming extends OcppIncoming<
+  RequestBatterySwapReqType,
+  RequestBatterySwapResType
+> {
+  reqHandler = async (
+    vcp: VCP,
+    call: OcppCall<z.infer<RequestBatterySwapReqType>>,
+  ): Promise<void> => {
+    vcp.respond(this.response(call, { status: "Accepted" }));
+  };
+}
+
+export const requestBatterySwapOcppIncoming =
+  new RequestBatterySwapOcppIncoming(
+    "RequestBatterySwap",
+    RequestBatterySwapReqSchema,
+    RequestBatterySwapResSchema,
+  );
 
 class RequestBatterySwapOcppOutgoing extends OcppOutgoing<
   RequestBatterySwapReqType,

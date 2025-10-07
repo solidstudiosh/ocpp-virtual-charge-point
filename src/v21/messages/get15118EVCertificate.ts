@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import {
+  type OcppCall,
+  type OcppCallResult,
+  OcppOutgoing,
+} from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 
@@ -20,20 +24,21 @@ const Get15118EVCertificateResSchema = z.object({
 });
 type Get15118EVCertificateResType = typeof Get15118EVCertificateResSchema;
 
-class Get15118EVCertificateOcppIncoming extends OcppIncoming<
+class Get15118EVCertificateOcppOutgoing extends OcppOutgoing<
   Get15118EVCertificateReqType,
   Get15118EVCertificateResType
 > {
-  reqHandler = async (
-    vcp: VCP,
-    call: OcppCall<z.infer<Get15118EVCertificateReqType>>,
+  resHandler = async (
+    _vcp: VCP,
+    _call: OcppCall<z.infer<Get15118EVCertificateReqType>>,
+    _result: OcppCallResult<z.infer<Get15118EVCertificateResType>>,
   ): Promise<void> => {
-    vcp.respond(this.response(call, { status: "Accepted", exiResponse: "" }));
+    // NOOP
   };
 }
 
-export const get15118EVCertificateOcppIncoming =
-  new Get15118EVCertificateOcppIncoming(
+export const get15118EVCertificateOcppOutgoing =
+  new Get15118EVCertificateOcppOutgoing(
     "Get15118EVCertificate",
     Get15118EVCertificateReqSchema,
     Get15118EVCertificateResSchema,

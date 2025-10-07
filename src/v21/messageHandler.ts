@@ -13,8 +13,7 @@ import { afrrSignalOcppIncoming } from "./messages/afrrSignal";
 import { authorizeOcppOutgoing } from "./messages/authorize";
 import { batterySwapOcppOutgoing } from "./messages/batterySwap";
 import { bootNotificationOcppOutgoing } from "./messages/bootNotification";
-import { cancelReservationOcppOutgoing } from "./messages/cancelReservation";
-import { certificateSignedOcppOutgoing } from "./messages/certificateSigned";
+import { certificateSignedOcppIncoming } from "./messages/certificateSigned";
 import { changeAvailabilityOcppIncoming } from "./messages/changeAvailability";
 import { changeTransactionTariffOcppIncoming } from "./messages/changeTransactionTariff";
 import { clearCacheOcppIncoming } from "./messages/clearCache";
@@ -33,7 +32,7 @@ import {
 } from "./messages/dataTransfer";
 import { deleteCertificateOcppIncoming } from "./messages/deleteCertificate";
 import { firmwareStatusNotificationOcppOutgoing } from "./messages/firmwareStatusNotification";
-import { get15118EVCertificateOcppIncoming } from "./messages/get15118EVCertificate";
+import { get15118EVCertificateOcppOutgoing } from "./messages/get15118EVCertificate";
 import { getBaseReportOcppIncoming } from "./messages/getBaseReport";
 import { getCertificateChainStatusOcppOutgoing } from "./messages/getCertificateChainStatus";
 import { getCertificateStatusOcppOutgoing } from "./messages/getCertificateStatus";
@@ -68,14 +67,17 @@ import { notifyPeriodicEventStreamOcppOutgoing } from "./messages/notifyPeriodic
 import { notifyPriorityChargingOcppOutgoing } from "./messages/notifyPriorityCharging";
 import { notifyReportOcppOutgoing } from "./messages/notifyReport";
 import { notifySettlementOcppOutgoing } from "./messages/notifySettlement";
-import { notifyWebPaymentStartedOcppOutgoing } from "./messages/notifyWebPaymentStarted";
+import { notifyWebPaymentStartedOcppIncoming } from "./messages/notifyWebPaymentStarted";
 import { openPeriodicEventStreamOcppOutgoing } from "./messages/openPeriodicEventStream";
 import { publishFirmwareOcppIncoming } from "./messages/publishFirmware";
 import { publishFirmwareStatusNotificationOcppOutgoing } from "./messages/publishFirmwareStatusNotification";
 import { pullDynamicScheduleUpdateOcppOutgoing } from "./messages/pullDynamicScheduleUpdate";
 import { reportChargingProfilesOcppOutgoing } from "./messages/reportChargingProfiles";
 import { reportDERControlOcppOutgoing } from "./messages/reportDERControl";
-import { requestBatterySwapOcppOutgoing } from "./messages/requestBatterySwap";
+import {
+  requestBatterySwapOcppIncoming,
+  requestBatterySwapOcppOutgoing,
+} from "./messages/requestBatterySwap";
 import { requestStartTransactionOcppIncoming } from "./messages/requestStartTransaction";
 import { requestStopTransactionOcppIncoming } from "./messages/requestStopTransaction";
 import { reservationStatusUpdateOcppOutgoing } from "./messages/reservationStatusUpdate";
@@ -84,7 +86,7 @@ import { resetOcppIncoming } from "./messages/reset";
 import { securityEventNotificationOcppOutgoing } from "./messages/securityEventNotification";
 import { sendLocalListOcppIncoming } from "./messages/sendLocalList";
 import { setChargingProfileOcppIncoming } from "./messages/setChargingProfile";
-import { setDERControlOcppOutgoing } from "./messages/setDERControl";
+import { setDERControlOcppIncoming } from "./messages/setDERControl";
 import { setDefaultTariffOcppIncoming } from "./messages/setDefaultTariff";
 import { setDisplayMessageOcppIncoming } from "./messages/setDisplayMessage";
 import { setMonitoringBaseOcppIncoming } from "./messages/setMonitoringBase";
@@ -109,8 +111,10 @@ export const ocppIncomingMessages: {
 } = {
   AdjustPeriodicEventStream: adjustPeriodicEventStreamOcppIncoming,
   AFRRSignal: afrrSignalOcppIncoming,
+  CancelReservation: changeAvailabilityOcppIncoming,
   ChangeAvailability: changeAvailabilityOcppIncoming,
   ChangeTransactionTariff: changeTransactionTariffOcppIncoming,
+  CertificateSigned: certificateSignedOcppIncoming,
   ClearCache: clearCacheOcppIncoming,
   ClearChargingProfile: clearChargingProfileOcppIncoming,
   ClearDERControl: clearDERControlOcppIncoming,
@@ -121,7 +125,6 @@ export const ocppIncomingMessages: {
   CustomerInformation: customerInformationOcppIncoming,
   DataTransfer: dataTransferOcppIncoming,
   DeleteCertificate: deleteCertificateOcppIncoming,
-  Get15118EVCertificate: get15118EVCertificateOcppIncoming,
   GetBaseReport: getBaseReportOcppIncoming,
   GetChargingProfiles: getChargingProfilesOcppIncoming,
   GetCompositeSchedule: getCompositeScheduleOcppIncoming,
@@ -138,6 +141,8 @@ export const ocppIncomingMessages: {
   GetVariables: getVariablesOcppIncoming,
   InstallCertificate: installCertificateOcppIncoming,
   NotifyAllowedEnergyTransfer: notifyAllowedEnergyTransferOcppIncoming,
+  NotifyWebPaymentStarted: notifyWebPaymentStartedOcppIncoming,
+  RequestBatterySwap: requestBatterySwapOcppIncoming,
   PublishFirmware: publishFirmwareOcppIncoming,
   RequestStartTransaction: requestStartTransactionOcppIncoming,
   RequestStopTransaction: requestStopTransactionOcppIncoming,
@@ -158,6 +163,7 @@ export const ocppIncomingMessages: {
   UpdateDynamicSchedule: updateDynamicScheduleOcppIncoming,
   UpdateFirmware: updateFirmwareOcppIncoming,
   UsePriorityCharging: usePriorityChargingOcppIncoming,
+  SetDERControl: setDERControlOcppIncoming,
 };
 
 // Outgoing messages (messages that are sent by the CSMS)
@@ -167,8 +173,6 @@ export const ocppOutgoingMessages: {
   Authorize: authorizeOcppOutgoing,
   BatterySwap: batterySwapOcppOutgoing,
   BootNotification: bootNotificationOcppOutgoing,
-  CancelReservation: cancelReservationOcppOutgoing,
-  CertificateSigned: certificateSignedOcppOutgoing,
   ClearedChargingLimit: clearedChargingLimitOcppOutgoing,
   ClosePeriodicEventStream: closePeriodicEventStreamOcppOutgoing,
   DataTransfer: dataTransferOcppOutgoing,
@@ -191,7 +195,6 @@ export const ocppOutgoingMessages: {
   NotifyPriorityCharging: notifyPriorityChargingOcppOutgoing,
   NotifyReport: notifyReportOcppOutgoing,
   NotifySettlement: notifySettlementOcppOutgoing,
-  NotifyWebPaymentStarted: notifyWebPaymentStartedOcppOutgoing,
   OpenPeriodicEventStream: openPeriodicEventStreamOcppOutgoing,
   PublishFirmwareStatusNotification:
     publishFirmwareStatusNotificationOcppOutgoing,
@@ -201,11 +204,11 @@ export const ocppOutgoingMessages: {
   RequestBatterySwap: requestBatterySwapOcppOutgoing,
   ReservationStatusUpdate: reservationStatusUpdateOcppOutgoing,
   SecurityEventNotification: securityEventNotificationOcppOutgoing,
-  SetDERControl: setDERControlOcppOutgoing,
   SignCertificate: signCertificateOcppOutgoing,
   StatusNotification: statusNotificationOcppOutgoing,
   TransactionEvent: transactionEventOcppOutgoing,
   VatNumberValidation: vatNumberValidationOcppOutgoing,
+  Get15118EVCertificate: get15118EVCertificateOcppOutgoing,
 };
 
 export const messageHandlerV21: OcppMessageHandler = {

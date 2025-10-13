@@ -18,13 +18,16 @@ variable "cp_ws_list" {
   }))
   default = [
     { cp_id = "FR*ORV*A0014", ws_url = "wss://ocpp.oreve.com" },
-    { cp_id = "FR*ORV*A0015", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "FR*ORV*A0016", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "FR*ORV*A0017", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "FR*ORV*B9019", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "FR*ORV*A9998", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "TEST2*SIMULATOR*2", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "TEST*SIMULATOR*1", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
-    { cp_id = "CS*SIMULATOR*1", ws_url = "wss://cpc.eu-stable.uat.charge.ampeco.tech/obornes/CS%2ASIMULATOR%2A1" }
+    #{ cp_id = "FR*ORV*A0015", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
+    #{ cp_id = "FR*ORV*A0016", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
+    #{ cp_id = "FR*ORV*A0017", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
+    #{ cp_id = "FR*ORV*B9019", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
+    #{ cp_id = "FR*ORV*A9998", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
+    #{ cp_id = "TEST2*SIMULATOR*2", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
+    #{ cp_id = "TEST*SIMULATOR*1", ws_url = "wss://proxy.ocpp-proxy.prod.oreve.com" },
+    { cp_id = "CS*SIMULATOR*1", ws_url = "wss://cpc.eu-stable.uat.charge.ampeco.tech/obornes/CS%2ASIMULATOR%2A1" },
+    { cp_id = "FR*ORV*B0201", ws_url = "wss://proxy.ocpp-proxy.test.oreve.com" },
+    { cp_id = "FR*ORV*A0015", ws_url = "wss://proxy.ocpp-proxy.test.oreve.com" },
+    { cp_id = "FR*ORV*A0016", ws_url = "wss://proxy.ocpp-proxy.test.oreve.com" }
   ]
 }

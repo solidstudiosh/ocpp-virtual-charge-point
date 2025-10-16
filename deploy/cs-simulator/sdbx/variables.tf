@@ -28,6 +28,6 @@ variable "cp_ws_list" {
     { cp_id = "CS*SIMULATOR*1", ws_url = "wss://cpc.eu-stable.uat.charge.ampeco.tech/obornes/CS%2ASIMULATOR%2A1" },
     { cp_id = "FR*ORV*B0201", ws_url = "wss://proxy.ocpp-proxy.test.oreve.com" },
     { cp_id = "FR*ORV*A0015", ws_url = "wss://proxy.ocpp-proxy.test.oreve.com" },
-    { cp_id = "FR*ORV*A0016", ws_url = "wss://proxy.ocpp-proxy.test.oreve.com" }
+    #{ cp_id = "FR*ORV*A0016", ws_url = "wss://proxy.ocpp-proxy.test.oreve.com" } dont use this simulator any more because it is used by local simulators by developpers
   ]
 }

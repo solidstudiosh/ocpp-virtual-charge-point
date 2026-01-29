@@ -1,10 +1,10 @@
-import * as uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import type { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
 
 // biome-ignore lint/complexity/noBannedTypes: ocpp types
 export const call = <T = {}>(action: string, payload: T): OcppCall<T> => {
   return {
-    messageId: uuid.v4(),
+    messageId: uuidv4(),
     action: action,
     payload: payload,
   };

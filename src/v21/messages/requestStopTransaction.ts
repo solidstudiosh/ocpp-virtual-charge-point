@@ -68,7 +68,8 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
             timestamp: new Date().toISOString(),
             sampledValue: [
               {
-                value: vcp.transactionManager.getMeterValue(transactionId) / 1000,
+                value:
+                  vcp.transactionManager.getMeterValue(transactionId) / 1000,
                 signedMeterValue: {
                   signedMeterData: Buffer.from(ocmf).toString("base64"),
                   signingMethod: "", // Already included in the signedMeterData

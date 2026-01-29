@@ -2,31 +2,34 @@
   "name": "ocpp-vcp-nodejs",
   "version": "0.0.1",
   "description": "Simple OCPP Virtual Charging Point",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "lint": "biome lint src",
     "format": "biome format src",
+    "format:check": "biome ci --linter-enabled=false --organize-imports-enabled=false src",
     "typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck src/**/*.ts",
-    "check": "npm run lint && npm run format && npm run typecheck"
+    "check": "npm run lint && npm run format:check && npm run typecheck"
   },
   "author": "Solidstudio",
   "license": "Apache-2.0",
   "dependencies": {
     "@hono/node-server": "^1.13.8",
     "@hono/zod-validator": "^0.4.3",
-    "ajv": "^6.12.6",
     "basic-ftp": "^5.0.5",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "hono": "^4.7.4",
     "typescript": "^5.8.2",
-    "uuid": "^8.3.2",
+    "uuid": "^10.0.0",
     "winston": "^3.17.0",
     "ws": "^8.18.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/uuid": "^8.3.4",
+    "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.0",
     "tsx": "^4.19.3"
   }

@@ -1,4 +1,4 @@
-import * as uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
@@ -34,7 +34,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
     vcp: VCP,
     call: OcppCall<z.infer<RequestStartTransactionReqType>>,
   ): Promise<void> => {
-    const transactionId = uuid.v4();
+    const transactionId = uuidv4();
     const transactionEvseId = call.payload.evseId ?? 1;
     const transactionConnectorId = 1;
     vcp.transactionManager.startTransaction(vcp, {

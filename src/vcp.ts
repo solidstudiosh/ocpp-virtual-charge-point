@@ -51,6 +51,7 @@ export class VCP {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
     if (vcpOptions.adminPort) {
       const adminApi = new Hono();
+      adminApi.get("/health", (c) => c.text("OK"));
       adminApi.post(
         "/execute",
         zValidator(

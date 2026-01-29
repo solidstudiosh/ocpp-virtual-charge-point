@@ -132,3 +132,6 @@ dist
 
 .vscode
 .history
+
+# Claude Code
+CLAUDE.md

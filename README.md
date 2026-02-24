@@ -29,25 +29,33 @@ PASSWORD - if used for OCPP Authentication, otherwise can be left blank
 Run OCPP 1.6:
 
 ```bash
-npx tsx index_16.ts
+npm start index_16.ts
 ```
 
 Run OCPP 2.0.1:
 
 ```bash
-npx tsx index_201.ts
+npm start index_201.ts
 ```
 
-When testing different configurations, you can create multiple `.env` files and pass the env file as an argument, for example:
+When testing different configurations, you can create multiple `.env` files and pass the env file or the env file suffix as an argument, for example:
 
 ```bash
-npm start -- --env-file=.env index_16.ts
+# uses .env
+npm start .env index_16.ts
+# uses .env if exists
+npm start index_16.ts
+# uses .env.production
+npm start .env.production index_16.ts
+# uses .env.production
+npm start production index_16.ts
 ```
+
 
 ## Example
 
 ```bash
-> WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npx tsx index_16.ts
+> WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npm start index_16.ts
 
 2023-03-27 13:09:17 info: Connecting... | {
   endpoint: 'ws://localhost:3000',

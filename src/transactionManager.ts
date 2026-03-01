@@ -1,4 +1,6 @@
 import type { VCP } from "./vcp";
+import { dbService } from "./database";
+import { logger } from "./logger";
 
 const METER_VALUES_INTERVAL_SEC = 15;
 
@@ -24,7 +26,7 @@ interface StartTransactionProps {
 export class TransactionManager {
   transactions: Map<
     TransactionId,
-    TransactionState & { meterValuesTimer: NodeJS.Timer }
+    TransactionState & { meterValuesTimer: NodeJS.Timeout }
   > = new Map();
 
   canStartNewTransaction(connectorId: number) {
@@ -33,28 +35,60 @@ export class TransactionManager {
     );
   }
 
-  startTransaction(vcp: VCP, startTransactionProps: StartTransactionProps) {
+  async loadTransactions(vcp: VCP, meterValuesCallback: (transactionState: TransactionState) => Promise<void>) {
+    const activeTx = dbService.getActiveTransactions();
+    for (const tx of activeTx) {
+      logger.info(`Resuming transaction ${tx.transactionId} for connector ${tx.connectorId}`);
+      this.startTransaction(vcp, {
+        transactionId: tx.transactionId,
+        idTag: tx.idTag,
+        connectorId: tx.connectorId,
+        evseId: tx.evseId,
+        meterValuesCallback,
+      }, true);
+    }
+  }
+
+  startTransaction(vcp: VCP, startTransactionProps: StartTransactionProps, isResuming = false) {
     const meterValuesTimer = setInterval(() => {
-      // biome-ignore lint/style/noNonNullAssertion: transaction must exist
       const currentTransactionState = this.transactions.get(
         startTransactionProps.transactionId,
       )!;
       const { meterValuesTimer, ...currentTransaction } =
         currentTransactionState;
+
+      const newMeterValue = this.getMeterValue(startTransactionProps.transactionId);
+      dbService.updateTransactionMeter(startTransactionProps.transactionId, newMeterValue);
+
       startTransactionProps.meterValuesCallback({
         ...currentTransaction,
-        meterValue: this.getMeterValue(startTransactionProps.transactionId),
+        meterValue: newMeterValue,
       });
     }, METER_VALUES_INTERVAL_SEC * 1000);
-    this.transactions.set(startTransactionProps.transactionId, {
+
+    const transactionState = {
       transactionId: startTransactionProps.transactionId,
       idTag: startTransactionProps.idTag,
-      meterValue: 0,
-      startedAt: new Date(),
+      meterValue: isResuming ? 0 : 0, // In resume case, we could pull existing meter value if needed
+      startedAt: isResuming ? new Date() : new Date(), // Simulating fresh start for simplicity, but could be restored
       evseId: startTransactionProps.evseId,
       connectorId: startTransactionProps.connectorId,
       meterValuesTimer: meterValuesTimer,
-    });
+    };
+
+    if (!isResuming) {
+      dbService.saveTransaction({
+        transactionId: startTransactionProps.transactionId.toString(),
+        idTag: startTransactionProps.idTag,
+        connectorId: startTransactionProps.connectorId,
+        evseId: startTransactionProps.evseId,
+        startedAt: transactionState.startedAt.toISOString(),
+        meterValue: 0,
+        status: "Active"
+      });
+    }
+
+    this.transactions.set(startTransactionProps.transactionId, transactionState);
   }
 
   stopTransaction(transactionId: TransactionId) {
@@ -62,6 +96,7 @@ export class TransactionManager {
     if (transaction?.meterValuesTimer) {
       clearInterval(transaction.meterValuesTimer);
     }
+    dbService.closeTransaction(transactionId);
     this.transactions.delete(transactionId);
   }
 

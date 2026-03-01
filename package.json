@@ -20,6 +20,7 @@
     "@hono/node-server": "^1.13.8",
     "@hono/zod-validator": "^0.4.3",
     "basic-ftp": "^5.0.5",
+    "better-sqlite3": "^12.6.2",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "hono": "^4.12.2",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.0",
     "tsx": "^4.19.3"

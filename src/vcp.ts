@@ -22,6 +22,7 @@ import {
 } from "./schemaValidator";
 import { TransactionManager } from "./transactionManager";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
+import { dbService } from "./database";
 
 interface VCPOptions {
   ocppVersion: OcppVersion;
@@ -92,7 +93,12 @@ export class VCP {
         },
       });
 
-      this.ws.on("open", () => resolve());
+      this.ws.on("open", async () => {
+        if (this.messageHandler.handleResumption) {
+          await this.messageHandler.handleResumption(this);
+        }
+        resolve();
+      });
       this.ws.on("message", (message: string) => this._onMessage(message));
       this.ws.on("ping", () => {
         logger.info("Received PING");
@@ -119,6 +125,7 @@ export class VCP {
       ocppCall.payload,
     ]);
     logger.info(`Sending message ➡️  ${jsonMessage}`);
+    dbService.logMessage("OUT", 2, ocppCall.messageId, ocppCall.action, ocppCall.payload);
     validateOcppOutgoingRequest(
       this.vcpOptions.ocppVersion,
       ocppCall.action,
@@ -134,6 +141,7 @@ export class VCP {
     }
     const jsonMessage = JSON.stringify([3, result.messageId, result.payload]);
     logger.info(`Responding with ➡️  ${jsonMessage}`);
+    dbService.logMessage("OUT", 3, result.messageId, result.action, result.payload);
     validateOcppIncomingResponse(
       this.vcpOptions.ocppVersion,
       result.action,
@@ -155,6 +163,11 @@ export class VCP {
       error.errorDetails,
     ]);
     logger.info(`Responding with ➡️  ${jsonMessage}`);
+    dbService.logMessage("OUT", 4, error.messageId, undefined, {
+      errorCode: error.errorCode,
+      errorDescription: error.errorDescription,
+      errorDetails: error.errorDetails,
+    });
     this.ws.send(jsonMessage);
   }
 
@@ -225,6 +238,7 @@ export class VCP {
     const [type, ...rest] = data;
     if (type === 2) {
       const [messageId, action, payload] = rest;
+      dbService.logMessage("IN", 2, messageId, action, payload);
       validateOcppIncomingRequest(this.vcpOptions.ocppVersion, action, payload);
       this.messageHandler.handleCall(this, { messageId, action, payload });
     } else if (type === 3) {
@@ -235,6 +249,7 @@ export class VCP {
           `Received CallResult for unknown messageId=${messageId}`,
         );
       }
+      dbService.logMessage("IN", 3, messageId, enqueuedCall.action, payload);
       validateOcppOutgoingResponse(
         this.vcpOptions.ocppVersion,
         enqueuedCall.action,
@@ -247,6 +262,11 @@ export class VCP {
       });
     } else if (type === 4) {
       const [messageId, errorCode, errorDescription, errorDetails] = rest;
+      dbService.logMessage("IN", 4, messageId, undefined, {
+        errorCode,
+        errorDescription,
+        errorDetails,
+      });
       this.messageHandler.handleCallError(this, {
         messageId,
         errorCode,

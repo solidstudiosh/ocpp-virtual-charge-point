@@ -137,4 +137,26 @@ export const messageHandlerV16: OcppMessageHandler = {
   handleCallError: (vcp: VCP, error: OcppCallError<any>): void => {
     // NOOP
   },
+  handleResumption: async (vcp: VCP): Promise<void> => {
+    await vcp.transactionManager.loadTransactions(vcp, async (tx) => {
+      vcp.send(
+        meterValuesOcppMessage.request({
+          connectorId: tx.connectorId,
+          transactionId: tx.transactionId as number,
+          meterValue: [
+            {
+              timestamp: new Date().toISOString(),
+              sampledValue: [
+                {
+                  value: (tx.meterValue / 1000).toString(),
+                  measurand: "Energy.Active.Import.Register",
+                  unit: "kWh",
+                },
+              ],
+            },
+          ],
+        }),
+      );
+    });
+  },
 };

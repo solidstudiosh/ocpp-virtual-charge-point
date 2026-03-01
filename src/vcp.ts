@@ -71,6 +71,7 @@ export class VCP {
         return c.json({
           endpoint: this.vcpOptions.endpoint,
           chargePointId: this.vcpOptions.chargePointId,
+          basicAuthPassword: this.vcpOptions.basicAuthPassword || "",
           connectionStatus: this.ws?.readyState === WebSocket.OPEN ? "connected" : "disconnected",
         });
       });
@@ -82,12 +83,14 @@ export class VCP {
           z.object({
             endpoint: z.string(),
             chargePointId: z.string(),
+            basicAuthPassword: z.string().optional(),
           }),
         ),
         async (c) => {
           const validated = c.req.valid("json");
           this.vcpOptions.endpoint = validated.endpoint;
           this.vcpOptions.chargePointId = validated.chargePointId;
+          this.vcpOptions.basicAuthPassword = validated.basicAuthPassword || undefined;
 
           if (this.ws) {
             this.ws.close();

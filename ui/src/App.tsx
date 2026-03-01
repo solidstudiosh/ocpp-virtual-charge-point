@@ -28,9 +28,9 @@ export default function App() {
 
   const [endpoint, setEndpoint] = useState("");
   const [chargePointId, setChargePointId] = useState("");
+  const [basicAuthPassword, setBasicAuthPassword] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
 
   // Initial fetch
   useEffect(() => {
@@ -45,6 +45,7 @@ export default function App() {
         setMessages(msgRes.data.reverse()); // ensure oldest first for trace view
         setEndpoint(configRes.data.endpoint);
         setChargePointId(configRes.data.chargePointId);
+        setBasicAuthPassword(configRes.data.basicAuthPassword || "");
         setIsConnected(configRes.data.connectionStatus === "connected");
       } catch (err) {
         console.error("Failed to fetch initial data", err);
@@ -89,13 +90,6 @@ export default function App() {
     };
   }, [urlBase]);
 
-  // Auto-scroll
-  useEffect(() => {
-    if (autoScroll && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, autoScroll]);
-
   // Actions
   const handleAction = async (action: string, payload: any) => {
     try {
@@ -111,7 +105,7 @@ export default function App() {
         await axios.post(`${urlBase}/api/disconnect`);
         setIsConnected(false);
       } else {
-        const res = await axios.post(`${urlBase}/api/connect`, { endpoint, chargePointId });
+        const res = await axios.post(`${urlBase}/api/connect`, { endpoint, chargePointId, basicAuthPassword });
         if (res.data.success) {
           setIsConnected(true);
         } else {
@@ -150,6 +144,14 @@ export default function App() {
               placeholder="CP_ID"
               value={chargePointId}
               onChange={e => setChargePointId(e.target.value)}
+              disabled={isConnected}
+            />
+            <input
+              type="password"
+              className="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm w-32 focus:border-indigo-500 focus:outline-none"
+              placeholder="Password"
+              value={basicAuthPassword}
+              onChange={e => setBasicAuthPassword(e.target.value)}
               disabled={isConnected}
             />
             <button
@@ -235,19 +237,9 @@ export default function App() {
             <h2 className="text-sm font-semibold text-white tracking-wide uppercase flex items-center gap-2">
               <Activity className="w-4 h-4 text-emerald-400" /> Trace Viewer
             </h2>
-            <button
-              onClick={() => setAutoScroll(!autoScroll)}
-              className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${autoScroll ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-            >
-              Auto-Scroll {autoScroll ? 'ON' : 'OFF'}
-            </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 pt-16 bg-[#0B1120] space-y-3 font-mono text-[13px]" onScroll={(e) => {
-            const target = e.target as HTMLDivElement;
-            const isAtBottom = target.scrollHeight - target.scrollTop === target.clientHeight;
-            if (!isAtBottom && autoScroll) setAutoScroll(false);
-          }}>
+          <div className="flex-1 overflow-y-auto p-5 pt-16 bg-[#0B1120] space-y-3 font-mono text-[13px]">
             {messages.map((m, i) => (
               <MessageRow key={i} msg={m} />
             ))}

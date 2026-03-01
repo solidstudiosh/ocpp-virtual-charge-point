@@ -37,45 +37,49 @@ db.exec(`
 logger.info(`Database initialized at ${dbPath}`);
 
 export interface DbTransaction {
-    transactionId: string;
-    idTag: string;
-    connectorId: number;
-    evseId?: number;
-    startedAt: string;
-    meterValue: number;
-    status: string;
+  transactionId: string;
+  idTag: string;
+  connectorId: number;
+  evseId?: number;
+  startedAt: string;
+  meterValue: number;
+  status: string;
 }
 
 export const dbService = {
-    // Transactions
-    saveTransaction: (tx: DbTransaction) => {
-        const stmt = db.prepare(`
+  // Transactions
+  saveTransaction: (tx: DbTransaction) => {
+    const stmt = db.prepare(`
       INSERT OR REPLACE INTO transactions (transactionId, idTag, connectorId, evseId, startedAt, meterValue, status)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
-        stmt.run(tx.transactionId, tx.idTag, tx.connectorId, tx.evseId || null, tx.startedAt, tx.meterValue, tx.status);
-    },
+    stmt.run(tx.transactionId, tx.idTag, tx.connectorId, tx.evseId || null, tx.startedAt, tx.meterValue, tx.status);
+  },
 
-    updateTransactionMeter: (transactionId: string | number, meterValue: number) => {
-        const stmt = db.prepare("UPDATE transactions SET meterValue = ? WHERE transactionId = ?");
-        stmt.run(meterValue, transactionId.toString());
-    },
+  updateTransactionMeter: (transactionId: string | number, meterValue: number) => {
+    const stmt = db.prepare("UPDATE transactions SET meterValue = ? WHERE transactionId = ?");
+    stmt.run(meterValue, transactionId.toString());
+  },
 
-    closeTransaction: (transactionId: string | number) => {
-        const stmt = db.prepare("UPDATE transactions SET status = 'Completed' WHERE transactionId = ?");
-        stmt.run(transactionId.toString());
-    },
+  closeTransaction: (transactionId: string | number) => {
+    const stmt = db.prepare("UPDATE transactions SET status = 'Completed' WHERE transactionId = ?");
+    stmt.run(transactionId.toString());
+  },
 
-    getActiveTransactions: (): DbTransaction[] => {
-        return db.prepare("SELECT * FROM transactions WHERE status = 'Active'").all() as DbTransaction[];
-    },
+  getActiveTransactions: (): DbTransaction[] => {
+    return db.prepare("SELECT * FROM transactions WHERE status = 'Active'").all() as DbTransaction[];
+  },
 
-    // OCPP Messages
-    logMessage: (direction: "IN" | "OUT", messageType: number, messageId: string, action: string | undefined, payload: any) => {
-        const stmt = db.prepare(`
+  // OCPP Messages
+  logMessage: (direction: "IN" | "OUT", messageType: number, messageId: string, action: string | undefined, payload: any) => {
+    const stmt = db.prepare(`
       INSERT INTO ocpp_messages (direction, messageType, messageId, action, payload)
       VALUES (?, ?, ?, ?, ?)
     `);
-        stmt.run(direction, messageType, messageId, action, JSON.stringify(payload));
-    }
+    stmt.run(direction, messageType, messageId, action, JSON.stringify(payload));
+  },
+
+  getRecentMessages: (limit = 100) => {
+    return db.prepare("SELECT * FROM ocpp_messages ORDER BY id DESC LIMIT ?").all(limit);
+  }
 };

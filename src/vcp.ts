@@ -1,5 +1,6 @@
 import * as util from "node:util";
-import { WebSocket } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
+import { serveStatic } from "@hono/node-server/serve-static";
 
 import { serve } from "@hono/node-server";
 import { zValidator } from "@hono/zod-validator";
@@ -30,6 +31,7 @@ interface VCPOptions {
   chargePointId: string;
   basicAuthPassword?: string;
   adminPort?: number;
+  bootSequence?: (vcp: VCP) => Promise<void>;
 }
 
 interface LogEntry {
@@ -42,6 +44,7 @@ interface LogEntry {
 
 export class VCP {
   private ws?: WebSocket;
+  private wss?: WebSocketServer;
   private messageHandler: OcppMessageHandler;
 
   private isFinishing = false;
@@ -53,8 +56,61 @@ export class VCP {
     if (vcpOptions.adminPort) {
       const adminApi = new Hono();
       adminApi.get("/health", (c) => c.text("OK"));
+      adminApi.get("/api/status", (c) => {
+        return c.json({
+          transactions: dbService.getActiveTransactions(),
+        });
+      });
+
+      adminApi.get("/api/messages", (c) => {
+        const messages = dbService.getRecentMessages(100);
+        return c.json(messages);
+      });
+
+      adminApi.get("/api/config", (c) => {
+        return c.json({
+          endpoint: this.vcpOptions.endpoint,
+          chargePointId: this.vcpOptions.chargePointId,
+          connectionStatus: this.ws?.readyState === WebSocket.OPEN ? "connected" : "disconnected",
+        });
+      });
+
       adminApi.post(
-        "/execute",
+        "/api/connect",
+        zValidator(
+          "json",
+          z.object({
+            endpoint: z.string(),
+            chargePointId: z.string(),
+          }),
+        ),
+        async (c) => {
+          const validated = c.req.valid("json");
+          this.vcpOptions.endpoint = validated.endpoint;
+          this.vcpOptions.chargePointId = validated.chargePointId;
+
+          if (this.ws) {
+            this.ws.close();
+          }
+
+          try {
+            await this.connect();
+            return c.json({ success: true, status: "connected" });
+          } catch (e: any) {
+            return c.json({ success: false, error: e.message }, 500);
+          }
+        },
+      );
+
+      adminApi.post("/api/disconnect", (c) => {
+        if (this.ws) {
+          this.ws.close();
+        }
+        return c.json({ success: true, status: "disconnected" });
+      });
+
+      adminApi.post(
+        "/api/execute",
         zValidator(
           "json",
           z.object({
@@ -68,17 +124,42 @@ export class VCP {
           return c.text("OK");
         },
       );
-      serve({
+
+      adminApi.use("/*", serveStatic({ root: "./ui/dist" }));
+
+      const server = serve({
         fetch: adminApi.fetch,
         port: vcpOptions.adminPort,
       });
+
+      this.wss = new WebSocketServer({ server: server as any });
     }
+  }
+
+  private broadcastLog(direction: "IN" | "OUT", messageType: number, messageId: string, action: string | undefined, payload: any) {
+    dbService.logMessage(direction, messageType, messageId, action, payload);
+    const msg = JSON.stringify({
+      type: 'ocpp_log',
+      data: {
+        timestamp: new Date().toISOString(),
+        direction,
+        messageType,
+        messageId,
+        action,
+        payload
+      }
+    });
+    this.wss?.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(msg);
+      }
+    });
   }
 
   async connect(): Promise<void> {
     logger.info(`Connecting... | ${util.inspect(this.vcpOptions)}`);
     this.isFinishing = false;
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const websocketUrl = `${this.vcpOptions.endpoint}/${this.vcpOptions.chargePointId}`;
       const protocol = toProtocolVersion(this.vcpOptions.ocppVersion);
       this.ws = new WebSocket(websocketUrl, [protocol], {
@@ -94,10 +175,17 @@ export class VCP {
       });
 
       this.ws.on("open", async () => {
-        if (this.messageHandler.handleResumption) {
+        if (this.vcpOptions.bootSequence) {
+          logger.info("Executing custom boot sequence...");
+          await this.vcpOptions.bootSequence(this);
+        } else if (this.messageHandler.handleResumption) {
           await this.messageHandler.handleResumption(this);
         }
         resolve();
+      });
+      this.ws.on("error", (error: Error) => {
+        logger.error(`WebSocket error: ${error.message}`);
+        reject(error);
       });
       this.ws.on("message", (message: string) => this._onMessage(message));
       this.ws.on("ping", () => {
@@ -125,7 +213,7 @@ export class VCP {
       ocppCall.payload,
     ]);
     logger.info(`Sending message ➡️  ${jsonMessage}`);
-    dbService.logMessage("OUT", 2, ocppCall.messageId, ocppCall.action, ocppCall.payload);
+    this.broadcastLog("OUT", 2, ocppCall.messageId, ocppCall.action, ocppCall.payload);
     validateOcppOutgoingRequest(
       this.vcpOptions.ocppVersion,
       ocppCall.action,
@@ -141,7 +229,7 @@ export class VCP {
     }
     const jsonMessage = JSON.stringify([3, result.messageId, result.payload]);
     logger.info(`Responding with ➡️  ${jsonMessage}`);
-    dbService.logMessage("OUT", 3, result.messageId, result.action, result.payload);
+    this.broadcastLog("OUT", 3, result.messageId, result.action, result.payload);
     validateOcppIncomingResponse(
       this.vcpOptions.ocppVersion,
       result.action,
@@ -163,7 +251,7 @@ export class VCP {
       error.errorDetails,
     ]);
     logger.info(`Responding with ➡️  ${jsonMessage}`);
-    dbService.logMessage("OUT", 4, error.messageId, undefined, {
+    this.broadcastLog("OUT", 4, error.messageId, undefined, {
       errorCode: error.errorCode,
       errorDescription: error.errorDescription,
       errorDetails: error.errorDetails,
@@ -238,7 +326,7 @@ export class VCP {
     const [type, ...rest] = data;
     if (type === 2) {
       const [messageId, action, payload] = rest;
-      dbService.logMessage("IN", 2, messageId, action, payload);
+      this.broadcastLog("IN", 2, messageId, action, payload);
       validateOcppIncomingRequest(this.vcpOptions.ocppVersion, action, payload);
       this.messageHandler.handleCall(this, { messageId, action, payload });
     } else if (type === 3) {
@@ -249,7 +337,7 @@ export class VCP {
           `Received CallResult for unknown messageId=${messageId}`,
         );
       }
-      dbService.logMessage("IN", 3, messageId, enqueuedCall.action, payload);
+      this.broadcastLog("IN", 3, messageId, enqueuedCall.action, payload);
       validateOcppOutgoingResponse(
         this.vcpOptions.ocppVersion,
         enqueuedCall.action,
@@ -262,7 +350,7 @@ export class VCP {
       });
     } else if (type === 4) {
       const [messageId, errorCode, errorDescription, errorDetails] = rest;
-      dbService.logMessage("IN", 4, messageId, undefined, {
+      this.broadcastLog("IN", 4, messageId, undefined, {
         errorCode,
         errorDescription,
         errorDetails,
@@ -282,7 +370,7 @@ export class VCP {
     if (this.isFinishing) {
       return;
     }
-    logger.info(`Connection closed. code=${code}, reason=${reason}`);
-    process.exit();
+    logger.info(`Connection closed. code=${code}, reason=${reason}. Dashboard remains accessible.`);
+    // Removed process.exit() to keep the admin dashboard alive.
   }
 }

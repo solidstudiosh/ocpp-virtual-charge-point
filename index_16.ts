@@ -11,23 +11,28 @@ const vcp = new VCP({
   ocppVersion: OcppVersion.OCPP_1_6,
   basicAuthPassword: process.env.PASSWORD ?? undefined,
   adminPort: Number.parseInt(process.env.ADMIN_PORT ?? "9999"),
+  bootSequence: async (vcpConfig) => {
+    vcpConfig.send(
+      bootNotificationOcppMessage.request({
+        chargePointVendor: "Solidstudio",
+        chargePointModel: "VirtualChargePoint",
+        chargePointSerialNumber: "S001",
+        firmwareVersion: "1.0.0",
+      }),
+    );
+    vcpConfig.send(
+      statusNotificationOcppMessage.request({
+        connectorId: 1,
+        errorCode: "NoError",
+        status: "Available",
+      }),
+    );
+  }
 });
 
-(async () => {
-  await vcp.connect();
-  vcp.send(
-    bootNotificationOcppMessage.request({
-      chargePointVendor: "Solidstudio",
-      chargePointModel: "VirtualChargePoint",
-      chargePointSerialNumber: "S001",
-      firmwareVersion: "1.0.0",
-    }),
-  );
-  vcp.send(
-    statusNotificationOcppMessage.request({
-      connectorId: 1,
-      errorCode: "NoError",
-      status: "Available",
-    }),
-  );
-})();
+// The VCP starts its Admin Web Server on instantiation.
+// We no longer automatically call vcp.connect() here.
+// Connections are driven via the web dashboard.
+console.log(`[VCP] Node initialized. Waiting for connection trigger from Web Dashboard (Port ${process.env.ADMIN_PORT ?? 9999})`);
+
+

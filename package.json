@@ -7,6 +7,8 @@
   },
   "scripts": {
     "start": "./start.sh",
+    "build:ui": "cd ui && npm install && npm run build",
+    "start:ui": "npm run build:ui && npx tsx index_16.ts",
     "lint": "biome lint src",
     "format": "biome format src",
     "format:check": "biome ci --linter-enabled=false --organize-imports-enabled=false src",

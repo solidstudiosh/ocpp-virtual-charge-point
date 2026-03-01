@@ -26,6 +26,9 @@ export default function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [urlBase] = useState(window.location.origin.includes('localhost') ? 'http://localhost:9999' : window.location.origin);
 
+  const [endpoint, setEndpoint] = useState("");
+  const [chargePointId, setChargePointId] = useState("");
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
@@ -33,12 +36,16 @@ export default function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statusRes, msgRes] = await Promise.all([
+        const [statusRes, msgRes, configRes] = await Promise.all([
           axios.get(`${urlBase}/api/status`),
           axios.get(`${urlBase}/api/messages`),
+          axios.get(`${urlBase}/api/config`),
         ]);
         setTransactions(statusRes.data.transactions);
         setMessages(msgRes.data.reverse()); // ensure oldest first for trace view
+        setEndpoint(configRes.data.endpoint);
+        setChargePointId(configRes.data.chargePointId);
+        setIsConnected(configRes.data.connectionStatus === "connected");
       } catch (err) {
         console.error("Failed to fetch initial data", err);
       }
@@ -51,8 +58,8 @@ export default function App() {
     const wsUrl = urlBase.replace('http', 'ws');
     const ws = new WebSocket(wsUrl);
 
-    ws.onopen = () => setIsConnected(true);
-    ws.onclose = () => setIsConnected(false);
+    ws.onopen = () => { /* connection status managed via api/config */ };
+    ws.onclose = () => { /* connection status managed via api/config */ };
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
@@ -67,8 +74,12 @@ export default function App() {
     // Polling for status updates since we only push logs
     const interval = setInterval(async () => {
       try {
-        const statusRes = await axios.get(`${urlBase}/api/status`);
+        const [statusRes, configRes] = await Promise.all([
+          axios.get(`${urlBase}/api/status`),
+          axios.get(`${urlBase}/api/config`),
+        ]);
         setTransactions(statusRes.data.transactions);
+        setIsConnected(configRes.data.connectionStatus === "connected");
       } catch (e) { }
     }, 2000);
 
@@ -94,6 +105,24 @@ export default function App() {
     }
   };
 
+  const toggleConnection = async () => {
+    try {
+      if (isConnected) {
+        await axios.post(`${urlBase}/api/disconnect`);
+        setIsConnected(false);
+      } else {
+        const res = await axios.post(`${urlBase}/api/connect`, { endpoint, chargePointId });
+        if (res.data.success) {
+          setIsConnected(true);
+        } else {
+          alert(`Failed to connect: ${res.data.error}`);
+        }
+      }
+    } catch (e) {
+      alert("Error toggling connection");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 font-sans flex flex-col">
       {/* Header */}
@@ -107,9 +136,33 @@ export default function App() {
             <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">Admin Control Panel</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700/50">
-          <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] ${isConnected ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-red-500 shadow-red-500/50'}`} />
-          <span className="text-sm font-medium">{isConnected ? 'WS Connected' : 'WS Offline'}</span>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-2 bg-slate-800/50 p-1.5 rounded-lg border border-slate-700/50">
+            <input
+              className="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm w-56 focus:border-indigo-500 focus:outline-none"
+              placeholder="ws://localhost:3000"
+              value={endpoint}
+              onChange={e => setEndpoint(e.target.value)}
+              disabled={isConnected}
+            />
+            <input
+              className="bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm w-32 focus:border-indigo-500 focus:outline-none"
+              placeholder="CP_ID"
+              value={chargePointId}
+              onChange={e => setChargePointId(e.target.value)}
+              disabled={isConnected}
+            />
+            <button
+              onClick={toggleConnection}
+              className={`px-4 py-1.5 rounded text-sm font-bold transition-colors ${isConnected ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'}`}
+            >
+              {isConnected ? 'Disconnect' : 'Connect'}
+            </button>
+          </div>
+          <div className="flex items-center gap-3 bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700/50">
+            <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] ${isConnected ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-red-500 shadow-red-500/50'}`} />
+            <span className="text-sm font-medium">{isConnected ? 'WS Connected' : 'WS Offline'}</span>
+          </div>
         </div>
       </header>
 

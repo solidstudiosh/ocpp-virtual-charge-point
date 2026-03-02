@@ -3,6 +3,7 @@ import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
 import { notifyReportOcppOutgoing } from "./notifyReport";
+import { dbService } from "../../database";
 
 const GetBaseReportReqSchema = z.object({
   requestId: z.number().int(),
@@ -30,6 +31,8 @@ class GetBaseReportOcppIncoming extends OcppIncoming<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
 
+    const configs = dbService.getAllConfigurations();
+
     // Send NotifyReport
     vcp.send(
       notifyReportOcppOutgoing.request({
@@ -37,93 +40,33 @@ class GetBaseReportOcppIncoming extends OcppIncoming<
         generatedAt: new Date().toISOString(),
         seqNo: 0,
         tbc: false,
-        reportData: [
-          {
+        reportData: configs.map(config => {
+          const parts = config.key.split('.');
+          const componentName = parts.length > 1 ? parts[0] : "OCPPCommCtrlr";
+          const variableName = parts.length > 1 ? parts.slice(1).join('.') : config.key;
+
+          return {
             component: {
-              name: "OCPPCommCtrlr",
+              name: componentName,
             },
             variable: {
-              name: "HeartbeatInterval",
+              name: variableName,
             },
             variableAttribute: [
               {
                 type: "Actual",
-                value: "60",
-                mutability: "ReadWrite",
+                value: config.value,
+                mutability: config.readonly ? "ReadOnly" : "ReadWrite",
                 persistent: true,
                 constant: false,
               },
             ],
             variableCharacteristics: {
-              unit: "s",
-              dataType: "integer",
+              dataType: "string" as const,
               supportsMonitoring: false,
             },
-          },
-          {
-            component: {
-              name: "AuthCtrlr",
-            },
-            variable: {
-              name: "AuthorizeRemoteStart",
-            },
-            variableAttribute: [
-              {
-                type: "Actual",
-                value: "false",
-                mutability: "ReadWrite",
-                persistent: true,
-                constant: true,
-              },
-            ],
-            variableCharacteristics: {
-              dataType: "boolean",
-              supportsMonitoring: false,
-            },
-          },
-          {
-            component: {
-              name: "AuthCtrlr",
-            },
-            variable: {
-              name: "LocalPreAuthorize",
-            },
-            variableAttribute: [
-              {
-                type: "Actual",
-                value: "false",
-                mutability: "ReadWrite",
-                persistent: true,
-                constant: true,
-              },
-            ],
-            variableCharacteristics: {
-              dataType: "boolean",
-              supportsMonitoring: false,
-            },
-          },
-          {
-            component: {
-              name: "TxCtrlr",
-            },
-            variable: {
-              name: "EVConnectionTimeOut",
-            },
-            variableAttribute: [
-              {
-                type: "Actual",
-                value: "10",
-                mutability: "ReadWrite",
-                persistent: true,
-                constant: false,
-              },
-            ],
-            variableCharacteristics: {
-              dataType: "integer",
-              supportsMonitoring: false,
-            },
-          },
-        ],
+          };
+        }),
       }),
     );
   };

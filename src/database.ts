@@ -101,5 +101,22 @@ export const dbService = {
 
   getSecurityEvents: (limit = 100) => {
     return db.prepare("SELECT * FROM security_events ORDER BY id DESC LIMIT ?").all(limit);
+  },
+
+  // Configuration (OCPP Device Model / 1.6 Config)
+  getConfiguration: (key: string) => {
+    return db.prepare("SELECT * FROM cp_configuration WHERE key = ?").get(key) as { key: string, value: string, readonly: number } | undefined;
+  },
+
+  getAllConfigurations: () => {
+    return db.prepare("SELECT * FROM cp_configuration").all() as { key: string, value: string, readonly: number }[];
+  },
+
+  setConfiguration: (key: string, value: string, isReadonly = 0) => {
+    const stmt = db.prepare(`
+      INSERT OR REPLACE INTO cp_configuration (key, value, readonly)
+      VALUES (?, ?, ?)
+    `);
+    stmt.run(key, value, isReadonly);
   }
 };

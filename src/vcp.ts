@@ -195,7 +195,10 @@ export class VCP {
         (c) => {
           const { connectorId, targetSoC, departureTime } = c.req.valid("json");
           if (this.vcpOptions.ocppVersion === OcppVersion.OCPP_2_1 || this.vcpOptions.ocppVersion === OcppVersion.OCPP_2_0_1) {
-            const activeTx = Array.from(this.transactionManager.transactions.values()).find(t => t.connectorId === connectorId);
+            let activeTx: ReturnType<typeof this.transactionManager.transactions.get> | undefined;
+            this.transactionManager.transactions.forEach((t) => {
+              if (t.connectorId === connectorId) activeTx = t;
+            });
             const soc = activeTx?.soc || 20;
 
             const notifyNeeds = call("NotifyEVChargingNeeds", {

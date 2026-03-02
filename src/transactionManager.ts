@@ -150,10 +150,10 @@ export class TransactionManager {
   }
 
   setSmartChargingLimit(connectorId: number, limitW?: number) {
-    for (const tx of this.transactions.values()) {
+    this.transactions.forEach((tx) => {
       if (tx.connectorId === connectorId || connectorId === 0) {
         tx.smartChargingLimitW = limitW;
       }
-    }
+    });
   }
 }

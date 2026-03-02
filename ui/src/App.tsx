@@ -37,6 +37,7 @@ export default function App() {
   const [clientKey, setClientKey] = useState("");
   const [securityEvents, setSecurityEvents] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'trace' | 'security'>('trace');
+  const [ocppVersion, setOcppVersion] = useState("v16");
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -58,6 +59,7 @@ export default function App() {
         setChargePointId(configRes.data.chargePointId);
         setBasicAuthPassword(configRes.data.basicAuthPassword || "");
         setIsConnected(configRes.data.connectionStatus === "connected");
+        setOcppVersion(configRes.data.ocppVersion || "v16");
         setChaosMode(chaosRes.data.enabled);
       } catch (err) {
         console.error("Failed to fetch initial data", err);
@@ -95,6 +97,7 @@ export default function App() {
         ]);
         setTransactions(statusRes.data.transactions);
         setIsConnected(configRes.data.connectionStatus === "connected");
+        setOcppVersion(configRes.data.ocppVersion || "v16");
         setChaosMode(chaosRes.data.enabled);
         setSecurityEvents(secRes.data.reverse());
       } catch (e) { }
@@ -291,7 +294,7 @@ export default function App() {
               </div>
             </div>
             <div className="p-5 flex flex-col gap-3 bg-gradient-to-b from-slate-900 to-slate-950">
-              <ActionPanel onAction={handleAction} activeTx={transactions} />
+              <ActionPanel onAction={handleAction} activeTx={transactions} ocppVersion={ocppVersion} />
             </div>
           </div>
 
@@ -380,9 +383,76 @@ export default function App() {
   );
 }
 
-function ActionPanel({ onAction, activeTx }: { onAction: any, activeTx: Transaction[] }) {
+function ActionPanel({ onAction, activeTx, ocppVersion }: { onAction: any, activeTx: Transaction[], ocppVersion: string }) {
   const [conId, setConId] = useState("1");
   const [idTag, setIdTag] = useState("DEADBEEF");
+  const [usePnC, setUsePnC] = useState(false);
+  const [targetSoC, setTargetSoC] = useState("80");
+  const [departureTime, setDepartureTime] = useState(() => {
+    const d = new Date();
+    d.setHours(d.getHours() + 4);
+    return d.toISOString().slice(0, 16);
+  });
+
+  const isOcpp2 = ocppVersion === 'OCPP_2.1' || ocppVersion === 'OCPP_2.0.1';
+  const isOcpp21 = ocppVersion === 'OCPP_2.1';
+
+  const handleAuth = () => {
+    if (isOcpp2) {
+      if (usePnC) {
+        onAction("Authorize", {
+          idToken: { idToken: "PCG-123456", type: "eMAID" },
+          iso15118CertificateHashData: [{
+            hashAlgorithm: "SHA256",
+            issuerKeyHash: "0000000000000000000000000000000000000000000000000000000000000000",
+            issuerNameHash: "0000000000000000000000000000000000000000000000000000000000000000",
+            serialNumber: "123456"
+          }]
+        });
+      } else {
+        onAction("Authorize", { idToken: { idToken: idTag, type: "ISO14443" } });
+      }
+    } else {
+      onAction("Authorize", { idTag });
+    }
+  };
+
+  const handleStart = () => {
+    if (isOcpp2) {
+      const authData = usePnC ? { idToken: "PCG-123456", type: "eMAID" } : { idToken: idTag, type: "ISO14443" };
+      onAction("TransactionEvent", {
+        eventType: "Started",
+        timestamp: new Date().toISOString(),
+        triggerReason: "Authorized",
+        seqNo: 1,
+        transactionInfo: { transactionId: Math.random().toString(36).substring(7) },
+        idToken: authData,
+        evse: { id: parseInt(conId) }
+      });
+    } else {
+      onAction("StartTransaction", { connectorId: parseInt(conId), idTag, meterStart: 0, timestamp: new Date().toISOString() });
+    }
+  };
+
+  const handleStop = () => {
+    const tx = activeTx.find(t => t.connectorId === parseInt(conId));
+    if (!tx) return alert("No active transaction on this connector");
+
+    if (isOcpp2) {
+      onAction("TransactionEvent", {
+        eventType: "Ended",
+        timestamp: new Date().toISOString(),
+        triggerReason: "StopAuthorized",
+        seqNo: 999,
+        transactionInfo: {
+          transactionId: tx.transactionId.toString(),
+          stoppedReason: "Local"
+        }
+      });
+    } else {
+      onAction("StopTransaction", { transactionId: tx.transactionId, meterStop: Math.floor(tx.meterValue), timestamp: new Date().toISOString(), idTag });
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -395,35 +465,83 @@ function ActionPanel({ onAction, activeTx }: { onAction: any, activeTx: Transact
           </select>
         </label>
         <label className="flex flex-col gap-1.5 text-xs text-slate-400 font-medium">
-          RFID Tag
-          <input value={idTag} onChange={e => setIdTag(e.target.value)} className="bg-slate-950 border border-slate-800 rounded-md p-2 text-slate-200 outline-none focus:border-indigo-500 uppercase transition-colors" />
+          RFID Tag / eMAID
+          <input value={idTag} onChange={e => setIdTag(e.target.value)} className="bg-slate-950 border border-slate-800 rounded-md p-2 text-slate-200 outline-none focus:border-indigo-500 uppercase transition-colors" disabled={usePnC} />
         </label>
       </div>
+
+      {isOcpp2 && (
+        <label className="flex items-center gap-2 text-xs text-slate-400 font-medium cursor-pointer">
+          <input
+            type="checkbox"
+            checked={usePnC}
+            onChange={(e) => setUsePnC(e.target.checked)}
+            className="rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900"
+          />
+          Use Plug & Charge (ISO 15118)
+        </label>
+      )}
+
+      {isOcpp21 && (
+        <div className="flex flex-col gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-800">
+          <h4 className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Vehicle-to-Grid (V2G/V2H)</h4>
+          <div className="flex gap-3">
+            <label className="flex-1 flex flex-col gap-1.5 text-xs text-slate-400 font-medium">
+              Target SoC (%)
+              <input type="number" min="0" max="100" value={targetSoC} onChange={e => setTargetSoC(e.target.value)} className="bg-slate-950 border border-slate-800 rounded-md p-1.5 text-slate-200 outline-none focus:border-indigo-500" />
+            </label>
+            <label className="flex-1 flex flex-col gap-1.5 text-xs text-slate-400 font-medium">
+              Departure Focus
+              <input type="datetime-local" value={departureTime} onChange={e => setDepartureTime(e.target.value)} className="bg-slate-950 border border-slate-800 rounded-md p-1.5 text-slate-200 outline-none focus:border-indigo-500" />
+            </label>
+          </div>
+          <button
+            onClick={async () => {
+              const tx = activeTx.find(t => t.connectorId === parseInt(conId));
+              if (!tx) return alert("Requires an active transaction on this connector to notify EV Energy Needs");
+
+              try {
+                const urlBase = window.location.origin.includes('localhost') ? 'http://localhost:9999' : window.location.origin;
+                await fetch(`${urlBase}/api/trigger-v2g`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    connectorId: parseInt(conId),
+                    targetSoC: parseInt(targetSoC),
+                    departureTime: new Date(departureTime).toISOString()
+                  })
+                });
+              } catch (e) {
+                alert("Failed to send V2G Negotiation Request");
+              }
+            }}
+            className="w-full bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-600/30 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors"
+          >
+            Negotiate V2G Energy Needs (P&C)
+          </button>
+        </div>
+      )}
       <div className="flex gap-3">
         <button
-          onClick={() => onAction("Authorize", { idTag })}
+          onClick={handleAuth}
           className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-lg text-sm border border-slate-700 flex items-center justify-center gap-2"
         >
           Auth
         </button>
         <button
-          onClick={() => onAction("StartTransaction", { connectorId: parseInt(conId), idTag, meterStart: 0, timestamp: new Date().toISOString() })}
+          onClick={handleStart}
           className="flex-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-600/30 py-2 rounded-lg text-sm flex items-center justify-center gap-2"
         >
           <Play className="w-4 h-4" /> Start
         </button>
         <button
-          onClick={() => {
-            const tx = activeTx.find(t => t.connectorId === parseInt(conId));
-            if (!tx) return alert("No active transaction on this connector");
-            onAction("StopTransaction", { transactionId: tx.transactionId, meterStop: Math.floor(tx.meterValue), timestamp: new Date().toISOString(), idTag });
-          }}
+          onClick={handleStop}
           className="flex-1 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-600/30 py-2 rounded-lg text-sm flex items-center justify-center gap-2"
         >
           <Square className="w-4 h-4" /> Stop
         </button>
       </div>
-    </div>
+    </div >
   );
 }
 

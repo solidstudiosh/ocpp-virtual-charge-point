@@ -179,11 +179,49 @@ class TransactionEventOcppOutgoing extends OcppOutgoing<
   TransactionEventResType
 > {
   resHandler = async (
-    _vcp: VCP,
-    _call: OcppCall<z.infer<TransactionEventReqType>>,
+    vcp: VCP,
+    call: OcppCall<z.infer<TransactionEventReqType>>,
     _result: OcppCallResult<z.infer<TransactionEventResType>>,
   ): Promise<void> => {
-    // NOOP
+    if (call.payload.eventType === "Started") {
+      vcp.transactionManager.startTransaction(vcp, {
+        transactionId: call.payload.transactionInfo.transactionId,
+        idTag: call.payload.idToken?.idToken || "Unknown",
+        connectorId: call.payload.evse?.id || 1,
+        meterValuesCallback: async (transactionState) => {
+          vcp.send(
+            transactionEventOcppOutgoing.request({
+              eventType: "Updated",
+              timestamp: new Date().toISOString(),
+              triggerReason: "MeterValuePeriodic",
+              seqNo: Math.floor(Math.random() * 1000000),
+              transactionInfo: {
+                transactionId: transactionState.transactionId.toString(),
+              },
+              meterValue: [
+                {
+                  timestamp: new Date().toISOString(),
+                  sampledValue: [
+                    {
+                      value: transactionState.meterValue,
+                      measurand: "Energy.Active.Import.Register",
+                      unitOfMeasure: { unit: "kWh" },
+                    },
+                    {
+                      value: transactionState.soc,
+                      measurand: "SoC",
+                      unitOfMeasure: { unit: "Percent" },
+                    }
+                  ],
+                },
+              ],
+            }) as any
+          );
+        },
+      });
+    } else if (call.payload.eventType === "Ended") {
+      vcp.transactionManager.stopTransaction(call.payload.transactionInfo.transactionId);
+    }
   };
 }
 

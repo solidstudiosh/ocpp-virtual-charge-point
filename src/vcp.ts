@@ -48,6 +48,8 @@ export class VCP {
   private messageHandler: OcppMessageHandler;
 
   private isFinishing = false;
+  public chaosMode = false;
+  private chaosInterval?: NodeJS.Timeout;
 
   transactionManager = new TransactionManager();
 
@@ -57,9 +59,20 @@ export class VCP {
       const adminApi = new Hono();
       adminApi.get("/health", (c) => c.text("OK"));
       adminApi.get("/api/status", (c) => {
-        return c.json({
-          transactions: dbService.getActiveTransactions(),
+        const dbTx = dbService.getActiveTransactions();
+        const enrichedTx = dbTx.map(tx => {
+          let memTx = this.transactionManager.transactions.get(tx.transactionId);
+          if (!memTx && !isNaN(Number(tx.transactionId))) {
+            memTx = this.transactionManager.transactions.get(Number(tx.transactionId));
+          }
+          return {
+            ...tx,
+            soc: memTx?.soc,
+            smartChargingLimitW: memTx?.smartChargingLimitW,
+            maxChargingRateW: memTx?.maxChargingRateW,
+          };
         });
+        return c.json({ transactions: enrichedTx });
       });
 
       adminApi.get("/api/messages", (c) => {
@@ -111,6 +124,30 @@ export class VCP {
         }
         return c.json({ success: true, status: "disconnected" });
       });
+
+      adminApi.get("/api/chaos", (c) => {
+        return c.json({ enabled: this.chaosMode });
+      });
+
+      adminApi.post(
+        "/api/chaos",
+        zValidator("json", z.object({ enabled: z.boolean() })),
+        (c) => {
+          this.chaosMode = c.req.valid("json").enabled;
+          if (this.chaosMode && !this.chaosInterval) {
+            this.chaosInterval = setInterval(() => {
+              if (Math.random() < 0.15 && this.ws) {
+                logger.warn("[Chaos Mode] Injecting random WebSocket disconnect fault!");
+                this.ws.close();
+              }
+            }, 10000);
+          } else if (!this.chaosMode && this.chaosInterval) {
+            clearInterval(this.chaosInterval);
+            this.chaosInterval = undefined;
+          }
+          return c.json({ success: true, chaosMode: this.chaosMode });
+        }
+      );
 
       adminApi.post(
         "/api/execute",

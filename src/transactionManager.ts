@@ -10,9 +10,15 @@ interface TransactionState {
   startedAt: Date;
   idTag: string;
   transactionId: TransactionId;
-  meterValue: number;
+  meterValue: number; // Wh
   evseId?: number;
   connectorId: number;
+
+  // EV Battery Simulation
+  soc: number; // State of Charge (0-100%)
+  batteryCapacityWh: number; // Total battery capacity
+  maxChargingRateW: number; // Max rate of the charger/EV
+  smartChargingLimitW?: number; // Active limit from SetChargingProfile
 }
 
 interface StartTransactionProps {
@@ -20,6 +26,7 @@ interface StartTransactionProps {
   idTag: string;
   evseId?: number;
   connectorId: number;
+  initialMeterValue?: number;
   meterValuesCallback: (transactionState: TransactionState) => Promise<void>;
 }
 
@@ -44,6 +51,7 @@ export class TransactionManager {
         idTag: tx.idTag,
         connectorId: tx.connectorId,
         evseId: tx.evseId,
+        initialMeterValue: tx.meterValue,
         meterValuesCallback,
       }, true);
     }
@@ -57,22 +65,42 @@ export class TransactionManager {
       const { meterValuesTimer, ...currentTransaction } =
         currentTransactionState;
 
-      const newMeterValue = this.getMeterValue(startTransactionProps.transactionId);
-      dbService.updateTransactionMeter(startTransactionProps.transactionId, newMeterValue);
+      // EV Battery Simulation logic
+      // Determine active charging limit (min between hardware max and smart profile)
+      const activeLimitW = currentTransaction.smartChargingLimitW !== undefined
+        ? Math.min(currentTransaction.maxChargingRateW, currentTransaction.smartChargingLimitW)
+        : currentTransaction.maxChargingRateW;
+
+      // Simulate charging curve: taper off as SoC reaches 100%
+      let curveFactor = 1.0;
+      if (currentTransaction.soc > 80) curveFactor = 0.5; // 80-90% slower
+      if (currentTransaction.soc > 90) curveFactor = 0.2; // 90-100% very slow
+      if (currentTransaction.soc >= 100) curveFactor = 0; // Full
+
+      const powerW = activeLimitW * curveFactor;
+      const energyAddedWh = powerW * (METER_VALUES_INTERVAL_SEC / 3600); // Wh = W * hours
+
+      // Update state
+      currentTransactionState.meterValue += energyAddedWh;
+      currentTransactionState.soc = Math.min(100, currentTransactionState.soc + (energyAddedWh / currentTransactionState.batteryCapacityWh) * 100);
+
+      dbService.updateTransactionMeter(startTransactionProps.transactionId, currentTransactionState.meterValue);
 
       startTransactionProps.meterValuesCallback({
-        ...currentTransaction,
-        meterValue: newMeterValue,
+        ...currentTransactionState,
       });
     }, METER_VALUES_INTERVAL_SEC * 1000);
 
-    const transactionState = {
+    const transactionState: TransactionState & { meterValuesTimer: NodeJS.Timeout } = {
       transactionId: startTransactionProps.transactionId,
       idTag: startTransactionProps.idTag,
-      meterValue: isResuming ? 0 : 0, // In resume case, we could pull existing meter value if needed
-      startedAt: isResuming ? new Date() : new Date(), // Simulating fresh start for simplicity, but could be restored
+      meterValue: startTransactionProps.initialMeterValue || 0,
+      startedAt: isResuming ? new Date() : new Date(),
       evseId: startTransactionProps.evseId,
       connectorId: startTransactionProps.connectorId,
+      soc: isResuming ? Math.min(100, 20 + ((startTransactionProps.initialMeterValue || 0) / 50000) * 100) : 20, // Start at 20%
+      batteryCapacityWh: 50000, // Simulate a 50 kWh battery
+      maxChargingRateW: 22000, // Simulate a 22 kW charger
       meterValuesTimer: meterValuesTimer,
     };
 
@@ -105,6 +133,14 @@ export class TransactionManager {
     if (!transaction) {
       return 0;
     }
-    return (new Date().getTime() - transaction.startedAt.getTime()) / 100;
+    return transaction.meterValue;
+  }
+
+  setSmartChargingLimit(connectorId: number, limitW?: number) {
+    for (const tx of this.transactions.values()) {
+      if (tx.connectorId === connectorId || connectorId === 0) {
+        tx.smartChargingLimitW = limitW;
+      }
+    }
   }
 }

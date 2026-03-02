@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { Activity, Zap, Play, Square, Server, ActivitySquare } from 'lucide-react';
+import { AlertTriangle, BatteryCharging, Activity, Zap, Play, Square, Server, ActivitySquare } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Transaction {
@@ -8,6 +8,9 @@ interface Transaction {
   connectorId: number;
   meterValue: number;
   status: string;
+  soc?: number;
+  smartChargingLimitW?: number;
+  maxChargingRateW?: number;
 }
 
 interface OcppMessage {
@@ -24,6 +27,7 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [messages, setMessages] = useState<OcppMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [chaosMode, setChaosMode] = useState(false);
   const [urlBase] = useState(window.location.origin.includes('localhost') ? 'http://localhost:9999' : window.location.origin);
 
   const [endpoint, setEndpoint] = useState("");
@@ -36,10 +40,11 @@ export default function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statusRes, msgRes, configRes] = await Promise.all([
+        const [statusRes, msgRes, configRes, chaosRes] = await Promise.all([
           axios.get(`${urlBase}/api/status`),
           axios.get(`${urlBase}/api/messages`),
           axios.get(`${urlBase}/api/config`),
+          axios.get(`${urlBase}/api/chaos`),
         ]);
         setTransactions(statusRes.data.transactions);
         setMessages(msgRes.data.reverse()); // ensure oldest first for trace view
@@ -47,6 +52,7 @@ export default function App() {
         setChargePointId(configRes.data.chargePointId);
         setBasicAuthPassword(configRes.data.basicAuthPassword || "");
         setIsConnected(configRes.data.connectionStatus === "connected");
+        setChaosMode(chaosRes.data.enabled);
       } catch (err) {
         console.error("Failed to fetch initial data", err);
       }
@@ -75,12 +81,14 @@ export default function App() {
     // Polling for status updates since we only push logs
     const interval = setInterval(async () => {
       try {
-        const [statusRes, configRes] = await Promise.all([
+        const [statusRes, configRes, chaosRes] = await Promise.all([
           axios.get(`${urlBase}/api/status`),
           axios.get(`${urlBase}/api/config`),
+          axios.get(`${urlBase}/api/chaos`),
         ]);
         setTransactions(statusRes.data.transactions);
         setIsConnected(configRes.data.connectionStatus === "connected");
+        setChaosMode(chaosRes.data.enabled);
       } catch (e) { }
     }, 2000);
 
@@ -114,6 +122,15 @@ export default function App() {
       }
     } catch (e) {
       alert("Error toggling connection");
+    }
+  };
+
+  const toggleChaosMode = async () => {
+    try {
+      const res = await axios.post(`${urlBase}/api/chaos`, { enabled: !chaosMode });
+      setChaosMode(res.data.chaosMode);
+    } catch (e) {
+      alert("Error toggling chaos mode");
     }
   };
 
@@ -203,12 +220,36 @@ export default function App() {
                     </div>
 
                     {isCharging && (
-                      <div className="mt-4 p-3 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Meter Value</span>
-                          <span className="text-xl font-mono text-blue-400">{tx?.meterValue?.toFixed(2)} <span className="text-sm text-slate-500">kWh</span></span>
+                      <div className="mt-4 p-3 bg-slate-950 rounded-lg border border-slate-800 flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Meter Value</span>
+                            <span className="text-xl font-mono text-blue-400">{(tx.meterValue / 1000).toFixed(2)} <span className="text-sm text-slate-500">kWh</span></span>
+                          </div>
+                          <Activity className="w-6 h-6 text-blue-500/50 animate-pulse" />
                         </div>
-                        <Activity className="w-6 h-6 text-blue-500/50 animate-pulse" />
+                        {tx.soc !== undefined && (
+                          <div className="flex justify-between items-center border-t border-slate-800 pt-3">
+                            <div className="flex flex-col flex-1 mr-4 gap-1">
+                              <div className="flex justify-between">
+                                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">EV Battery</span>
+                                <span className="text-[10px] text-emerald-400 font-bold">{Math.round(tx.soc)}%</span>
+                              </div>
+                              <div className="w-full bg-slate-800 rounded-full h-1.5 relative overflow-hidden">
+                                <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${Math.round(tx.soc)}%` }}></div>
+                              </div>
+                            </div>
+                            <BatteryCharging className="w-6 h-6 text-emerald-500" />
+                          </div>
+                        )}
+                        {tx.smartChargingLimitW !== undefined && tx.smartChargingLimitW < (tx.maxChargingRateW || 999999) && (
+                          <div className="flex justify-between items-center border-t border-slate-800 pt-3">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] text-orange-400 uppercase font-bold tracking-wider">Smart Charging Profile Limit</span>
+                              <span className="text-sm font-mono text-orange-400">{tx.smartChargingLimitW} W</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -219,10 +260,27 @@ export default function App() {
 
           {/* Quick Actions */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
-            <div className="bg-slate-800/50 border-b border-slate-800 px-5 py-3 flex flex-col">
+            <div className="bg-slate-800/50 border-b border-slate-800 px-5 py-3 flex flex-col gap-3">
               <h2 className="text-sm font-semibold text-white tracking-wide uppercase flex items-center gap-2">
                 <ActivitySquare className="w-4 h-4 text-rose-400" /> Admin Commands
               </h2>
+              <div className="flex items-center justify-between bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${chaosMode ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-700 text-slate-400'}`}>
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Chaos Mode</h3>
+                    <p className="text-xs text-slate-400">Inject random hardware faults</p>
+                  </div>
+                </div>
+                <button
+                  onClick={toggleChaosMode}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${chaosMode ? 'bg-rose-500' : 'bg-slate-600'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${chaosMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
             </div>
             <div className="p-5 flex flex-col gap-3 bg-gradient-to-b from-slate-900 to-slate-950">
               <ActionPanel onAction={handleAction} activeTx={transactions} />

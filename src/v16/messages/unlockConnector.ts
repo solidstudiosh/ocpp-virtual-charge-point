@@ -21,6 +21,10 @@ class UnlockConnectorOcppMessage extends OcppIncoming<
     vcp: VCP,
     call: OcppCall<z.infer<UnlockConnectorReqType>>,
   ): Promise<void> => {
+    if (vcp.chaosMode && Math.random() < 0.5) {
+      vcp.respond(this.response(call, { status: "UnlockFailed" }));
+      return;
+    }
     vcp.respond(this.response(call, { status: "Unlocked" }));
   };
 }

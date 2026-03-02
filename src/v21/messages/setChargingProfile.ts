@@ -15,6 +15,8 @@ const SetChargingProfileResSchema = z.object({
 });
 type SetChargingProfileResType = typeof SetChargingProfileResSchema;
 
+import { logger } from "../../logger";
+
 class SetChargingProfileOcppIncoming extends OcppIncoming<
   SetChargingProfileReqType,
   SetChargingProfileResType
@@ -23,7 +25,21 @@ class SetChargingProfileOcppIncoming extends OcppIncoming<
     vcp: VCP,
     call: OcppCall<z.infer<SetChargingProfileReqType>>,
   ): Promise<void> => {
-    vcp.respond(this.response(call, { status: "Accepted" }));
+    try {
+      const profile = call.payload.chargingProfile;
+      const periods = profile.chargingSchedule?.[0]?.chargingSchedulePeriod;
+
+      if (periods && periods.length > 0) {
+        // Take the first limit for simplistic simulator
+        const limit = periods[0].limit;
+        vcp.transactionManager.setSmartChargingLimit(call.payload.evseId, limit);
+        logger.info(`[2.1] Applied Smart Charging Limit to EVSE ${call.payload.evseId}: ${limit} W`);
+      }
+
+      vcp.respond(this.response(call, { status: "Accepted" }));
+    } catch (error) {
+      vcp.respond(this.response(call, { status: "Rejected" }));
+    }
   };
 }
 

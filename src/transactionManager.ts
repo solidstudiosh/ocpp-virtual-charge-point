@@ -67,22 +67,35 @@ export class TransactionManager {
 
       // EV Battery Simulation logic
       // Determine active charging limit (min between hardware max and smart profile)
-      const activeLimitW = currentTransaction.smartChargingLimitW !== undefined
-        ? Math.min(currentTransaction.maxChargingRateW, currentTransaction.smartChargingLimitW)
-        : currentTransaction.maxChargingRateW;
+      let activeLimitW = currentTransaction.maxChargingRateW;
+      if (currentTransaction.smartChargingLimitW !== undefined) {
+        // If limit is negative (V2G/Discharging), bound it by hardware max implicitly (-maxChargingRateW)
+        if (currentTransaction.smartChargingLimitW < 0) {
+          activeLimitW = Math.max(-currentTransaction.maxChargingRateW, currentTransaction.smartChargingLimitW);
+        } else {
+          activeLimitW = Math.min(currentTransaction.maxChargingRateW, currentTransaction.smartChargingLimitW);
+        }
+      }
 
-      // Simulate charging curve: taper off as SoC reaches 100%
+      // Simulate charging/discharging curve
       let curveFactor = 1.0;
-      if (currentTransaction.soc > 80) curveFactor = 0.5; // 80-90% slower
-      if (currentTransaction.soc > 90) curveFactor = 0.2; // 90-100% very slow
-      if (currentTransaction.soc >= 100) curveFactor = 0; // Full
+      if (activeLimitW >= 0) {
+        if (currentTransaction.soc > 80) curveFactor = 0.5; // 80-90% slower
+        if (currentTransaction.soc > 90) curveFactor = 0.2; // 90-100% very slow
+        if (currentTransaction.soc >= 100) curveFactor = 0; // Full
+      } else {
+        // Discharging (V2G)
+        if (currentTransaction.soc < 20) curveFactor = 0.5; // slow down when low
+        if (currentTransaction.soc < 10) curveFactor = 0.2; // very slow
+        if (currentTransaction.soc <= 0) curveFactor = 0;   // empty
+      }
 
       const powerW = activeLimitW * curveFactor;
       const energyAddedWh = powerW * (METER_VALUES_INTERVAL_SEC / 3600); // Wh = W * hours
 
       // Update state
-      currentTransactionState.meterValue += energyAddedWh;
-      currentTransactionState.soc = Math.min(100, currentTransactionState.soc + (energyAddedWh / currentTransactionState.batteryCapacityWh) * 100);
+      currentTransactionState.meterValue += energyAddedWh; // Net energy
+      currentTransactionState.soc = Math.max(0, Math.min(100, currentTransactionState.soc + (energyAddedWh / currentTransactionState.batteryCapacityWh) * 100));
 
       dbService.updateTransactionMeter(startTransactionProps.transactionId, currentTransactionState.meterValue);
 

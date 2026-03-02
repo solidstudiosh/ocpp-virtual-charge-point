@@ -14,7 +14,7 @@ import {
   resolveMessageHandler,
 } from "./ocppMessageHandler";
 import { ocppOutbox } from "./ocppOutbox";
-import { type OcppVersion, toProtocolVersion } from "./ocppVersion";
+import { OcppVersion, toProtocolVersion } from "./ocppVersion";
 import {
   validateOcppIncomingRequest,
   validateOcppIncomingResponse,
@@ -88,6 +88,7 @@ export class VCP {
           chargePointId: this.vcpOptions.chargePointId,
           basicAuthPassword: this.vcpOptions.basicAuthPassword || "",
           connectionStatus: this.ws?.readyState === WebSocket.OPEN ? "connected" : "disconnected",
+          ocppVersion: this.vcpOptions.ocppVersion,
         });
       });
 
@@ -180,6 +181,56 @@ export class VCP {
         this.triggerCertificateSign();
         return c.json({ success: true });
       });
+
+      adminApi.post(
+        "/api/trigger-v2g",
+        zValidator(
+          "json",
+          z.object({
+            connectorId: z.number().int(),
+            targetSoC: z.number().int().min(0).max(100),
+            departureTime: z.string().datetime(),
+          }),
+        ),
+        (c) => {
+          const { connectorId, targetSoC, departureTime } = c.req.valid("json");
+          if (this.vcpOptions.ocppVersion === OcppVersion.OCPP_2_1 || this.vcpOptions.ocppVersion === OcppVersion.OCPP_2_0_1) {
+            const activeTx = Array.from(this.transactionManager.transactions.values()).find(t => t.connectorId === connectorId);
+            const soc = activeTx?.soc || 20;
+
+            const notifyNeeds = call("NotifyEVChargingNeeds", {
+              evseId: connectorId,
+              timestamp: new Date().toISOString(),
+              chargingNeeds: {
+                requestedEnergyTransfer: "DC",
+                departureTime,
+                v2xChargingParameters: {
+                  targetSoC,
+                  minChargePower: 1000,
+                  maxChargePower: Math.min(activeTx?.maxChargingRateW || 22000, 22000),
+                  minDischargePower: 1000,
+                  maxDischargePower: Math.min(activeTx?.maxChargingRateW || 22000, 22000),
+                  evTargetEnergyRequest: ((targetSoC - soc) / 100) * 50000,
+                  evMaxEnergyRequest: 50000,
+                  evMinEnergyRequest: 0,
+                  evMinV2XEnergyRequest: 10000,
+                  evMaxV2XEnergyRequest: 50000,
+                },
+                dcChargingParameters: {
+                  evMaxCurrent: 100,
+                  evMaxVoltage: 500,
+                  evMaxPower: 50000,
+                  evEnergyCapacity: 50000,
+                  stateOfCharge: Math.round(soc),
+                }
+              }
+            });
+            this.send(notifyNeeds);
+            return c.json({ success: true });
+          }
+          return c.json({ success: false, error: "Only supported in OCPP 2.1" }, 400);
+        }
+      );
 
       adminApi.post(
         "/api/execute",

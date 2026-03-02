@@ -6,6 +6,7 @@ import {
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import { GenericStatusEnumSchema, StatusInfoTypeSchema } from "./_common";
+import { logger } from "../../logger";
 
 const SignCertificateReqSchema = z.object({
   csr: z.string().max(5500),
@@ -28,9 +29,11 @@ class SignCertificateOcppOutgoing extends OcppOutgoing<
   resHandler = async (
     _vcp: VCP,
     _call: OcppCall<z.infer<SignCertificateReqType>>,
-    _result: OcppCallResult<z.infer<SignCertificateResType>>,
+    result: OcppCallResult<z.infer<SignCertificateResType>>,
   ): Promise<void> => {
-    // NOOP
+    logger.info(
+      `[2.0.1] SignCertificate Response Received: ${JSON.stringify(result.payload)}`,
+    );
   };
 }
 

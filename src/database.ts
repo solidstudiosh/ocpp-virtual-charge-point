@@ -32,6 +32,13 @@ db.exec(`
     value TEXT NOT NULL,
     readonly INTEGER DEFAULT 0
   );
+
+  CREATE TABLE IF NOT EXISTS security_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    type TEXT NOT NULL,
+    message TEXT NOT NULL
+  );
 `);
 
 logger.info(`Database initialized at ${dbPath}`);
@@ -81,5 +88,18 @@ export const dbService = {
 
   getRecentMessages: (limit = 100) => {
     return db.prepare("SELECT * FROM ocpp_messages ORDER BY id DESC LIMIT ?").all(limit);
+  },
+
+  // Security Events
+  logSecurityEvent: (type: string, message: string) => {
+    const stmt = db.prepare(`
+      INSERT INTO security_events (type, message)
+      VALUES (?, ?)
+    `);
+    stmt.run(type, message);
+  },
+
+  getSecurityEvents: (limit = 100) => {
+    return db.prepare("SELECT * FROM security_events ORDER BY id DESC LIMIT ?").all(limit);
   }
 };

@@ -30,6 +30,8 @@ interface VCPOptions {
   endpoint: string;
   chargePointId: string;
   basicAuthPassword?: string;
+  clientCert?: string;
+  clientKey?: string;
   adminPort?: number;
   bootSequence?: (vcp: VCP) => Promise<void>;
 }
@@ -97,6 +99,8 @@ export class VCP {
             endpoint: z.string(),
             chargePointId: z.string(),
             basicAuthPassword: z.string().optional(),
+            clientCert: z.string().optional(),
+            clientKey: z.string().optional(),
           }),
         ),
         async (c) => {
@@ -104,6 +108,8 @@ export class VCP {
           this.vcpOptions.endpoint = validated.endpoint;
           this.vcpOptions.chargePointId = validated.chargePointId;
           this.vcpOptions.basicAuthPassword = validated.basicAuthPassword || undefined;
+          this.vcpOptions.clientCert = validated.clientCert || undefined;
+          this.vcpOptions.clientKey = validated.clientKey || undefined;
 
           if (this.ws) {
             this.ws.close();
@@ -148,6 +154,32 @@ export class VCP {
           return c.json({ success: true, chaosMode: this.chaosMode });
         }
       );
+
+      adminApi.get("/api/security-events", (c) => {
+        const events = dbService.getSecurityEvents(50);
+        return c.json(events);
+      });
+
+      adminApi.post(
+        "/api/security-events",
+        zValidator(
+          "json",
+          z.object({
+            type: z.string(),
+            message: z.string().optional(),
+          })
+        ),
+        (c) => {
+          const validated = c.req.valid("json");
+          this.notifySecurityEvent(validated.type, validated.message);
+          return c.json({ success: true });
+        }
+      );
+
+      adminApi.post("/api/trigger-csr", (c) => {
+        this.triggerCertificateSign();
+        return c.json({ success: true });
+      });
 
       adminApi.post(
         "/api/execute",
@@ -203,8 +235,11 @@ export class VCP {
       const websocketUrl = `${this.vcpOptions.endpoint}/${this.vcpOptions.chargePointId}`;
       const protocol = toProtocolVersion(this.vcpOptions.ocppVersion);
       this.ws = new WebSocket(websocketUrl, [protocol], {
-        rejectUnauthorized: false,
+        rejectUnauthorized: false, // For testing, bypasses server cert verification
         followRedirects: true,
+        // mTLS Profile 3 configuration
+        cert: this.vcpOptions.clientCert,
+        key: this.vcpOptions.clientKey,
         headers: {
           ...(this.vcpOptions.basicAuthPassword && {
             Authorization: `Basic ${Buffer.from(
@@ -238,6 +273,54 @@ export class VCP {
         this._onClose(code, reason),
       );
     });
+  }
+
+  async triggerCertificateSign() {
+    try {
+      logger.info("Generating new keypair and CSR for remote sign request...");
+      const { generateCSR } = await import("./crypto");
+      const { csr, privateKey } = await generateCSR(
+        "ocpp-vcp-client", // Common Name
+        "Solidstudio"      // Organization
+      );
+
+      // Temporarily store the pending private key
+      (this as any).pendingPrivateKey = privateKey;
+
+      logger.info("Sending SignCertificateRequest to CSMS...");
+      this.send([
+        2,
+        Math.random().toString(36).substring(7),
+        "SignCertificate",
+        {
+          csr: csr
+        }
+      ] as any);
+    } catch (e) {
+      logger.error(`Failed to trigger certificate sign: ${e}`);
+    }
+  }
+
+  notifySecurityEvent(type: string, message?: string) {
+    dbService.logSecurityEvent(type, message || "");
+
+    // Only attempt to send if connected
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      try {
+        this.send([
+          2,
+          Math.random().toString(36).substring(7),
+          "SecurityEventNotification",
+          {
+            type: type.substring(0, 50),
+            timestamp: new Date().toISOString(),
+            techInfo: message ? message.substring(0, 255) : undefined,
+          }
+        ] as any);
+      } catch (e) {
+        logger.error(`Failed to send SecurityEventNotification: ${e}`);
+      }
+    }
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { AlertTriangle, BatteryCharging, Activity, Zap, Play, Square, Server, ActivitySquare } from 'lucide-react';
+import { AlertTriangle, BatteryCharging, Activity, Zap, Play, Square, Server, ActivitySquare, Shield, Key } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Transaction {
@@ -33,6 +33,10 @@ export default function App() {
   const [endpoint, setEndpoint] = useState("");
   const [chargePointId, setChargePointId] = useState("");
   const [basicAuthPassword, setBasicAuthPassword] = useState("");
+  const [clientCert, setClientCert] = useState("");
+  const [clientKey, setClientKey] = useState("");
+  const [securityEvents, setSecurityEvents] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'trace' | 'security'>('trace');
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -40,14 +44,16 @@ export default function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statusRes, msgRes, configRes, chaosRes] = await Promise.all([
+        const [statusRes, msgRes, configRes, chaosRes, secRes] = await Promise.all([
           axios.get(`${urlBase}/api/status`),
           axios.get(`${urlBase}/api/messages`),
           axios.get(`${urlBase}/api/config`),
           axios.get(`${urlBase}/api/chaos`),
+          axios.get(`${urlBase}/api/security-events`),
         ]);
         setTransactions(statusRes.data.transactions);
         setMessages(msgRes.data.reverse()); // ensure oldest first for trace view
+        setSecurityEvents(secRes.data.reverse());
         setEndpoint(configRes.data.endpoint);
         setChargePointId(configRes.data.chargePointId);
         setBasicAuthPassword(configRes.data.basicAuthPassword || "");
@@ -81,14 +87,16 @@ export default function App() {
     // Polling for status updates since we only push logs
     const interval = setInterval(async () => {
       try {
-        const [statusRes, configRes, chaosRes] = await Promise.all([
+        const [statusRes, configRes, chaosRes, secRes] = await Promise.all([
           axios.get(`${urlBase}/api/status`),
           axios.get(`${urlBase}/api/config`),
           axios.get(`${urlBase}/api/chaos`),
+          axios.get(`${urlBase}/api/security-events`),
         ]);
         setTransactions(statusRes.data.transactions);
         setIsConnected(configRes.data.connectionStatus === "connected");
         setChaosMode(chaosRes.data.enabled);
+        setSecurityEvents(secRes.data.reverse());
       } catch (e) { }
     }, 2000);
 
@@ -113,7 +121,7 @@ export default function App() {
         await axios.post(`${urlBase}/api/disconnect`);
         setIsConnected(false);
       } else {
-        const res = await axios.post(`${urlBase}/api/connect`, { endpoint, chargePointId, basicAuthPassword });
+        const res = await axios.post(`${urlBase}/api/connect`, { endpoint, chargePointId, basicAuthPassword, clientCert, clientKey });
         if (res.data.success) {
           setIsConnected(true);
         } else {
@@ -287,19 +295,81 @@ export default function App() {
             </div>
           </div>
 
-        </div>
-
-        {/* Right Column: Message Trace */}
-        <div className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col relative">
-          <div className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-5 py-3 flex items-center justify-between absolute w-full top-0 z-20">
-            <h2 className="text-sm font-semibold text-white tracking-wide uppercase flex items-center gap-2">
-              <Activity className="w-4 h-4 text-emerald-400" /> Trace Viewer
-            </h2>
+          {/* Security & Certificates */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+            <div className="bg-slate-800/50 border-b border-slate-800 px-5 py-3 flex flex-col gap-3">
+              <h2 className="text-sm font-semibold text-white tracking-wide uppercase flex items-center gap-2">
+                <Shield className="w-4 h-4 text-emerald-400" /> Security Controls
+              </h2>
+            </div>
+            <div className="p-5 flex flex-col gap-3 bg-gradient-to-b from-slate-900 to-slate-950">
+              <div className="flex flex-col gap-1.5 text-xs text-slate-400 font-medium">
+                Client Certificate
+                <textarea
+                  value={clientCert}
+                  onChange={e => setClientCert(e.target.value)}
+                  placeholder="-----BEGIN CERTIFICATE-----"
+                  className="bg-slate-950 border border-slate-800 rounded-md p-2 text-slate-200 outline-none focus:border-indigo-500 transition-colors h-16 font-mono text-[10px]"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 text-xs text-slate-400 font-medium">
+                Private Key
+                <textarea
+                  value={clientKey}
+                  onChange={e => setClientKey(e.target.value)}
+                  placeholder="-----BEGIN RSA PRIVATE KEY-----"
+                  className="bg-slate-950 border border-slate-800 rounded-md p-2 text-slate-200 outline-none focus:border-indigo-500 transition-colors h-16 font-mono text-[10px]"
+                />
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    await axios.post(`${urlBase}/api/trigger-csr`);
+                    alert("Certificate Signing Request (CSR) triggered. Ensure connected to CSMS.");
+                  } catch (e) {
+                    alert("Failed to trigger CSR");
+                  }
+                }}
+                className="mt-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-600/30 py-2 rounded-lg text-sm flex items-center justify-center gap-2"
+              >
+                <Key className="w-4 h-4" /> Trigger Certificate Renewal (CSR)
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 pt-16 bg-[#0B1120] space-y-3 font-mono text-[13px]">
-            {messages.map((m, i) => (
+        </div>
+
+        {/* Right Column: Message Trace & Security Events */}
+        <div className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col relative">
+          <div className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-5 py-3 flex items-center justify-between z-20 shrink-0">
+            <div className="flex gap-4">
+              <h2
+                className={`text-sm font-semibold tracking-wide uppercase flex items-center gap-2 cursor-pointer ${activeTab === 'trace' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                onClick={() => setActiveTab('trace')}
+              >
+                <Activity className={`w-4 h-4 ${activeTab === 'trace' ? 'text-emerald-400' : 'text-slate-500'}`} /> Trace Viewer
+              </h2>
+              <h2
+                className={`text-sm font-semibold tracking-wide uppercase flex items-center gap-2 cursor-pointer ${activeTab === 'security' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                onClick={() => setActiveTab('security')}
+              >
+                <Shield className={`w-4 h-4 ${activeTab === 'security' ? 'text-indigo-400' : 'text-slate-500'}`} /> Security Events
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-5 bg-[#0B1120] space-y-3 font-mono text-[13px]">
+            {activeTab === 'trace' && messages.map((m, i) => (
               <MessageRow key={i} msg={m} />
+            ))}
+            {activeTab === 'security' && securityEvents.map((evt, i) => (
+              <div key={i} className="rounded-xl border border-rose-900/50 overflow-hidden bg-rose-950/20 p-4 shrink-0 shadow-[0_0_10px_rgba(225,29,72,0.1)]">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-slate-500 shrink-0">{format(new Date(evt.timestamp), 'HH:mm:ss')}</span>
+                  <span className="text-rose-400 font-bold px-2 py-0.5 rounded bg-rose-500/20 text-xs tracking-wider border border-rose-500/30">{evt.type}</span>
+                </div>
+                <div className="text-slate-300 whitespace-pre-wrap">{evt.message}</div>
+              </div>
             ))}
             <div ref={bottomRef} />
           </div>

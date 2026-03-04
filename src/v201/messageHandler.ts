@@ -11,7 +11,7 @@ import type { VCP } from "../vcp";
 import { authorizeOcppOutgoing } from "./messages/authorize";
 import { bootNotificationOcppOutgoing } from "./messages/bootNotification";
 import { cancelReservationOcppOutgoing } from "./messages/cancelReservation";
-import { certificateSignedOcppOutgoing } from "./messages/certificateSigned";
+import { certificateSignedOcppIncoming } from "./messages/certificateSigned";
 import { changeAvailabilityOcppIncoming } from "./messages/changeAvailability";
 import { clearCacheOcppIncoming } from "./messages/clearCache";
 import { clearChargingProfileOcppIncoming } from "./messages/clearChargingProfile";
@@ -79,6 +79,7 @@ import { updateFirmwareOcppIncoming } from "./messages/updateFirmware";
 export const ocppIncomingMessages: {
   [key: string]: OcppIncoming<z.ZodTypeAny, z.ZodTypeAny>;
 } = {
+  CertificateSigned: certificateSignedOcppIncoming,
   ChangeAvailability: changeAvailabilityOcppIncoming,
   ClearCache: clearCacheOcppIncoming,
   ClearChargingProfile: clearChargingProfileOcppIncoming,
@@ -126,7 +127,6 @@ export const ocppOutgoingMessages: {
   Authorize: authorizeOcppOutgoing,
   BootNotification: bootNotificationOcppOutgoing,
   CancelReservation: cancelReservationOcppOutgoing,
-  CertificateSigned: certificateSignedOcppOutgoing,
   ClearedChargingLimit: clearedChargingLimitOcppOutgoing,
   DataTransfer: dataTransferOutgoingOcppMessage,
   FirmwareStatusNotification: firmwareStatusNotificationOcppOutgoing,

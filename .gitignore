@@ -132,3 +132,7 @@ dist
 
 # Claude Code
 CLAUDE.md
+
+# Virtual Charge Point Persistence
+vcp.db
+test-persistence.ts

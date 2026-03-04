@@ -6,6 +6,7 @@ import {
   StatusInfoTypeSchema,
   VariableTypeSchema,
 } from "./_common";
+import { dbService } from "../../database";
 
 const GetVariablesReqSchema = z.object({
   getVariableData: z
@@ -52,12 +53,27 @@ class GetVariablesOcppIncoming extends OcppIncoming<
   ): Promise<void> => {
     vcp.respond(
       this.response(call, {
-        getVariableResult: call.payload.getVariableData.map((data) => ({
-          attributeStatus: "Accepted",
-          attributeType: data.attributeType,
-          component: data.component,
-          variable: data.variable,
-        })),
+        getVariableResult: call.payload.getVariableData.map((data) => {
+          const key = `${data.component.name}.${data.variable.name}`;
+          const config = dbService.getConfiguration(key);
+
+          if (config) {
+            return {
+              attributeStatus: "Accepted",
+              attributeType: data.attributeType || "Actual",
+              attributeValue: config.value,
+              component: data.component,
+              variable: data.variable,
+            };
+          } else {
+            return {
+              attributeStatus: "UnknownVariable",
+              attributeType: data.attributeType || "Actual",
+              component: data.component,
+              variable: data.variable,
+            };
+          }
+        }),
       }),
     );
   };

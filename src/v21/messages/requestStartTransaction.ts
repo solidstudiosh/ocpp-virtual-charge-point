@@ -67,6 +67,13 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
                       unit: "kWh",
                     },
                   },
+                  {
+                    value: Math.round(transactionStatus.soc),
+                    measurand: "SoC",
+                    unitOfMeasure: {
+                      unit: "Percent",
+                    },
+                  },
                 ],
               },
             ],

@@ -7,6 +7,8 @@
   },
   "scripts": {
     "start": "./start.sh",
+    "build:ui": "cd ui && npm install && npm run build",
+    "start:ui": "npm run build:ui && npx tsx index_16.ts",
     "lint": "biome lint src",
     "format": "biome format src",
     "format:check": "biome ci --linter-enabled=false --organize-imports-enabled=false src",
@@ -20,9 +22,11 @@
     "@hono/node-server": "^1.13.8",
     "@hono/zod-validator": "^0.4.3",
     "basic-ftp": "^5.0.5",
+    "better-sqlite3": "^12.6.2",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "hono": "^4.12.2",
+    "node-forge": "^1.3.3",
     "typescript": "^5.8.2",
     "uuid": "^10.0.0",
     "winston": "^3.17.0",
@@ -31,6 +35,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node-forge": "^1.3.14",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.0",
     "tsx": "^4.19.3"

@@ -52,6 +52,11 @@ class StartTransactionOcppMessage extends OcppOutgoing<
                     measurand: "Energy.Active.Import.Register",
                     unit: "kWh",
                   },
+                  {
+                    value: Math.round(transactionState.soc).toString(),
+                    measurand: "SoC",
+                    unit: "Percent",
+                  },
                 ],
               },
             ],

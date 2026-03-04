@@ -30,6 +30,13 @@ class ExtendedTriggerMessageOcppMessage extends OcppIncoming<
     call: OcppCall<z.infer<ExtendedTriggerMessageReqType>>,
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
+
+    if (call.payload.requestedMessage === "SignChargePointCertificate") {
+      // Defer execution slightly to allow the Accepted response to flush first
+      setTimeout(() => {
+        vcp.triggerCertificateSign();
+      }, 500);
+    }
   };
 }
 

@@ -5,9 +5,10 @@ import {
   OcppOutgoing,
 } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
+import { logger } from "../../logger";
 
 const SignCertificateReqSchema = z.object({
-  csr: z.string().max(5500),
+  csr: z.string(),
 });
 type SignCertificateReqType = typeof SignCertificateReqSchema;
 
@@ -23,9 +24,11 @@ class SignCertificateOcppMessage extends OcppOutgoing<
   resHandler = async (
     _vcp: VCP,
     _call: OcppCall<z.infer<SignCertificateReqType>>,
-    _result: OcppCallResult<z.infer<SignCertificateResType>>,
+    result: OcppCallResult<z.infer<SignCertificateResType>>,
   ): Promise<void> => {
-    // NOOP
+    logger.info(
+      `[1.6] SignCertificate Response Received: ${JSON.stringify(result[2])}`,
+    );
   };
 }
 

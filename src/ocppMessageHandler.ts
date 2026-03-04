@@ -21,6 +21,7 @@ export interface OcppMessageHandler {
   handleCall: CallHandler;
   handleCallResult: CallResultHandler;
   handleCallError: CallErrorHandler;
+  handleResumption?: (vcp: VCP) => Promise<void>;
 }
 
 export const resolveMessageHandler = (

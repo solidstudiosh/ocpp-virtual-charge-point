@@ -24,6 +24,8 @@ const Get15118EVCertificateResSchema = z.object({
 });
 type Get15118EVCertificateResType = typeof Get15118EVCertificateResSchema;
 
+import { logger } from "../../logger";
+
 class Get15118EVCertificateOcppOutgoing extends OcppOutgoing<
   Get15118EVCertificateReqType,
   Get15118EVCertificateResType
@@ -31,9 +33,9 @@ class Get15118EVCertificateOcppOutgoing extends OcppOutgoing<
   resHandler = async (
     _vcp: VCP,
     _call: OcppCall<z.infer<Get15118EVCertificateReqType>>,
-    _result: OcppCallResult<z.infer<Get15118EVCertificateResType>>,
+    result: OcppCallResult<z.infer<Get15118EVCertificateResType>>,
   ): Promise<void> => {
-    // NOOP
+    logger.info(`[2.1] Get15118EVCertificate Response Received: ${JSON.stringify(result.payload)}`);
   };
 }
 

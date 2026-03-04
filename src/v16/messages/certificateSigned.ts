@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
+import { logger } from "../../logger";
 
 const CertificateSignedReqSchema = z.object({
-  certificateChain: z.string().max(10000),
+  certificateChain: z.string(),
 });
 type CertificateSignedReqType = typeof CertificateSignedReqSchema;
 
@@ -20,7 +21,23 @@ class CertificateSignedOcppMessage extends OcppIncoming<
     vcp: VCP,
     call: OcppCall<z.infer<CertificateSignedReqType>>,
   ): Promise<void> => {
-    vcp.respond(this.response(call, { status: "Accepted" }));
+    logger.info(`[1.6] Received CertificateSigned`);
+
+    if (call.payload.certificateChain && (vcp as any).pendingPrivateKey) {
+      logger.info(
+        "Successfully received signed certificate from CSMS. Storing for future mTLS connections...",
+      );
+      (vcp as any).vcpOptions.clientCert = call.payload.certificateChain;
+      (vcp as any).vcpOptions.clientKey = (vcp as any).pendingPrivateKey;
+      delete (vcp as any).pendingPrivateKey;
+
+      vcp.respond(this.response(call, { status: "Accepted" }));
+    } else {
+      logger.warn(
+        "Received CertificateSigned, but missing chain or pending private key.",
+      );
+      vcp.respond(this.response(call, { status: "Rejected" }));
+    }
   };
 }
 

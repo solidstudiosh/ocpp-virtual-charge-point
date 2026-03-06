@@ -51,6 +51,32 @@ npm start .env.production index_16.ts
 npm start production index_16.ts
 ```
 
+### Auto-restart
+
+Normally, the VCP will exit after receiving the `Reset` message.
+If you want to let the VCP re-establish the WS connection after receiving the `Reset` message, you can use the `npm start:auto-restart` command.
+
+Example:
+```bash
+WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npm run start:auto-restart index_16.ts
+
+# ...
+2026-03-06 09:55:51 info: Receive message ⬅️  [2,"248a82ba-58e3-4a3d-ae8f-74470add510f","Reset",{"type":"Hard"}]
+2026-03-06 09:55:51 info: Responding with ➡️  [3,"248a82ba-58e3-4a3d-ae8f-74470add510f",{"status":"Accepted"}]
+2026-03-06 09:55:51 info: Waiting for 3 seconds to close VCP...
+2026-03-06 09:55:54 info: Closing VCP
+2026-03-06 09:55:54 info: Auto-restart enabled. Closing old VCP...
+2026-03-06 09:55:54 info: Waiting for 3 seconds...
+2026-03-06 09:55:57 info: Starting new VCP
+2026-03-06 09:55:57 info: Connecting... | {
+  endpoint: 'ws://localhost:3000',
+  chargePointId: 'vcp_16_test',
+  ocppVersion: 'OCPP_1.6',
+  basicAuthPassword: '123',
+  adminPort: 9999
+}
+# ...
+```
 
 ## Example
 

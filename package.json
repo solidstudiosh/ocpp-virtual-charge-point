@@ -7,6 +7,7 @@
   },
   "scripts": {
     "start": "./start.sh",
+    "start:auto-restart": "AUTO_RESTART=true npm start",
     "lint": "biome lint src",
     "format": "biome format src",
     "format:check": "biome ci --linter-enabled=false --organize-imports-enabled=false src",

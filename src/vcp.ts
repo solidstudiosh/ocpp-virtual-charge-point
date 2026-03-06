@@ -1,7 +1,7 @@
 import * as util from "node:util";
 import { WebSocket } from "ws";
 
-import { serve } from "@hono/node-server";
+import { serve, type ServerType } from "@hono/node-server";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -41,7 +41,9 @@ interface LogEntry {
 
 export class VCP {
   private ws?: WebSocket;
+  private adminServer?: ServerType;
   private messageHandler: OcppMessageHandler;
+  private heartbeatInterval?: NodeJS.Timeout;
 
   private isFinishing = false;
 
@@ -67,7 +69,7 @@ export class VCP {
           return c.text("OK");
         },
       );
-      serve({
+      this.adminServer = serve({
         fetch: adminApi.fetch,
         port: vcpOptions.adminPort,
       });
@@ -159,7 +161,10 @@ export class VCP {
   }
 
   configureHeartbeat(interval: number) {
-    setInterval(() => {
+    this.heartbeatInterval = setInterval(() => {
+      if (!this.ws) {
+        return;
+      }
       this.send(heartbeatOcppMessage.request({}));
     }, interval);
   }
@@ -173,7 +178,14 @@ export class VCP {
     this.isFinishing = true;
     this.ws.close();
     this.ws = undefined;
-    process.exit(1);
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = undefined;
+    }
+    if (this.adminServer) {
+      this.adminServer.close();
+      this.adminServer = undefined;
+    }
   }
 
   async getDiagnosticData(): Promise<LogEntry[]> {
@@ -263,6 +275,6 @@ export class VCP {
       return;
     }
     logger.info(`Connection closed. code=${code}, reason=${reason}`);
-    process.exit();
+    process.exit(1);
   }
 }

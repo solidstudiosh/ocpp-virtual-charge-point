@@ -22,6 +22,7 @@ import {
 } from "./schemaValidator";
 import { TransactionManager } from "./transactionManager";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
+import { close } from "./close";
 
 interface VCPOptions {
   ocppVersion: OcppVersion;
@@ -46,6 +47,8 @@ export class VCP {
   private heartbeatInterval?: NodeJS.Timeout;
 
   private isFinishing = false;
+
+  private postMessageActions: Record<string, () => void | Promise<void>> = {};
 
   transactionManager = new TransactionManager();
 
@@ -105,6 +108,11 @@ export class VCP {
       this.ws.on("close", (code: number, reason: string) =>
         this._onClose(code, reason),
       );
+      this.ws.on("error", (error: Error) => {
+        logger.error("Websocket error:");
+        logger.error(error);
+        close(this);
+      });
     });
   }
 
@@ -231,6 +239,13 @@ export class VCP {
     }
   }
 
+  async postMessageAction(
+    action: string,
+    callback: () => void | Promise<void>,
+  ) {
+    this.postMessageActions[action] = callback;
+  }
+
   private _onMessage(message: string) {
     logger.info(`Receive message ⬅️  ${message}`);
     const data = JSON.parse(message);
@@ -239,10 +254,17 @@ export class VCP {
       const [messageId, action, payload] = rest;
       validateOcppIncomingRequest(this.vcpOptions.ocppVersion, action, payload);
       this.messageHandler.handleCall(this, { messageId, action, payload });
+      if (this.postMessageActions[action]) {
+        logger.info(`Executing postMessageAction for ${action}`);
+        this.postMessageActions[action]();
+      }
     } else if (type === 3) {
       const [messageId, payload] = rest;
       const enqueuedCall = ocppOutbox.get(messageId);
       if (!enqueuedCall) {
+        if (process.env.CONTINUE_ON_UNKNOWN_MESSAGE_ID) {
+          return;
+        }
         throw new Error(
           `Received CallResult for unknown messageId=${messageId}`,
         );
@@ -275,6 +297,6 @@ export class VCP {
       return;
     }
     logger.info(`Connection closed. code=${code}, reason=${reason}`);
-    process.exit(1);
+    close(this);
   }
 }

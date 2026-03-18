@@ -1,10 +1,13 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
 import * as util from "node:util";
 import { WebSocket } from "ws";
 
-import { serve, type ServerType } from "@hono/node-server";
+import { type ServerType, serve } from "@hono/node-server";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import { close } from "./close";
 import { logger } from "./logger";
 import { call } from "./messageFactory";
 import type { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
@@ -22,7 +25,6 @@ import {
 } from "./schemaValidator";
 import { TransactionManager } from "./transactionManager";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
-import { close } from "./close";
 
 interface VCPOptions {
   ocppVersion: OcppVersion;
@@ -57,6 +59,29 @@ export class VCP {
     if (vcpOptions.adminPort) {
       const adminApi = new Hono();
       adminApi.get("/health", (c) => c.text("OK"));
+      adminApi.get("/info", (c) =>
+        c.json({
+          endpoint: vcpOptions.endpoint,
+          chargePointId: vcpOptions.chargePointId,
+          ocppVersion: vcpOptions.ocppVersion,
+        }),
+      );
+      const publicDir = path.resolve(__dirname, "..", "public");
+      adminApi.get("/style.css", (c) => {
+        const css = fs.readFileSync(path.join(publicDir, "style.css"), "utf-8");
+        return c.text(css, 200, { "Content-Type": "text/css" });
+      });
+      adminApi.get("/app.js", (c) => {
+        const js = fs.readFileSync(path.join(publicDir, "app.js"), "utf-8");
+        return c.text(js, 200, { "Content-Type": "application/javascript" });
+      });
+      adminApi.get("/", (c) => {
+        const html = fs.readFileSync(
+          path.join(publicDir, "index.html"),
+          "utf-8",
+        );
+        return c.html(html);
+      });
       adminApi.post(
         "/execute",
         zValidator(
@@ -76,6 +101,9 @@ export class VCP {
         fetch: adminApi.fetch,
         port: vcpOptions.adminPort,
       });
+      logger.info(
+        `Admin UI available at http://localhost:${vcpOptions.adminPort}/`,
+      );
     }
   }
 

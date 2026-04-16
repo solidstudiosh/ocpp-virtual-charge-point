@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VCP Control Center</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="title-wrap">
+          <p class="eyebrow">Virtual Charge Point</p>
+          <h1>Control Center</h1>
+          <p id="ws-url" class="ws-url">Not connected</p>
+        </div>
+        <div id="connection-chip" class="chip disconnected">Disconnected</div>
+      </header>
+
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="control">Control</button>
+        <button class="tab-btn" data-tab="monitor">Monitor</button>
+        <button class="tab-btn" data-tab="analytics">Analytics</button>
+        <button class="tab-btn" data-tab="logs">Logs</button>
+      </nav>
+
+      <main class="tab-panels">
+        <section id="tab-control" class="tab-panel active">
+          <div class="grid two">
+            <article class="card">
+              <h2>Connection</h2>
+              <form id="connect-form" class="form-grid">
+                <label>
+                  WebSocket URL
+                  <input id="endpoint" type="text" placeholder="ws://localhost:3000" required />
+                </label>
+                <label>
+                  Charge Point ID
+                  <input id="chargePointId" type="text" placeholder="VCP_001" required />
+                </label>
+                <label>
+                  OCPP Version
+                  <select id="ocppVersion">
+                    <option value="OCPP_1.6">OCPP 1.6</option>
+                    <option value="OCPP_2.0.1">OCPP 2.0.1</option>
+                    <option value="OCPP_2.1">OCPP 2.1</option>
+                  </select>
+                </label>
+                <label>
+                  Basic Auth Password
+                  <input id="basicAuthPassword" type="password" placeholder="Optional" />
+                </label>
+
+                <label class="toggle-row">
+                  <input id="sendBootNotification" type="checkbox" checked />
+                  Send BootNotification on connect
+                </label>
+                <label class="toggle-row">
+                  <input id="sendInitialStatus" type="checkbox" checked />
+                  Send initial StatusNotification on connect
+                </label>
+
+                <div class="inline-group">
+                  <label>
+                    Heartbeat Interval (minutes)
+                    <input id="heartbeat-config-minutes" type="number" min="0.1" step="0.1" value="1" />
+                  </label>
+                  <button class="btn" type="button" id="apply-heartbeat-config-btn">Apply Heartbeat</button>
+                  <p id="heartbeat-config-status" class="inline-note">Using CSMS heartbeat interval</p>
+                </div>
+
+                <div class="inline-group">
+                  <button class="btn ghost" type="button" id="chaos-mode-btn">Enable Chaos Mode</button>
+                  <p id="chaos-mode-status" class="inline-note">Chaos mode is off</p>
+                </div>
+
+                <div class="button-row">
+                  <button class="btn primary" type="submit">Connect</button>
+                  <button class="btn ghost" type="button" id="disconnect-btn">Disconnect</button>
+                </div>
+              </form>
+            </article>
+
+            <article class="card">
+              <h2>Quick Procedures</h2>
+              <div class="stack">
+                <div class="inline-group">
+                  <button class="btn" type="button" id="send-heartbeat-btn">Send Heartbeat</button>
+                  <button class="btn" type="button" id="send-authorize-btn">Authorize Tag</button>
+                </div>
+
+                <div class="inline-group">
+                  <label>
+                    RFID / IdTag
+                    <input id="idTag" type="text" value="DEADBEEF" />
+                  </label>
+                  <label>
+                    Connector
+                    <input id="connectorId" type="number" value="1" min="0" />
+                  </label>
+                  <label>
+                    EVSE
+                    <input id="evseId" type="number" value="1" min="0" />
+                  </label>
+                </div>
+
+                <div class="inline-group">
+                  <label>
+                    Status
+                    <select id="statusValue">
+                      <option value="Available">Available</option>
+                      <option value="Preparing">Preparing</option>
+                      <option value="Charging">Charging</option>
+                      <option value="SuspendedEVSE">SuspendedEVSE</option>
+                      <option value="SuspendedEV">SuspendedEV</option>
+                      <option value="Finishing">Finishing</option>
+                      <option value="Reserved">Reserved</option>
+                      <option value="Unavailable">Unavailable</option>
+                      <option value="Faulted">Faulted</option>
+                    </select>
+                  </label>
+                  <label>
+                    Error Code
+                    <select id="errorCode">
+                      <option value="NoError">NoError</option>
+                      <option value="InternalError">InternalError</option>
+                      <option value="GroundFailure">GroundFailure</option>
+                      <option value="OverCurrentFailure">OverCurrentFailure</option>
+                    </select>
+                  </label>
+                  <button class="btn" type="button" id="send-status-btn">Send Status</button>
+                </div>
+
+                <div class="inline-group">
+                  <label>
+                    Transaction ID
+                    <input id="transactionId" type="text" value="1001" />
+                  </label>
+                  <label>
+                    Active Transaction
+                    <select id="active-transaction-select">
+                      <option value="">Auto (latest active)</option>
+                    </select>
+                  </label>
+                  <label>
+                    Meter Value
+                    <input id="meterValue" type="number" value="1.2" step="0.1" />
+                  </label>
+                  <button class="btn" type="button" id="send-meter-btn">Send MeterValues</button>
+                </div>
+
+                <div class="inline-group">
+                  <button class="btn" type="button" id="start-transaction-btn">Start Transaction</button>
+                  <button class="btn" type="button" id="stop-transaction-btn">Stop Transaction</button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <article class="card">
+            <h2>Custom Action</h2>
+            <div class="form-grid">
+              <label>
+                Action
+                <select id="customAction"></select>
+              </label>
+              <label class="full-width">
+                Payload JSON
+                <textarea id="customPayload" rows="8">{}</textarea>
+              </label>
+              <div class="button-row">
+                <button id="send-custom-btn" class="btn primary" type="button">Send Action</button>
+                <button id="format-json-btn" class="btn ghost" type="button">Format JSON</button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="tab-monitor" class="tab-panel">
+          <div class="kpi-grid" id="kpis"></div>
+
+          <div class="grid two">
+            <article class="card">
+              <h2>Heartbeat Stream</h2>
+              <div id="heartbeat-table" class="table-wrap"></div>
+            </article>
+            <article class="card">
+              <h2>Meter Values</h2>
+              <div id="meter-table" class="table-wrap"></div>
+            </article>
+          </div>
+
+          <div class="grid two">
+            <article class="card">
+              <h2>Transaction Timeline</h2>
+              <div id="transaction-table" class="table-wrap"></div>
+            </article>
+            <article class="card">
+              <h2>Recent Message Flow</h2>
+              <div id="message-feed" class="feed"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="tab-analytics" class="tab-panel">
+          <article class="card analytics-rate-card">
+            <div class="toolbar">
+              <h2>Heartbeat Rate Per Minute</h2>
+              <label class="window-label">
+                Trend Window (min)
+                <input id="heartbeat-window-minutes" type="number" min="1" max="60" step="1" value="10" />
+              </label>
+            </div>
+            <p id="heartbeat-rate-value" class="analytics-rate-value">0 / min</p>
+            <p class="analytics-rate-hint">Calculated from outgoing heartbeat calls in the last 60 seconds.</p>
+          </article>
+          <div class="grid two">
+            <article class="card">
+              <h2>Heartbeat Latency (ms)</h2>
+              <canvas id="heartbeat-chart" height="220"></canvas>
+            </article>
+            <article class="card">
+              <h2>Heartbeat Waveform</h2>
+              <canvas id="heartbeat-rate-chart" height="220"></canvas>
+            </article>
+          </div>
+          <div class="grid two">
+            <article class="card">
+              <h2>Meter Trend</h2>
+              <canvas id="meter-chart" height="220"></canvas>
+            </article>
+            <article class="card">
+              <h2>Message Throughput By Minute</h2>
+              <canvas id="traffic-chart" height="220"></canvas>
+            </article>
+          </div>
+        </section>
+
+        <section id="tab-logs" class="tab-panel">
+          <article class="card">
+            <div class="toolbar">
+              <h2>Runtime Logs</h2>
+              <div class="inline-group compact">
+                <label>
+                  Level
+                  <select id="log-level-filter">
+                    <option value="all">All</option>
+                    <option value="info">Info</option>
+                    <option value="warn">Warn</option>
+                    <option value="error">Error</option>
+                  </select>
+                </label>
+                <label>
+                  Source
+                  <select id="log-source-filter">
+                    <option value="all">All</option>
+                    <option value="system">System</option>
+                    <option value="message">Message</option>
+                  </select>
+                </label>
+                <button id="clear-telemetry-btn" class="btn ghost" type="button">Clear Metrics</button>
+              </div>
+            </div>
+            <div id="log-feed" class="log-feed"></div>
+          </article>
+        </section>
+      </main>
+
+      <div id="toast-host" class="toast-host"></div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

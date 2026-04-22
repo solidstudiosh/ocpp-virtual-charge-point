@@ -231,7 +231,30 @@ export function scheduleEnvScenarios(stations: Station[]): void {
 // Chaos mode — random scenarios in a loop
 // ---------------------------------------------------------------------------
 
-const CHAOS_SCENARIOS = SCENARIOS.filter((s) => s.name !== "surge");
+interface WeightedScenario {
+  scenario: Scenario | null;
+  weight: number;
+  label: string;
+}
+
+const CHAOS_WEIGHTED: WeightedScenario[] = [
+  { scenario: null, weight: 25, label: "nothing" },
+  { scenario: SCENARIOS.find((s) => s.name === "peak-hour")!, weight: 20, label: "peak-hour" },
+  { scenario: SCENARIOS.find((s) => s.name === "idle-night")!, weight: 20, label: "idle-night" },
+  { scenario: SCENARIOS.find((s) => s.name === "target-failover")!, weight: 15, label: "target-failover" },
+  { scenario: SCENARIOS.find((s) => s.name === "rolling-restart")!, weight: 10, label: "rolling-restart" },
+  { scenario: SCENARIOS.find((s) => s.name === "blackout")!, weight: 10, label: "blackout" },
+];
+
+function pickWeighted(entries: WeightedScenario[]): WeightedScenario {
+  const total = entries.reduce((sum, e) => sum + e.weight, 0);
+  let roll = Math.random() * total;
+  for (const entry of entries) {
+    roll -= entry.weight;
+    if (roll <= 0) return entry;
+  }
+  return entries[entries.length - 1];
+}
 
 export function startChaosLoop(stations: Station[]): void {
   if (!CONFIG.chaosMode) return;
@@ -240,24 +263,31 @@ export function startChaosLoop(stations: Station[]): void {
     const delay =
       CONFIG.chaosMinIntervalMs +
       Math.random() * (CONFIG.chaosMaxIntervalMs - CONFIG.chaosMinIntervalMs);
-    const pick =
-      CHAOS_SCENARIOS[Math.floor(Math.random() * CHAOS_SCENARIOS.length)];
+    const pick = pickWeighted(CHAOS_WEIGHTED);
 
     setTimeout(() => {
-      pick.execute(stations);
+      if (pick.scenario) {
+        pick.scenario.execute(stations);
+      } else {
+        console.log(
+          `${C.dim}  Chaos: nothing happened this window${C.reset}`,
+        );
+      }
       scheduleNext();
     }, delay);
 
     console.log(
-      `${C.dim}  Chaos: next scenario "${pick.name}" in ${(delay / 1000).toFixed(0)}s${C.reset}`,
+      `${C.dim}  Chaos: next "${pick.label}" in ${(delay / 1000).toFixed(0)}s${C.reset}`,
     );
   };
 
   console.log(
-    `\n${C.bold}${C.magenta}=== CHAOS MODE ACTIVE ===${C.reset}`,
+    `\n${C.bold}${C.magenta}=== CHAOS MODE ACTIVE (weighted) ===${C.reset}`,
   );
+  const summary = CHAOS_WEIGHTED.map((e) => `${e.label}:${e.weight}%`).join(", ");
+  console.log(`${C.dim}  Weights: ${summary}${C.reset}`);
   console.log(
-    `${C.dim}  Random scenarios every ${CONFIG.chaosMinIntervalMs / 1000}-${CONFIG.chaosMaxIntervalMs / 1000}s (excluding surge)${C.reset}\n`,
+    `${C.dim}  Interval: ${CONFIG.chaosMinIntervalMs / 1000}-${CONFIG.chaosMaxIntervalMs / 1000}s${C.reset}\n`,
   );
 
   scheduleNext();

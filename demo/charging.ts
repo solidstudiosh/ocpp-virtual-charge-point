@@ -364,19 +364,21 @@ export async function stopChargingSession(
 ): Promise<void> {
   if (!station.session) return;
 
-  // Finalize energy
-  const elapsed = Date.now() - station.session.startedAt;
-  const progress = Math.min(elapsed / station.session.durationMs, 1);
-  station.session.currentEnergyWh =
-    progress * station.session.targetEnergyWh;
+  // Capture session ref before any async work — disconnect can null it mid-await
+  const session = station.session;
 
-  const deliveredKwh = station.session.currentEnergyWh / 1000;
+  // Finalize energy
+  const elapsed = Date.now() - session.startedAt;
+  const progress = Math.min(elapsed / session.durationMs, 1);
+  session.currentEnergyWh = progress * session.targetEnergyWh;
+
+  const deliveredKwh = session.currentEnergyWh / 1000;
   const durationMin = elapsed / 60_000;
 
   // Clear meter timer
-  if (station.session.meterTimer) {
-    clearInterval(station.session.meterTimer);
-    station.session.meterTimer = null;
+  if (session.meterTimer) {
+    clearInterval(session.meterTimer);
+    session.meterTimer = null;
   }
 
   station.state = "finishing";
@@ -388,7 +390,7 @@ export async function stopChargingSession(
   }
 
   // Update base meter
-  station.meterBaseWh += station.session.currentEnergyWh;
+  station.meterBaseWh += session.currentEnergyWh;
 
   // Update stats
   stats.sessionsCompleted++;

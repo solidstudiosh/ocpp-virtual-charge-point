@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VCP</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <h1>vcp / <span id="statusText">Available</span></h1>
+
+  <div class="status">
+    <div id="statusDot" class="dot available"></div>
+    <span id="statusDetail">connector 1 - idle</span>
+  </div>
+
+  <div class="group">
+    <div class="group-label">config</div>
+    <div class="row">
+      <label>connector <input type="number" id="connectorId" value="1" min="0"></label>
+      <label>idTag <input type="text" id="idTag" value="" placeholder="required"></label>
+      <label>txId <input type="number" id="transactionId" value="1" min="1"></label>
+    </div>
+    <div class="hint">tokens: <a href="https://dashboard.dev.emobility.internal.dev.solidstudio.io/cpo-tokens" target="_blank">cpo-tokens</a></div>
+  </div>
+
+  <div class="group">
+    <div class="group-label">charging</div>
+    <div class="row">
+      <button id="btnPlug" class="primary" onclick="plugCable()">plug cable</button>
+      <button id="btnStart" class="primary" onclick="startTransaction()" disabled>start</button>
+      <button id="btnStop" class="danger" onclick="stopTransaction()" disabled>stop</button>
+      <button id="btnUnplug" onclick="unplugCable()" disabled>unplug</button>
+    </div>
+    <div class="hint">plug cable (Preparing) &rarr; start &rarr; stop &rarr; unplug (Available)</div>
+  </div>
+
+  <div class="group">
+    <div class="group-label">power</div>
+    <div class="slider-row">
+      <input type="range" id="powerSlider" min="0" max="50" step="0.1" value="11" oninput="updatePowerLabel()">
+      <span id="powerValue">11.0 kW</span>
+      <button onclick="sendMeterValues()" style="flex:0">send</button>
+    </div>
+    <div class="hint">meter values are sent automatically every 15s during charging. use slider + send to override power.</div>
+  </div>
+
+  <div class="group">
+    <div class="group-label">other</div>
+    <div class="row">
+      <button onclick="authorize()">authorize</button>
+      <button onclick="setStatus('SuspendedEV')">susp. EV</button>
+      <button onclick="setStatus('SuspendedEVSE')">susp. EVSE</button>
+      <button class="danger" onclick="setFaulted()">fault</button>
+    </div>
+    <div class="hint">susp. EV = car paused charging. susp. EVSE = station paused (e.g. load balancing). fault = hardware error.</div>
+  </div>
+
+  <div class="group">
+    <div class="group-label">log</div>
+    <div id="log" class="log"></div>
+  </div>
+
+  <table id="info" class="info-table"></table>
+
+  <script src="/app.js"></script>
+</body>
+</html>

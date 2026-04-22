@@ -60,8 +60,8 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
           transactionId: transactionId,
         },
         evse: {
-          id: 1,
-          connectorId: 1,
+          id: transaction.evseId ?? 1,
+          connectorId: transaction.connectorId,
         },
         meterValue: [
           {
@@ -85,8 +85,8 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
     );
     vcp.send(
       statusNotificationOcppOutgoing.request({
-        evseId: 1,
-        connectorId: 1,
+        evseId: transaction.evseId ?? 1,
+        connectorId: transaction.connectorId,
         connectorStatus: "Available",
         timestamp: new Date().toISOString(),
       }),

@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { logger } from "../logger";
 import type {
   OcppCall,
   OcppCallError,
@@ -135,6 +136,11 @@ export const messageHandlerV16: OcppMessageHandler = {
   },
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   handleCallError: (vcp: VCP, error: OcppCallError<any>): void => {
-    // NOOP
+    logger.warn("Received CallError", {
+      messageId: error.messageId,
+      errorCode: error.errorCode,
+      errorDescription: error.errorDescription,
+      errorDetails: error.errorDetails,
+    });
   },
 };

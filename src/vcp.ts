@@ -44,7 +44,7 @@ export class VCP {
   private ws?: WebSocket;
   private adminServer?: ServerType;
   private messageHandler: OcppMessageHandler;
-  private heartbeatInterval?: NodeJS.Timeout;
+  private heartbeatIntervalId?: ReturnType<typeof setInterval>;
 
   private isFinishing = false;
 
@@ -169,10 +169,10 @@ export class VCP {
   }
 
   configureHeartbeat(interval: number) {
-    this.heartbeatInterval = setInterval(() => {
-      if (!this.ws) {
-        return;
-      }
+    if (this.heartbeatIntervalId) {
+      clearInterval(this.heartbeatIntervalId);
+    }
+    this.heartbeatIntervalId = setInterval(() => {
       this.send(heartbeatOcppMessage.request({}));
     }, interval);
   }
@@ -184,12 +184,12 @@ export class VCP {
       );
     }
     this.isFinishing = true;
+    if (this.heartbeatIntervalId) {
+      clearInterval(this.heartbeatIntervalId);
+      this.heartbeatIntervalId = undefined;
+    }
     this.ws.close();
     this.ws = undefined;
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = undefined;
-    }
     if (this.adminServer) {
       this.adminServer.close();
       this.adminServer = undefined;
@@ -248,7 +248,14 @@ export class VCP {
 
   private _onMessage(message: string) {
     logger.info(`Receive message ⬅️  ${message}`);
-    const data = JSON.parse(message);
+    // biome-ignore lint/suspicious/noExplicitAny: ocpp message format
+    let data: any[];
+    try {
+      data = JSON.parse(message);
+    } catch (err) {
+      logger.error(`Failed to parse message: ${err}`);
+      return;
+    }
     const [type, ...rest] = data;
     if (type === 2) {
       const [messageId, action, payload] = rest;

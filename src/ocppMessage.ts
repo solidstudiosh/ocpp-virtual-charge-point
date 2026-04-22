@@ -43,6 +43,8 @@ export abstract class OcppBase<
         payload: payload,
         errors: JSON.stringify(parseResult.error.issues),
       });
+      // Return original payload if parsing fails to avoid returning undefined
+      return payload;
     }
     return parseResult.data;
   };
@@ -55,6 +57,8 @@ export abstract class OcppBase<
         payload: payload,
         errors: JSON.stringify(parseResult.error.issues),
       });
+      // Return original payload if parsing fails to avoid returning undefined
+      return payload;
     }
     return parseResult.data;
   };

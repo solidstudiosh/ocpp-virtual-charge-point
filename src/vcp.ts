@@ -196,6 +196,11 @@ export class VCP {
     }
   }
 
+  terminate(): void {
+    this.ws?.terminate();
+    process.exit(1);
+  }
+
   async getDiagnosticData(): Promise<LogEntry[]> {
     try {
       // Get logs from Winston logger's memory

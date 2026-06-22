@@ -1,0 +1,86 @@
+/* components.css — services list, status bar, health pills, logs console, OCPP feed,
+   OCPP-config rows. Generic widgets shared across the cockpit. */
+
+/* services */
+.svc { display:flex; align-items:center; justify-content:space-between; gap:8px;
+       padding:8px 10px; border:1px solid rgba(148,163,184,0.12); border-radius:8px; background:rgba(2,6,23,0.5); }
+.svc-name { font-family: ui-monospace, monospace; font-size: 12px; }
+.dot { width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:8px; background:#475569; }
+.dot.running { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+.dot.starting { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.dot.exited, .dot.error { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.dot.stopped { background:#475569; }
+
+.health-pill { padding:3px 9px; border-radius:999px; border:1px solid rgba(148,163,184,0.2); display:flex; align-items:center; font-family:ui-monospace,monospace; font-size:11px; white-space:nowrap; }
+
+/* status bar chips */
+.status-bar { scrollbar-width: thin; }
+.status-chip {
+  display:flex; align-items:center; gap:0; padding:3px 9px 3px 8px; border-radius:999px;
+  border:1px solid rgba(148,163,184,0.18); background:rgba(2,6,23,0.6); cursor:pointer;
+  font-family:ui-monospace,monospace; font-size:11px; white-space:nowrap; transition:all .12s;
+}
+.status-chip:hover { border-color: var(--cyan); color:#fff; }
+.status-chip.active { border-color: var(--cyan); box-shadow:0 0 10px rgba(34,211,238,0.2); }
+
+/* per-service logs */
+.svc-logs {
+  max-height:300px; background:#020617; border:1px solid rgba(148,163,184,0.12);
+  border-radius:8px; padding:8px; color:#94a3b8; white-space:pre-wrap; word-break:break-all; line-height:1.5;
+}
+.svc-logs .err { color:#fca5a5; }
+
+/* OCPP configuration list (borne config tab) */
+.ocfg { display:flex; flex-direction:column; gap:6px; }
+.ocfg-row { display:flex; align-items:center; gap:8px; min-width:0; }
+.ocfg-row .k { flex:1; min-width:0; font-family:ui-monospace,monospace; font-size:11px; color:#cbd5e1;
+               white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ocfg-row input.v { width:96px; flex:none; background:rgba(2,6,23,0.8); border:1px solid rgba(148,163,184,0.2);
+                    border-radius:6px; color:#67e8f9; font-family:ui-monospace,monospace; font-size:11px; padding:4px 6px; }
+.ocfg-row .v.ro { flex:none; max-width:120px; color:#64748b; font-family:ui-monospace,monospace; font-size:11px;
+                  text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ocfg-row .lock { flex:none; font-size:10px; opacity:.5; }
+
+/* config drawer layout (sectioned, friendly) */
+.cfg-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+.cfg-span-2 { grid-column:1 / -1; }
+@media (max-width:820px){ .cfg-grid { grid-template-columns:1fr; } .cfg-span-2 { grid-column:auto; } }
+/* faint accent tint (theme-adaptive) instead of a fixed dark = never grey on light themes */
+.cfg-sec { border:1px solid color-mix(in srgb, var(--cyan) 16%, transparent); border-radius:12px; padding:12px 14px;
+           background:color-mix(in srgb, var(--cyan) 5%, transparent); }
+
+/* theme picker — colour-coded buttons, one per theme */
+.theme-picker { display:flex; flex-wrap:wrap; gap:8px; }
+.theme-btn { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:10px; cursor:pointer;
+  font-family:ui-monospace,monospace; font-size:12px; color:inherit; transition:all .12s;
+  background:color-mix(in srgb, var(--sw) 9%, transparent); border:1px solid color-mix(in srgb, var(--sw) 35%, transparent); }
+.theme-btn:hover { border-color:var(--sw); }
+.theme-btn.on { border-color:var(--sw); font-weight:600;
+  background:color-mix(in srgb, var(--sw) 20%, transparent); box-shadow:0 0 12px color-mix(in srgb, var(--sw) 45%, transparent); }
+.theme-swatch { width:12px; height:12px; border-radius:50%; background:var(--sw); box-shadow:0 0 8px var(--sw); }
+.cfg-h { font-family:ui-monospace,monospace; font-size:11px; letter-spacing:0.18em; color:var(--cyan);
+         margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid color-mix(in srgb,var(--cyan) 22%, transparent); }
+.cfg-fields { display:grid; grid-template-columns:1fr; gap:10px; }
+.cfg-fields.cols-2 { grid-template-columns:repeat(2,1fr); }
+.cfg-fields.cols-3 { grid-template-columns:repeat(3,1fr); }
+@media (max-width:560px){ .cfg-fields.cols-2, .cfg-fields.cols-3 { grid-template-columns:1fr; } }
+.cfg-staging { margin-top:10px; border:1px solid color-mix(in srgb,var(--cyan) 25%, transparent); border-radius:10px;
+               padding:10px; background:color-mix(in srgb,var(--cyan) 6%, transparent); }
+.cfg-staging.hidden { display:none; }
+.cfg-note { font-family:ui-monospace,monospace; font-size:11px; color:var(--cyan); margin-bottom:8px; line-height:1.5; }
+.cfg-warn { margin-top:12px; font-family:ui-monospace,monospace; font-size:11px; color:var(--amber);
+            border:1px solid color-mix(in srgb,var(--amber) 35%, transparent); border-radius:8px;
+            padding:8px 10px; background:color-mix(in srgb,var(--amber) 6%, transparent); }
+.cfg-warn.hidden { display:none; }
+
+/* OCPP feed */
+.feed { }
+.feed-line { padding:5px 8px; border-radius:6px; border-left:3px solid transparent; background:rgba(2,6,23,0.5); }
+.feed-line .ts { color:#475569; }
+.feed-line .act { font-weight:600; }
+.feed-out { border-left-color: var(--cyan); }
+.feed-out .act { color:#67e8f9; }
+.feed-in { border-left-color: var(--green); }
+.feed-in .act { color:#6ee7b7; }
+.feed-in.err { border-left-color: var(--red); }
+.feed-line .pl { color:#94a3b8; word-break:break-all; }

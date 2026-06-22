@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
+import { setConfiguration } from "../configurationStore";
 
 const ChangeConfigurationReqSchema = z.object({
   key: z.string().max(50),
@@ -21,7 +22,8 @@ class ChangeConfigurationOcppMessage extends OcppIncoming<
     vcp: VCP,
     call: OcppCall<z.infer<ChangeConfigurationReqType>>,
   ): Promise<void> => {
-    vcp.respond(this.response(call, { status: "Accepted" }));
+    const status = setConfiguration(call.payload.key, call.payload.value);
+    vcp.respond(this.response(call, { status }));
   };
 }
 

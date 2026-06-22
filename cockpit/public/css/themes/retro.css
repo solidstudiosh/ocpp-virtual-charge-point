@@ -1,0 +1,73 @@
+/* themes/retro.css — 📺 Retro CRT: amber phosphor on warm black, heavy scanlines + flicker,
+   green phosphor as the "ok" accent. Dark theme, so no light-bg sweep needed — just recolour. */
+[data-theme="retro"] { --cyan:#ffb000; --green:#46e35a; --amber:#ffd24d; --red:#ff5a52; }
+
+[data-theme="retro"] body {
+  color:#ffcf8a;
+  background:#140d05;
+  background-image:
+    radial-gradient(circle at 50% -10%, rgba(255,176,0,0.10), transparent 55%),
+    radial-gradient(circle at 50% 120%, rgba(255,120,0,0.06), transparent 55%);
+}
+/* heavier amber scanlines + CRT flicker + soft vignette */
+[data-theme="retro"] .scanlines {
+  background: repeating-linear-gradient(to bottom, rgba(255,176,0,0.05) 0 1px, transparent 1px 3px);
+  mix-blend-mode:normal; animation: crtFlicker 5s steps(60) infinite;
+}
+@keyframes crtFlicker { 0%,100%{opacity:.6} 48%{opacity:.55} 50%{opacity:.85} 52%{opacity:.55} }
+[data-theme="retro"] body::after {
+  content:""; position:fixed; inset:0; z-index:49; pointer-events:none;
+  background: radial-gradient(120% 120% at 50% 50%, transparent 60%, rgba(0,0,0,0.45) 100%);
+}
+
+/* recolour Tailwind cyan utilities to amber (dark theme keeps slate text/bg fine) */
+[data-theme="retro"] [class*="text-cyan"] { color:#ffb000 !important; }
+[data-theme="retro"] [class*="border-cyan"] { border-color:rgba(255,176,0,0.35) !important; }
+[data-theme="retro"] [class*="ring-cyan"] { --tw-ring-color:#ffb000 !important; }
+/* status bar harmonised: drop the bluish slate overlay, warm divider */
+[data-theme="retro"] [class*="bg-slate-950"]:not(body) { background:transparent !important; }
+[data-theme="retro"] [class*="bg-slate-700"] { background:rgba(255,176,0,0.25) !important; }
+
+/* branding & header */
+[data-theme="retro"] .neon-text { color:#ffe0a8; text-shadow:0 0 6px var(--cyan), 0 0 16px rgba(255,176,0,.6); }
+[data-theme="retro"] header { border-color:rgba(255,176,0,0.25) !important; background:rgba(20,13,5,0.88) !important; }
+
+/* panels */
+[data-theme="retro"] .panel { border:1px solid rgba(255,176,0,0.22);
+  background:linear-gradient(180deg, rgba(28,20,8,0.92), rgba(16,11,4,0.94));
+  box-shadow:0 0 0 1px rgba(255,176,0,0.05), 0 8px 30px rgba(0,0,0,0.6); }
+[data-theme="retro"] .panel-title { color:#ffb000; border-color:rgba(255,176,0,0.18); }
+
+/* buttons / inputs / code */
+[data-theme="retro"] .btn { background:rgba(40,28,10,0.6); border-color:rgba(255,176,0,0.25); color:#ffcf8a; }
+[data-theme="retro"] .kbtn { background:linear-gradient(180deg,#2a1d08,#1a1206); color:#ffcf8a; border-color:rgba(255,176,0,0.2); }
+[data-theme="retro"] .inp { background:rgba(16,11,4,0.85); border-color:rgba(255,176,0,0.22); color:#ffe0a8; }
+[data-theme="retro"] code { color:#ffb000; }
+
+/* status bar / services */
+[data-theme="retro"] .status-chip, [data-theme="retro"] .health-pill { background:rgba(28,20,8,0.7); border-color:rgba(255,176,0,0.22); color:#ffcf8a; }
+[data-theme="retro"] .svc { background:rgba(20,13,5,0.6); border-color:rgba(255,176,0,0.14); }
+[data-theme="retro"] .svc-logs { background:#0d0903; color:#ffcf8a; border-color:rgba(255,176,0,0.16); }
+
+/* borne — amber phosphor tube */
+[data-theme="retro"] .borne-card {
+  background:radial-gradient(120% 60% at 50% -10%, rgba(255,176,0,0.10), transparent 60%),
+            linear-gradient(165deg,#1a1206,#241907 55%,#140d05); }
+[data-theme="retro"] .borne-screen { background:radial-gradient(130% 100% at 50% 0%, rgba(255,176,0,0.08), #0a0702 72%); }
+[data-theme="retro"] .gauge .metric { color:#ffe0a8; }
+
+/* feed */
+[data-theme="retro"] .feed-out .act { color:#ffb000; }
+[data-theme="retro"] .feed-in .act { color:#7dffa0; }
+[data-theme="retro"] .feed-line .pl { color:#c9a36a; }
+[data-theme="retro"] .feed-line .ts { color:#8a6a3a; }
+
+/* scrollbars */
+[data-theme="retro"] ::-webkit-scrollbar { width:10px; height:10px; }
+[data-theme="retro"] ::-webkit-scrollbar-thumb { background:rgba(255,176,0,0.4); border-radius:10px; border:2px solid #1a1206; }
+[data-theme="retro"] ::-webkit-scrollbar-track { background:transparent; }
+
+/* boot overlay */
+[data-theme="retro"] .boot { background:#140d05; }
+[data-theme="retro"] .boot-title { color:#ffe0a8; text-shadow:0 0 18px rgba(255,176,0,.7); }
+[data-theme="retro"] .boot-sub { color:#ffb000; }

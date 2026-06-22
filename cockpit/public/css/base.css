@@ -1,0 +1,64 @@
+/* base.css — design tokens, page chrome, generic primitives (buttons, fields, panels).
+   Default look = "futuristic" (cyan/teal). Themes override via [data-theme=…] files. */
+:root {
+  --cyan: #22d3ee;
+  --green: #34d399;
+  --amber: #fbbf24;
+  --red: #f87171;
+}
+
+body { background-image: radial-gradient(circle at 20% 0%, rgba(34, 211, 238, 0.08), transparent 40%),
+                        radial-gradient(circle at 90% 100%, rgba(168, 85, 247, 0.08), transparent 40%); }
+
+.scanlines {
+  pointer-events: none; position: fixed; inset: 0; z-index: 50;
+  background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.015) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.neon-text { color: #e0fbff; text-shadow: 0 0 6px var(--cyan), 0 0 14px rgba(34,211,238,.6); }
+
+.panel {
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(15,23,42,0.9), rgba(2,6,23,0.9));
+  box-shadow: 0 0 0 1px rgba(34,211,238,0.04), 0 8px 30px rgba(0,0,0,0.5);
+  padding: 16px;
+}
+.panel-title {
+  font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.2em;
+  color: #67e8f9; margin-bottom: 12px; padding-bottom: 8px;
+  border-bottom: 1px solid rgba(34,211,238,0.15);
+}
+
+/* buttons */
+.btn {
+  font-family: ui-monospace, monospace; font-size: 12px; padding: 7px 10px; border-radius: 8px;
+  border: 1px solid rgba(148,163,184,0.25); background: rgba(30,41,59,0.6); color: #cbd5e1;
+  cursor: pointer; transition: all .12s ease; white-space: nowrap;
+}
+.btn:hover { border-color: var(--cyan); color: #fff; box-shadow: 0 0 12px rgba(34,211,238,0.25); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+.btn-go { border-color: rgba(52,211,153,0.5); color: #6ee7b7; }
+.btn-go:hover { border-color: var(--green); box-shadow: 0 0 12px rgba(52,211,153,0.3); }
+.btn-stop, .btn-warn { border-color: rgba(248,113,113,0.4); color: #fca5a5; }
+.btn-stop:hover, .btn-warn:hover { border-color: var(--red); box-shadow: 0 0 12px rgba(248,113,113,0.3); }
+.btn-act.on { border-color: var(--cyan); color: #fff; background: rgba(34,211,238,0.12); }
+.btn-pick { padding: 7px 10px; }
+.btn[aria-pressed="true"] { border-color: var(--cyan); color:#fff; background:rgba(34,211,238,0.12); }
+
+/* fields */
+.field label { display:block; font-size: 11px; color:#94a3b8; margin-bottom:4px; font-family: ui-monospace, monospace; }
+.inp {
+  width: 100%; background: rgba(2,6,23,0.8); border: 1px solid rgba(148,163,184,0.2);
+  border-radius: 8px; padding: 7px 10px; color: #e2e8f0; font-size: 13px; font-family: ui-monospace, monospace;
+}
+.inp:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 10px rgba(34,211,238,0.2); }
+code { color: #67e8f9; }
+
+/* collapsible drawers */
+.drawer { max-height:0; overflow:hidden; transition:max-height .3s ease, opacity .2s ease; opacity:0; }
+.drawer.open { max-height:720px; opacity:1; }

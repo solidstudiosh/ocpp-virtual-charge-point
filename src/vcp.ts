@@ -21,6 +21,8 @@ import {
   validateOcppOutgoingResponse,
 } from "./schemaValidator";
 import { TransactionManager } from "./transactionManager";
+import { allProfiles } from "./v16/chargingProfileStore";
+import { allConfiguration, setConfiguration } from "./v16/configurationStore";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
 
 interface VCPOptions {
@@ -66,9 +68,23 @@ export class VCP {
           return c.text("OK");
         },
       );
+      // Expose the charge point's OCPP configuration (GetConfiguration semantics) so the
+      // cockpit can display/edit the values registered in the borne.
+      adminApi.get("/configuration", (c) => c.json(allConfiguration()));
+      // Active smart-charging profiles pushed by the CSMS (for the cockpit's power throttle).
+      adminApi.get("/chargingprofile", (c) => c.json(allProfiles()));
+      adminApi.post(
+        "/configuration",
+        zValidator("json", z.object({ key: z.string(), value: z.string() })),
+        (c) => {
+          const { key, value } = c.req.valid("json");
+          return c.json({ status: setConfiguration(key, value) });
+        },
+      );
       serve({
         fetch: adminApi.fetch,
         port: vcpOptions.adminPort,
+        hostname: "127.0.0.1", // local control plane only — never expose the admin API
       });
     }
   }

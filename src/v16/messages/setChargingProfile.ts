@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
+import { setProfile } from "../chargingProfileStore";
 import { ChargingProfileSchema, ConnectorIdSchema } from "./_common";
 
 const SetChargingProfileReqSchema = z.object({
@@ -22,6 +23,7 @@ class SetChargingProfileOcppMessage extends OcppIncoming<
     vcp: VCP,
     call: OcppCall<z.infer<SetChargingProfileReqType>>,
   ): Promise<void> => {
+    setProfile(call.payload.connectorId, call.payload.csChargingProfiles);
     vcp.respond(this.response(call, { status: "Accepted" }));
   };
 }

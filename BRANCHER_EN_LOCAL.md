@@ -130,6 +130,55 @@ Pour des actions initiées par la borne (Authorize, StartTransaction…), voir l
 
 ---
 
+## Cockpit (UI tout-en-un)
+
+Plutôt que les terminaux ci-dessus, un cockpit web orchestre tout depuis une seule page.
+
+```bash
+npm install        # première fois
+npm run cockpit    # → http://localhost:8080
+```
+
+Dans l'UI :
+1. Renseigner les dossiers `websocket/` et `platform/` (bouton 📁 = sélecteur natif zenity),
+   l'identity (`jasonborne`), la version OCPP, le `WS_URL`.
+2. **Tout lancer** → le cockpit spawn websocket (puma), rails, vite, sidekiq, le subscriber
+   `Ocpp::V<ver>::Ws.start`, puis la VCP en dernier.
+3. La borne s'anime en live (statut, kW/kWh, transaction), le flux OCPP défile, les pastilles
+   de santé (Redis / WebSocket / Rails / VCP) passent au vert.
+4. Boutons : transitions de statut, cycle de charge (Start/Meter/Stop), Déconnecter/Reconnecter.
+
+Le cockpit pilote la borne via son admin API (`POST :9999/execute`) et parse son stdout pour
+le live — aucun changement au code OCPP. Redis est supposé déjà up (juste pingé).
+Config persistée dans `cockpit/config.json` (git-ignoré). `Ctrl-C` coupe tous les enfants.
+
+> v2.0.1 : le cockpit câble la 2.0.1, mais le bridge `websocket/` force `ocpp1.6` — un patch
+> d'une ligne dans `middlewares/ocpp_backend.rb` est nécessaire pour la tester en local.
+
+Fichiers : `cockpit/server.ts` (Hono + SSE), `cockpit/services.ts` (orchestration process),
+`cockpit/logParser.ts` (parsing OCPP), `cockpit/chargeSession.ts` (moteur de charge),
+`cockpit/public/` (UI).
+
+### Charge réaliste (onglet Charge)
+- Sélecteur **connecteur** (EVSE 1 & 2) + **scénario** (carte/idTag, seedé) + **sliders live
+  Tension/Intensité**. Démarrer → session auto (montée → plateau → taper → **Stop auto** à
+  100 %), courbe dessinée en fond d'écran, MeterValues réalistes (conso/puissance/intensité L1-3)
+  qui nourrissent les graphs du dashboard. Baisser V/I à ~0 déclenche le *charge-end concern*
+  (mail) côté platform **sans** stopper la charge (arrêt manuel ou auto).
+- **Smart charging** : depuis le dashboard, applique un *current limit profile* à la borne →
+  la puissance simulée se plafonne en live (visible écran + graphs). Clear → repart.
+
+### Mode staging (bascule local ⇄ staging)
+Drawer **⚙ Config → Mode connexion = Staging**. La borne devient un **client WebSocket sortant**
+vers l'OCPP de staging — **pas de ngrok**. Renseigner :
+- `WS_URL staging` : `wss://…` (endpoint OCPP déployé de staging) ;
+- `Identity` : une borne réelle **safe** opérée sur staging ;
+- `Password` : basic-auth si requis.
+En staging, **aucun serveur local n'est lancé** (staging fournit platform/websocket/redis) ;
+sois sur le **VPN** si l'endpoint est privé. Le seed/scénarios restent **locaux uniquement**.
+
+---
+
 ## Mémo des fichiers de référence
 
 - VCP : `index_16.ts`, `src/vcp.ts` (connexion `ws://endpoint/CP_ID`, sous-protocole).

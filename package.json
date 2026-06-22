@@ -2,16 +2,22 @@
   "name": "ocpp-vcp-nodejs",
   "version": "0.0.1",
   "description": "Simple OCPP Virtual Charging Point",
+  "type": "module",
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
     "start": "./start.sh",
     "start:auto-restart": "AUTO_RESTART=true npm start",
+    "replay:16": "bun run index_replay_16.ts",
+    "replay:16:tui": "tsx index_replay_16_tui.ts",
+    "replay:16:tui:pick": "tsx index_replay_16_tui.ts --pick",
     "lint": "biome lint src",
     "format": "biome format src",
     "format:check": "biome ci --linter-enabled=false --organize-imports-enabled=false src",
-    "typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck src/**/*.ts",
+    "typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck --jsx react-jsx --module esnext --moduleResolution bundler src/**/*.ts $(find src -name '*.tsx' 2>/dev/null | tr '\\n' ' ') index_replay_16_tui.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "check": "npm run lint && npm run format:check && npm run typecheck"
   },
   "author": "Solidstudio",
@@ -24,6 +30,8 @@
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "hono": "^4.12.2",
+    "ink": "^5.2.1",
+    "react": "^18.3.1",
     "typescript": "^5.8.2",
     "uuid": "^10.0.0",
     "winston": "^3.17.0",
@@ -32,8 +40,15 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@js-temporal/polyfill": "^0.5.1",
+    "@types/react": "^18.3.29",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.0",
-    "tsx": "^4.19.3"
+    "ink-testing-library": "^4.0.0",
+    "tsx": "^4.19.3",
+    "vitest": "^2"
+  },
+  "volta": {
+    "node": "26.1.0"
   }
 }

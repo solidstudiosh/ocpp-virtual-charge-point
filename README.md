@@ -137,3 +137,76 @@ We encourage contributions through pull requests and follow the standard "fork-a
 8. Once your pull request has been reviewed and accepted, it will be merged into the original repository.
 
 When creating your pull request, please include a clear description of the changes you have made, and any relevant context or reasoning behind those changes.
+
+## Replay mode
+
+Replay historical OCPP 1.6 sessions captured as JSON files against a real CPMS.
+
+> Full user manual: [`docs/scenario-runner-manual.md`](docs/scenario-runner-manual.md).
+
+### Input format
+
+A per-station JSON file shaped as:
+
+```json
+{
+  "stationId": "CS_TEST_1",
+  "sessions": [
+    {
+      "connectorId": "1",
+      "startSignal": {"kind": "...", "timestamp": "..."},
+      "endSignal":   {"kind": "...", "timestamp": "..."},
+      "idTag": "...",
+      "windowStart": "...",
+      "windowEnd":   "...",
+      "messages": [
+        {"action": "StatusNotification", "messageType": "2", "body": { }}
+      ]
+    }
+  ]
+}
+```
+
+### Run
+
+```bash
+# plain log output
+WS_URL=wss://cpms.example.com/ocpp \
+PASSWORD=secret \
+bun run replay:16 path/to/CS_TEST_1.json
+
+# interactive Ink dashboard (same args)
+WS_URL=wss://cpms.example.com/ocpp \
+PASSWORD=secret \
+npm run replay:16:tui -- path/to/CS_TEST_1.json
+```
+
+### Behavior
+
+- Connects as `stationId` (or `CP_ID` override).
+- Sends synthetic `BootNotification` + `StatusNotification(Available)` once per run.
+- For each session: replays its messages back-to-back, substituting CPMS-assigned `transactionId` from `StartTransaction.conf` into downstream `MeterValues`/`StopTransaction`.
+- Synthesizes a `StopTransaction` per session (using `windowEnd` and the last MV energy reading) so transactions close.
+- Auto-rejects any server-initiated incoming message (`RemoteStartTransaction`, `Reset`, etc.) — replay is read-only.
+- On rejection (CallError, non-Accepted idTagInfo, timeout): logs to `data/replay-rejections.log` (JSONL) and skips to next session.
+- Per-station summary: `data/replay-runs.log`.
+
+### Multi-station orchestration
+
+```bash
+for f in /path/to/sessions_replay/*.json; do
+  bun run replay:16 "$f" || echo "run failed: $f"
+done
+```
+
+### Configuration (.env)
+
+| Var | Default |
+|---|---|
+| `WS_URL` | `ws://localhost:3000` |
+| `PASSWORD` | (none) |
+| `REPLAY_FILE` | (CLI arg) |
+| `CP_ID` | from JSON `stationId` |
+| `REPLAY_REJECTIONS_LOG` | `./data/replay-rejections.log` |
+| `REPLAY_RUNS_LOG` | `./data/replay-runs.log` |
+| `REPLAY_RESPONSE_TIMEOUT_MS` | `30000` |

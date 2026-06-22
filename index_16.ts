@@ -1,5 +1,4 @@
-require("dotenv").config();
-
+import "dotenv/config";
 import { OcppVersion } from "./src/ocppVersion";
 import { registerVcp } from "./src/close";
 import { bootNotificationOcppMessage } from "./src/v16/messages/bootNotification";

@@ -1,0 +1,28 @@
+{
+  "stationId": "TEST_STATION",
+  "sessions": [
+    {
+      "connectorId": "1",
+      "startSignal": { "kind": "Preparing", "timestamp": "2026-02-05T11:07:37Z" },
+      "endSignal":   { "kind": "StopTransaction", "timestamp": "2026-02-05T11:22:38Z" },
+      "idTag": "TAG1",
+      "windowStart": "2026-02-05T11:07:37Z",
+      "windowEnd":   "2026-02-05T11:22:38Z",
+      "messages": [
+        { "id": "1", "timestamp": "2026-02-05T11:08:01Z", "action": "StartTransaction",
+          "messageType": "2", "messageId": "m1", "idTag": "TAG1",
+          "body": { "connectorId": 1, "idTag": "TAG1", "meterStart": 33923, "timestamp": "2026-02-05T11:08:00Z" } },
+        { "id": "2", "timestamp": "2026-02-05T11:18:07Z", "action": "MeterValues",
+          "messageType": "2", "messageId": "m2", "idTag": "",
+          "body": {
+            "connectorId": 1, "transactionId": 90000001,
+            "meterValue": [ { "timestamp": "2026-02-05T11:18:00Z",
+              "sampledValue": [ { "value": "34500", "measurand": "Energy.Active.Import.Register", "unit": "Wh" } ] } ]
+          } },
+        { "id": "3", "timestamp": "2026-02-05T11:22:38Z", "action": "StopTransaction",
+          "messageType": "2", "messageId": "m3", "idTag": "TAG1",
+          "body": { "transactionId": 90000001, "meterStop": 99999, "idTag": "TAG1", "reason": "EVDisconnected", "timestamp": "2026-02-05T11:22:38Z" } }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,4 @@
-require("dotenv").config();
-
+import "dotenv/config";
 import { OcppVersion } from "./src/ocppVersion";
 import { bootNotificationOcppMessage } from "./src/v16/messages/bootNotification";
 import { statusNotificationOcppMessage } from "./src/v16/messages/statusNotification";

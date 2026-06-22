@@ -1,5 +1,4 @@
-require("dotenv").config();
-
+import "dotenv/config";
 import { registerVcp } from "./src/close";
 import { logger } from "./src/logger";
 import { OcppVersion } from "./src/ocppVersion";

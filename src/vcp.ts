@@ -30,6 +30,7 @@ interface VCPOptions {
   chargePointId: string;
   basicAuthPassword?: string;
   adminPort?: number;
+  messageHandlerOverride?: OcppMessageHandler;
 }
 
 interface LogEntry {
@@ -48,12 +49,32 @@ export class VCP {
 
   private isFinishing = false;
 
+  private pendingResponses: Map<
+    string,
+    {
+      resolve: (payload: unknown) => void;
+      reject: (
+        err:
+          | {
+              kind: "CallError";
+              code: string;
+              description: string;
+              details?: unknown;
+            }
+          | { kind: "Timeout" },
+      ) => void;
+      timer: ReturnType<typeof setTimeout>;
+    }
+  > = new Map();
+
   private postMessageActions: Record<string, () => void | Promise<void>> = {};
 
   transactionManager = new TransactionManager();
 
   constructor(private vcpOptions: VCPOptions) {
-    this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
+    this.messageHandler =
+      vcpOptions.messageHandlerOverride ??
+      resolveMessageHandler(vcpOptions.ocppVersion);
     if (vcpOptions.adminPort) {
       const adminApi = new Hono();
       adminApi.get("/health", (c) => c.text("OK"));
@@ -138,6 +159,36 @@ export class VCP {
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  sendAndAwait<T = any>(
+    // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+    ocppCall: OcppCall<any>,
+    opts: { timeoutMs: number },
+  ): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingResponses.delete(ocppCall.messageId);
+        reject({ kind: "Timeout" });
+      }, opts.timeoutMs);
+      this.pendingResponses.set(ocppCall.messageId, {
+        resolve: (p) => resolve(p as T),
+        reject,
+        timer,
+      });
+      try {
+        this.send(ocppCall);
+      } catch (err) {
+        const entry = this.pendingResponses.get(ocppCall.messageId);
+        if (entry) {
+          clearTimeout(entry.timer);
+          this.pendingResponses.delete(ocppCall.messageId);
+        }
+        reject({ kind: "Timeout" });
+        throw err;
+      }
+    });
+  }
+
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   respond(result: OcppCallResult<any>) {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
@@ -188,6 +239,11 @@ export class VCP {
       clearInterval(this.heartbeatIntervalId);
       this.heartbeatIntervalId = undefined;
     }
+    for (const entry of Array.from(this.pendingResponses.values())) {
+      clearTimeout(entry.timer);
+      entry.reject({ kind: "Timeout" });
+    }
+    this.pendingResponses.clear();
     this.ws.close();
     this.ws = undefined;
     if (this.adminServer) {
@@ -286,14 +342,33 @@ export class VCP {
         payload,
         action: enqueuedCall.action,
       });
+      const pending = this.pendingResponses.get(messageId);
+      if (pending) {
+        clearTimeout(pending.timer);
+        this.pendingResponses.delete(messageId);
+        pending.resolve(payload);
+      }
     } else if (type === 4) {
       const [messageId, errorCode, errorDescription, errorDetails] = rest;
+      // Consume outbox so callers can correlate (fixes prior leak).
+      ocppOutbox.get(messageId);
       this.messageHandler.handleCallError(this, {
         messageId,
         errorCode,
         errorDescription,
         errorDetails,
       });
+      const pending = this.pendingResponses.get(messageId);
+      if (pending) {
+        clearTimeout(pending.timer);
+        this.pendingResponses.delete(messageId);
+        pending.reject({
+          kind: "CallError",
+          code: errorCode,
+          description: errorDescription,
+          details: errorDetails,
+        });
+      }
     } else {
       throw new Error(`Unrecognized message type ${type}`);
     }

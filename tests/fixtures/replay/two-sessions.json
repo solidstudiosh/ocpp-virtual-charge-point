@@ -1,0 +1,47 @@
+{
+  "stationId": "TEST_TWO",
+  "sessions": [
+    {
+      "connectorId": "1",
+      "startSignal": { "kind": "Preparing", "timestamp": "2026-02-05T11:00:00Z" },
+      "endSignal":   { "kind": "Finishing", "timestamp": "2026-02-05T11:10:00Z" },
+      "idTag": "TAG1",
+      "windowStart": "2026-02-05T11:00:00Z",
+      "windowEnd":   "2026-02-05T11:10:00Z",
+      "messages": [
+        { "id": "1", "timestamp": "2026-02-05T11:00:01Z", "action": "StatusNotification",
+          "messageType": "2", "messageId": "m1-1", "idTag": "",
+          "body": { "connectorId": 1, "status": "Preparing", "errorCode": "NoError" } },
+        { "id": "2", "timestamp": "2026-02-05T11:00:02Z", "action": "StartTransaction",
+          "messageType": "2", "messageId": "m1-2", "idTag": "TAG1",
+          "body": { "connectorId": 1, "idTag": "TAG1", "meterStart": 1000, "timestamp": "2026-02-05T11:00:02Z" } },
+        { "id": "3", "timestamp": "2026-02-05T11:05:00Z", "action": "MeterValues",
+          "messageType": "2", "messageId": "m1-3", "idTag": "",
+          "body": { "connectorId": 1, "transactionId": -1,
+            "meterValue": [ { "timestamp": "2026-02-05T11:05:00Z",
+              "sampledValue": [ { "value": "1500", "measurand": "Energy.Active.Import.Register", "unit": "Wh" } ] } ] } }
+      ]
+    },
+    {
+      "connectorId": "2",
+      "startSignal": { "kind": "Preparing", "timestamp": "2026-02-05T12:00:00Z" },
+      "endSignal":   { "kind": "Finishing", "timestamp": "2026-02-05T12:10:00Z" },
+      "idTag": "TAG2",
+      "windowStart": "2026-02-05T12:00:00Z",
+      "windowEnd":   "2026-02-05T12:10:00Z",
+      "messages": [
+        { "id": "1", "timestamp": "2026-02-05T12:00:01Z", "action": "StatusNotification",
+          "messageType": "2", "messageId": "m2-1", "idTag": "",
+          "body": { "connectorId": 2, "status": "Preparing", "errorCode": "NoError" } },
+        { "id": "2", "timestamp": "2026-02-05T12:00:02Z", "action": "StartTransaction",
+          "messageType": "2", "messageId": "m2-2", "idTag": "TAG2",
+          "body": { "connectorId": 2, "idTag": "TAG2", "meterStart": 2000, "timestamp": "2026-02-05T12:00:02Z" } },
+        { "id": "3", "timestamp": "2026-02-05T12:05:00Z", "action": "MeterValues",
+          "messageType": "2", "messageId": "m2-3", "idTag": "",
+          "body": { "connectorId": 2, "transactionId": -1,
+            "meterValue": [ { "timestamp": "2026-02-05T12:05:00Z",
+              "sampledValue": [ { "value": "2500", "measurand": "Energy.Active.Import.Register", "unit": "Wh" } ] } ] } }
+      ]
+    }
+  ]
+}

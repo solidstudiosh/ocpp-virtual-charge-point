@@ -1,5 +1,4 @@
-require("dotenv").config();
-
+import "dotenv/config";
 import type { OcppCall } from "../src/ocppMessage";
 
 const adminPort = process.env.ADMIN_PORT ?? "9999";

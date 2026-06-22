@@ -1,0 +1,31 @@
+{
+  "stationId": "TEST_STATION_R",
+  "sessions": [
+    {
+      "connectorId": "1",
+      "startSignal": { "kind": "Preparing", "timestamp": "2026-02-05T10:00:00Z" },
+      "endSignal":   { "kind": "Finishing",  "timestamp": "2026-02-05T10:30:00Z" },
+      "idTag": "BAD",
+      "windowStart": "2026-02-05T10:00:00Z",
+      "windowEnd":   "2026-02-05T10:30:00Z",
+      "messages": [
+        { "id": "1", "timestamp": "2026-02-05T10:00:01Z", "action": "StartTransaction",
+          "messageType": "2", "messageId": "m1", "idTag": "BAD",
+          "body": { "connectorId": 1, "idTag": "BAD", "meterStart": 0, "timestamp": "2026-02-05T10:00:00Z" } }
+      ]
+    },
+    {
+      "connectorId": "1",
+      "startSignal": { "kind": "Preparing", "timestamp": "2026-02-05T11:00:00Z" },
+      "endSignal":   { "kind": "Finishing",  "timestamp": "2026-02-05T11:30:00Z" },
+      "idTag": "GOOD",
+      "windowStart": "2026-02-05T11:00:00Z",
+      "windowEnd":   "2026-02-05T11:30:00Z",
+      "messages": [
+        { "id": "1", "timestamp": "2026-02-05T11:00:01Z", "action": "StartTransaction",
+          "messageType": "2", "messageId": "m1", "idTag": "GOOD",
+          "body": { "connectorId": 1, "idTag": "GOOD", "meterStart": 0, "timestamp": "2026-02-05T11:00:00Z" } }
+      ]
+    }
+  ]
+}

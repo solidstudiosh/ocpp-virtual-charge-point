@@ -61,4 +61,6 @@ code { color: #67e8f9; }
 
 /* collapsible drawers */
 .drawer { max-height:0; overflow:hidden; transition:max-height .3s ease, opacity .2s ease; opacity:0; }
-.drawer.open { max-height:720px; opacity:1; }
+/* Open: cap high enough for the tallest state (config drawer + staging fields) and scroll
+   instead of clipping, so the Save button is always reachable. */
+.drawer.open { max-height:1100px; overflow-y:auto; opacity:1; }

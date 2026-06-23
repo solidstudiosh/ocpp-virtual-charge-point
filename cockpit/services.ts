@@ -52,20 +52,19 @@ export interface Scenario {
   id: string;
   label: string;
   idTag: string;
-  expected: "accepted" | "blocked";
+  expected: "accepted" | "blocked" | "unknown";
   note?: string;
 }
 
-// Fallback list (matches cockpit/seeds/charge_scenarios.rb) so the UI works before/without the seed.
+// Fallback list (matches cockpit/seeds/charge_scenarios.rb) so the UI works before/without the
+// seed. The Mobilypass scenarios resolve their idTag from the seed; until then only SIMTAG is sure.
 export const DEFAULT_SCENARIOS: Scenario[] = [
-  { id: "whitelist", label: "Tag whitelist (SIMTAG)", idTag: "SIMTAG", expected: "accepted",
-    note: "Tag whitelist accepté sans carte sur station privée." },
-  { id: "mobilypass", label: "Mobilypass + customer", idTag: "FACECAFE01", expected: "accepted",
-    note: "Nécessite le seed (carte + customer Stripe test)." },
-  { id: "owner", label: "Carte propriétaire du site", idTag: "0FF1CE5501", expected: "accepted",
-    note: "Nécessite le seed (carte du site owner, sans Stripe)." },
-  { id: "foreign", label: "Carte externe inconnue", idTag: "DEADBEEF01", expected: "blocked",
-    note: "Carte pas de chez nous → refusée sur station privée." },
+  { id: "js", label: "JS — Mobilypass", idTag: "", expected: "unknown",
+    note: "Résolu par le seed (faurejs@gmail.com)." },
+  { id: "max", label: "Max — Mobilypass", idTag: "", expected: "unknown",
+    note: "Résolu par le seed (mbrachet@mobilygreen.fr)." },
+  { id: "whitelist", label: "SIMTAG — whitelist", idTag: "SIMTAG", expected: "accepted",
+    note: "Tag whitelist accepté sans carte sur station privée commissionnée." },
 ];
 
 interface ServiceDef {
@@ -214,6 +213,7 @@ export class ServiceManager extends EventEmitter {
     this.charge = new ChargeSessionManager(chargeCfg);
     this.charge.on("session", (v) => this.emit("session", v));
     this.charge.on("receipt", (r) => this.emit("receipt", r));
+    this.charge.on("notice", (n) => this.emit("notice", n));
   }
 
   setConfig(cfg: CockpitConfig) {
@@ -222,6 +222,11 @@ export class ServiceManager extends EventEmitter {
 
   getConfig(): CockpitConfig {
     return this.cfg;
+  }
+
+  isRunning(name: ServiceName): boolean {
+    const rt = this.runtimes.get(name);
+    return !!rt?.child && (rt.status === "running" || rt.status === "starting");
   }
 
   private now(): string {

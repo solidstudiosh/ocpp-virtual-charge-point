@@ -39,6 +39,7 @@ manager.on("borne", (b) => broadcast("borne", b));
 manager.on("scenarios", (s) => broadcast("scenarios", s));
 manager.on("session", (s) => broadcast("session", s));
 manager.on("receipt", (r) => broadcast("receipt", r));
+manager.on("notice", (n) => broadcast("notice", n));
 
 // --- static ---
 const MIME: Record<string, string> = {
@@ -102,6 +103,16 @@ app.post("/api/config", async (c) => {
   saveConfig(next);
   broadcast("config", next);
   broadcast("services", manager.allStates()); // configurable flags depend on paths
+  // The borne's endpoint (local vs staging) is frozen at spawn time. If a connection-relevant
+  // field changed while the VCP is running, restart it so the live borne matches the selected
+  // mode — otherwise the UI mode and the real connection silently desync.
+  const connKeys = (c: CockpitConfig) =>
+    JSON.stringify([c.mode, c.wsUrl, c.identity, c.ocppVersion, c.adminPort, c.staging]);
+  if (connKeys(prev) !== connKeys(next) && manager.isRunning("vcp")) {
+    manager.reconnectVcp().then(() => {
+      broadcast("notice", { kind: "info", message: `Borne reconnectée en mode ${next.mode}` });
+    });
+  }
   // Run the seed once the platform folder becomes known/changes (boot seed can't have run yet).
   if (next.platformPath && (!hadPlatform || prev.platformPath !== next.platformPath)) {
     manager.runSeed().then((r) => console.log(`  🌱 seed (après config): ${r.ok ? "ok" : "échec/partiel"}`));
@@ -190,11 +201,8 @@ app.post("/api/charge/:connector/start", async (c) => {
   return c.json(await manager.charge.start(Number(c.req.param("connector")), idTag));
 });
 app.post("/api/charge/:connector/stop", async (c) => c.json(await manager.charge.stop(Number(c.req.param("connector")))));
-app.post("/api/charge/:connector/params", async (c) => {
-  const body = (await c.req.json().catch(() => ({}))) as { voltage?: number; current?: number };
-  manager.charge.setParams(Number(c.req.param("connector")), body);
-  return c.json({ ok: true });
-});
+// Safety net: stop whatever connector is actually charging (UI "Arrêter" fallback).
+app.post("/api/charge/stop-active", async (c) => c.json(await manager.charge.stopActive()));
 
 // --- scenarios / seed ---
 app.get("/api/scenarios", (c) => c.json(manager.scenarios));

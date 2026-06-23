@@ -19,15 +19,22 @@ export interface OcppEvent {
   ts: string;
 }
 
+export interface ConnectorState {
+  status: string; // last connector status (Available/Charging/Faulted/...)
+  charging: boolean;
+}
+
 export interface BorneState {
-  status: string; // connector status (Available/Charging/Faulted/...)
+  status: string; // last status seen (any connector) — kept for backward compat / fallback
   connectorId: number | null;
   transactionId: string | number | null;
   charging: boolean;
   powerKw: number | null;
   energyKwh: number | null;
   lastBoot: string | null;
+  lastReset: string | null;
   lastUpdate: string | null;
+  connectors: Record<number, ConnectorState>; // per-PDC status (multi-connector aware)
 }
 
 export function initialBorneState(): BorneState {
@@ -39,7 +46,9 @@ export function initialBorneState(): BorneState {
     powerKw: null,
     energyKwh: null,
     lastBoot: null,
+    lastReset: null,
     lastUpdate: null,
+    connectors: {},
   };
 }
 
@@ -118,6 +127,16 @@ function readMeter(payload: any): { powerKw: number | null; energyKwh: number | 
 }
 
 // Mutate borne state from an OCPP event. Handles both v1.6 and v2.0.1 shapes.
+// Record a status against a specific connector (and mirror it to the global fields).
+function setConnectorStatus(state: BorneState, connectorId: number | null | undefined, status: string) {
+  state.status = status;
+  state.charging = status === "Charging" || status === "Occupied";
+  if (connectorId != null) {
+    state.connectorId = connectorId;
+    state.connectors[connectorId] = { status, charging: state.charging };
+  }
+}
+
 export function applyToBorne(state: BorneState, ev: OcppEvent): BorneState {
   state.lastUpdate = ev.ts;
   const p = ev.payload as any;
@@ -127,25 +146,35 @@ export function applyToBorne(state: BorneState, ev: OcppEvent): BorneState {
       case "BootNotification":
         state.lastBoot = ev.ts;
         break;
+      case "Reset": {
+        // Soft/hard reset from the CSMS is charge-point-wide (no connectorId) — flag every PDC.
+        state.lastReset = ev.ts;
+        for (const id of Object.keys(state.connectors)) {
+          state.connectors[Number(id)] = { status: "Unavailable", charging: false };
+        }
+        state.status = "Unavailable";
+        state.charging = false;
+        break;
+      }
       case "StatusNotification": {
         // v16: {connectorId, status}; v201: {evseId, connectorId, connectorStatus}
         const status = p?.status ?? p?.connectorStatus;
-        if (status) state.status = status;
-        if (p?.connectorId != null) state.connectorId = p.connectorId;
-        state.charging = status === "Charging" || status === "Occupied";
+        if (status) setConnectorStatus(state, p?.connectorId ?? p?.evseId, status);
         break;
       }
       case "StartTransaction": {
-        state.charging = true;
-        state.status = "Charging";
-        if (p?.connectorId != null) state.connectorId = p.connectorId;
+        setConnectorStatus(state, p?.connectorId, "Charging");
         break;
       }
       case "StopTransaction": {
-        state.charging = false;
-        state.status = "Available";
         state.transactionId = null;
         state.powerKw = 0;
+        // StopTransaction carries no connectorId — clear whichever connector was charging.
+        for (const id of Object.keys(state.connectors)) {
+          if (state.connectors[Number(id)].charging) state.connectors[Number(id)] = { status: "Available", charging: false };
+        }
+        state.status = "Available";
+        state.charging = false;
         break;
       }
       case "MeterValues": {
@@ -161,15 +190,15 @@ export function applyToBorne(state: BorneState, ev: OcppEvent): BorneState {
         if (p?.transactionInfo?.transactionId != null) {
           state.transactionId = p.transactionInfo.transactionId;
         }
-        if (p?.evse?.id != null) state.connectorId = p.evse.id;
+        const evseId = p?.evse?.id ?? null;
         if (evType === "Started") {
-          state.charging = true;
-          state.status = "Charging";
+          setConnectorStatus(state, evseId, "Charging");
         } else if (evType === "Ended") {
-          state.charging = false;
-          state.status = "Available";
+          setConnectorStatus(state, evseId, "Available");
           state.transactionId = null;
           state.powerKw = 0;
+        } else if (evseId != null) {
+          state.connectorId = evseId;
         }
         const m = readMeter(p);
         if (m.powerKw !== null) state.powerKw = m.powerKw;

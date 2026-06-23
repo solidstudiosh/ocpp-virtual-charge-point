@@ -33,10 +33,10 @@ function renderConfig() {
   $("#cfg-staging-wsUrl").value = config.staging?.wsUrl ?? "";
   $("#cfg-staging-identity").value = config.staging?.identity ?? "";
   $("#cfg-staging-password").value = config.staging?.password ?? "";
-  $("#borne-identity").textContent = config.identity || "—";
-  $("#v201-warning").classList.toggle("hidden", isV16());
   // config screen view (reflects active mode)
   const staging = config.mode === "staging";
+  $("#borne-identity").textContent = (staging ? config.staging?.identity : config.identity) || "—";
+  $("#v201-warning").classList.toggle("hidden", isV16());
   $("#scr-identity").textContent = (staging ? config.staging?.identity : config.identity) || "—";
   $("#scr-version").textContent = isV16() ? "1.6" : "2.0.1";
   $("#scr-endpoint").textContent = staging
@@ -56,7 +56,8 @@ function renderScenarios() {
     const o = document.createElement("option");
     o.value = s.idTag;
     o.textContent = s.label;
-    if (s.idTag === cur) o.selected = true;
+    o.disabled = !s.idTag; // unresolved scenarios (no card found) can't be selected
+    if (s.idTag && s.idTag === cur) o.selected = true;
     sel.appendChild(o);
   }
   updateScenarioHint();
@@ -68,8 +69,9 @@ function updateScenarioHint() {
   const s = scenarios.find((x) => x.idTag === sel.value);
   if (!s) { hint.textContent = ""; return; }
   const ok = s.expected === "accepted";
-  hint.style.color = ok ? "#34d399" : "#f87171";
-  hint.textContent = `${ok ? "✓ attendu : accepté" : "✕ attendu : refusé"} — ${s.note ?? ""}`;
+  hint.style.color = ok ? "#34d399" : s.expected === "unknown" ? "#fbbf24" : "#f87171";
+  const tag = ok ? "✓ attendu : accepté" : s.expected === "unknown" ? "⚠ indisponible" : "✕ attendu : refusé";
+  hint.textContent = `${tag} — ${s.note ?? ""}`;
 }
 
 function renderStatusButtons() {
@@ -187,22 +189,15 @@ function selectConnector(i) {
   selectedConnector = i;
   renderEvseToggle();
   renderBorneView();
-  syncSliders();
-}
-
-function syncSliders() {
-  const sess = sessions[selectedConnector];
-  const v = sess?.voltage ?? config?.voltage ?? 230;
-  const a = sess?.current ?? config?.current ?? 32;
-  $("#v-slider").value = v; $("#v-val").textContent = v;
-  $("#a-slider").value = a; $("#a-val").textContent = a;
 }
 
 function renderBorneView() {
   const unit = $("#borne-unit");
   const sess = activeSession(selectedConnector);
-  // pick display source: live session on the selected connector, else global borne
-  const status = sess ? (SESS_STATUS[sess.state] ?? "—") : (borne.status || "UNKNOWN");
+  // pick display source: live engine session on the selected connector, else THIS connector's
+  // last wire status (per-PDC), else the global borne status as a last resort.
+  const connStatus = borne.connectors?.[selectedConnector]?.status;
+  const status = sess ? (SESS_STATUS[sess.state] ?? "—") : (connStatus || borne.status || "UNKNOWN");
   const powerKw = sess ? sess.powerKw : borne.powerKw;
   const energyKwh = sess ? sess.energyKwh : borne.energyKwh;
   const tx = sess ? sess.transactionId : borne.transactionId;
@@ -238,9 +233,14 @@ function renderBorneView() {
   }
   // charge buttons reflect the state machine
   const idle = !sess;
+  const handshaking = sess && (sess.state === "preparing" || sess.state === "authorizing");
   const startBtn = $('[data-charge="start"]'), stopBtn = $('[data-charge="stop"]');
   if (startBtn) startBtn.disabled = !idle;
-  if (stopBtn) stopBtn.disabled = idle || sess.state === "finishing";
+  if (stopBtn) {
+    stopBtn.disabled = idle || sess.state === "finishing";
+    // during the handshake the action is a cancel, not a charge stop
+    stopBtn.textContent = handshaking ? "✖ Annuler" : "⏹ Arrêter";
+  }
   drawCurve(sessions[selectedConnector]?.samples ?? []);
 }
 
@@ -325,21 +325,10 @@ async function startCharge() {
   if (!res.ok) toast(`Charge EVSE ${c} : ${res.reason ?? "refusée"}`, true);
 }
 async function stopCharge() {
-  await api(`/api/charge/${selectedConnector}/stop`, { method: "POST" }).catch(() => {});
-}
-let paramsTimer = null;
-function pushParams() {
-  const c = selectedConnector;
-  const voltage = Number($("#v-slider").value);
-  const current = Number($("#a-slider").value);
-  $("#v-val").textContent = voltage;
-  $("#a-val").textContent = current;
-  clearTimeout(paramsTimer);
-  paramsTimer = setTimeout(() => {
-    api(`/api/charge/${c}/params`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ voltage, current }),
-    }).catch(() => {});
-  }, 120);
+  // Try the selected connector; if it has no active charge, stop whatever is actually charging.
+  let res = await api(`/api/charge/${selectedConnector}/stop`, { method: "POST" }).catch(() => ({ ok: false }));
+  if (!res.ok) res = await api(`/api/charge/stop-active`, { method: "POST" }).catch(() => ({ ok: false }));
+  if (!res.ok) toast("Aucune charge active à arrêter", true);
 }
 function onSession(view) {
   sessions[view.connectorId] = view;
@@ -502,8 +491,6 @@ function bindControls() {
 
   document.querySelectorAll("[data-charge]").forEach((b) =>
     (b.onclick = () => (b.dataset.charge === "start" ? startCharge() : stopCharge())));
-  $("#v-slider").oninput = pushParams;
-  $("#a-slider").oninput = pushParams;
   document.querySelectorAll("[data-conn]").forEach((b) => (b.onclick = async () => {
     if (b.dataset.conn === "disconnect") await api("/api/services/vcp/stop", { method: "POST" });
     else await api("/api/vcp/reconnect", { method: "POST" });
@@ -556,7 +543,7 @@ function connectSSE() {
     sessions = {};
     for (const s of d.sessions || []) sessions[s.connectorId] = s;
     renderConfig(); renderStatusChips(); renderServices();
-    renderEvseToggle(); syncSliders(); renderBorneView();
+    renderEvseToggle(); renderBorneView();
   });
   es.addEventListener("scenarios", (e) => { scenarios = JSON.parse(e.data); renderScenarios(); });
   es.addEventListener("services", (e) => { services = JSON.parse(e.data); renderStatusChips(); renderServices(); });
@@ -567,6 +554,7 @@ function connectSSE() {
   es.addEventListener("session", (e) => onSession(JSON.parse(e.data)));
   es.addEventListener("receipt", (e) => showReceipt(JSON.parse(e.data)));
   es.addEventListener("config", (e) => { config = JSON.parse(e.data); renderConfig(); renderEvseToggle(); });
+  es.addEventListener("notice", (e) => { const n = JSON.parse(e.data); toast(n.message, n.kind === "error"); });
   es.onerror = () => {/* browser auto-reconnects */};
 }
 

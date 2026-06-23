@@ -1,5 +1,5 @@
 /* borne.css — the charge-point unit: card, head, screen + per-tab views, gauges, curve,
-   EVSE selector, sliders, receipt, control panel, state-driven accents. */
+   EVSE selector, receipt, control panel, state-driven accents. */
 
 .borne-card {
   --accent: var(--cyan);
@@ -96,12 +96,6 @@
 .evse-dot { width:7px; height:7px; border-radius:50%; background:#475569; }
 .evse-pill[data-state="charging"] .evse-dot { background:var(--green); box-shadow:0 0 7px var(--green); animation:pulse 1.2s infinite; }
 .evse-pill[data-state="busy"] .evse-dot { background:var(--amber); box-shadow:0 0 7px var(--amber); }
-
-/* live V/A sliders */
-.slider { display:flex; flex-direction:column; gap:5px; font-family:ui-monospace,monospace; font-size:10px;
-  letter-spacing:0.12em; color:#5b6b85; }
-.slider b { color:var(--accent); }
-.slider input[type="range"] { width:100%; accent-color:var(--accent); cursor:pointer; }
 
 /* end-of-charge receipt overlay */
 .receipt { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; gap:12px;

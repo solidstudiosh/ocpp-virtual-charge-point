@@ -113,7 +113,7 @@
                 <option value="OCPP_2.0.1">OCPP 2.0.1</option>
               </select>
             </div>
-            <div class="field"><label>WS_URL</label><input id="cfg-wsUrl" class="inp" /></div>
+            <div class="field"><label>WS_URL</label><input id="cfg-wsUrl" class="inp" placeholder="ws://localhost:3334" /></div>
             <div class="field"><label>Admin port</label><input id="cfg-adminPort" class="inp" type="number" /></div>
             <div class="field"><label>Connecteurs</label><input id="cfg-connectors" class="inp" type="number" min="1" max="4" /></div>
             <div class="field"><label>Durée charge sim (s)</label><input id="cfg-sessionFullSeconds" class="inp" type="number" min="20" /></div>
@@ -248,14 +248,6 @@
             <div class="ctrl-label">SCÉNARIO DE CHARGE (idTag) — EVSE <span id="charge-evse" class="text-cyan-300">1</span></div>
             <select id="charge-scenario" class="inp mb-1"></select>
             <div id="scenario-hint" class="text-[10px] font-mono mb-2 min-h-[14px]"></div>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-              <label class="slider">Tension <b><span id="v-val">230</span> V</b>
-                <input id="v-slider" type="range" min="0" max="400" step="5" value="230" />
-              </label>
-              <label class="slider">Intensité <b><span id="a-val">32</span> A</b>
-                <input id="a-slider" type="range" min="0" max="63" step="1" value="32" />
-              </label>
-            </div>
             <div class="grid grid-cols-2 gap-2">
               <button class="kbtn kbtn-go" data-charge="start">▶ Démarrer</button>
               <button class="kbtn kbtn-warn" data-charge="stop">⏹ Arrêter</button>

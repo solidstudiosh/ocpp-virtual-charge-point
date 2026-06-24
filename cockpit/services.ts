@@ -409,6 +409,16 @@ export class ServiceManager extends EventEmitter {
     this.emit("ocpp", ev);
     // Feed inbound CALLRESULTs to the charge engine (captures StartTransaction transactionId).
     if (ev.direction === "in" && ev.messageType === 3) this.charge.onOcppResult(ev.payload);
+    // Remote stop from the CSMS: the VCP closes the transaction itself, so halt the local charge
+    // engine (its tick loop keeps emitting MeterValues otherwise) without re-sending OCPP messages.
+    if (
+      ev.direction === "in" &&
+      ev.messageType === 2 &&
+      (ev.action === "RemoteStopTransaction" || ev.action === "RequestStopTransaction")
+    ) {
+      const txId = (ev.payload as { transactionId?: string | number })?.transactionId ?? null;
+      this.charge.remoteStopped(txId).catch(() => {});
+    }
     applyToBorne(this.borne, ev);
     this.emit("borne", this.borne);
   }

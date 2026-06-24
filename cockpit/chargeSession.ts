@@ -302,7 +302,9 @@ export class ChargeSessionManager extends EventEmitter {
   // Stop a connector from ANY active state: a real charge (charging/finishing) is closed with a
   // StopTransaction + receipt; an in-flight handshake (preparing/authorizing) is simply aborted.
   // Always reachable so a connector can never stay stuck.
-  async stop(connectorId: number): Promise<{ ok: boolean; reason?: string }> {
+  // `silent`: the VCP already emitted StopTransaction + StatusNotification (remote stop from the
+  // CSMS), so close the local session and produce a receipt WITHOUT re-sending any OCPP message.
+  async stop(connectorId: number, opts: { silent?: boolean } = {}): Promise<{ ok: boolean; reason?: string }> {
     const s = this.sessions.get(connectorId);
     if (!s || s.state === "idle") return { ok: false, reason: "aucune charge en cours" };
     const hadTransaction = s.state === "charging" || s.state === "finishing";
@@ -313,10 +315,12 @@ export class ChargeSessionManager extends EventEmitter {
 
     let receipt: Receipt | null = null;
     if (hadTransaction) {
-      await this.send("StopTransaction", {
-        transactionId: s.transactionId ?? 0, idTag: s.idTag ?? undefined,
-        meterStop: Math.round(s.energyWh), timestamp: this.nowIso(),
-      });
+      if (!opts.silent) {
+        await this.send("StopTransaction", {
+          transactionId: s.transactionId ?? 0, idTag: s.idTag ?? undefined,
+          meterStop: Math.round(s.energyWh), timestamp: this.nowIso(),
+        });
+      }
       receipt = {
         connectorId,
         transactionId: s.transactionId,
@@ -326,14 +330,36 @@ export class ChargeSessionManager extends EventEmitter {
         peakKw: Number(s.peakKw.toFixed(2)),
         ts: this.nowIso(),
       };
-      await this.send("StatusNotification", { connectorId, errorCode: "NoError", status: "Finishing", timestamp: this.nowIso() });
+      if (!opts.silent) {
+        await this.send("StatusNotification", { connectorId, errorCode: "NoError", status: "Finishing", timestamp: this.nowIso() });
+      }
     }
-    await this.send("StatusNotification", { connectorId, errorCode: "NoError", status: "Available", timestamp: this.nowIso() });
+    if (!opts.silent) {
+      await this.send("StatusNotification", { connectorId, errorCode: "NoError", status: "Available", timestamp: this.nowIso() });
+    }
 
     Object.assign(s, this.blank(connectorId));
     this.emitSession(s);
     if (receipt) this.emit("receipt", receipt);
     return { ok: true };
+  }
+
+  // A CSMS RemoteStopTransaction (v16) / RequestStopTransaction (v201) reached the VCP, which
+  // closes the transaction on its side. Stop the matching local session SILENTLY so the tick loop
+  // halts and a receipt is produced — without re-emitting StopTransaction (the VCP already did).
+  async remoteStopped(transactionId: string | number | null | undefined): Promise<{ ok: boolean }> {
+    const active = Array.from(this.sessions.values()).filter(
+      (s) => s.state === "charging" || s.state === "finishing",
+    );
+    if (active.length === 0) return { ok: false };
+    let target =
+      transactionId != null
+        ? active.find((s) => s.transactionId != null && String(s.transactionId) === String(transactionId))
+        : undefined;
+    // Fallback: a single active charge is unambiguously the one being stopped.
+    if (!target && active.length === 1) target = active[0];
+    if (!target) return { ok: false };
+    return this.stop(target.connectorId, { silent: true });
   }
 
   // Stop every connector that is in any active state — the "Arrêter" safety net so the

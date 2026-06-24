@@ -60,15 +60,16 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
           transactionId: transactionId,
         },
         evse: {
-          id: 1,
-          connectorId: 1,
+          id: transaction.evseId ?? 1,
+          connectorId: transaction.connectorId,
         },
         meterValue: [
           {
             timestamp: new Date().toISOString(),
             sampledValue: [
               {
-                value: vcp.transactionManager.getMeterValue(transactionId),
+                value:
+                  vcp.transactionManager.getMeterValue(transactionId) / 1000,
                 signedMeterValue: {
                   signedMeterData: Buffer.from(ocmf).toString("base64"),
                   signingMethod: "", // Already included in the signedMeterData
@@ -84,8 +85,8 @@ class RequestStopTransactionOcppIncoming extends OcppIncoming<
     );
     vcp.send(
       statusNotificationOcppOutgoing.request({
-        evseId: 1,
-        connectorId: 1,
+        evseId: transaction.evseId ?? 1,
+        connectorId: transaction.connectorId,
         connectorStatus: "Available",
         timestamp: new Date().toISOString(),
       }),

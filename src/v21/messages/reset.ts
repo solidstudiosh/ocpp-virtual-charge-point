@@ -3,6 +3,8 @@ import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import { delay } from "../../utils";
 import type { VCP } from "../../vcp";
 import { StatusInfoTypeSchema } from "./_common";
+import { logger } from "../../logger";
+import { close } from "../../close";
 
 const ResetReqSchema = z.object({
   type: z.enum(["Immediate", "OnIdle", "ImmediateAndResume"]),
@@ -22,8 +24,10 @@ class ResetOcppIncoming extends OcppIncoming<ResetReqType, ResetResType> {
     call: OcppCall<z.infer<ResetReqType>>,
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
+    logger.info("Waiting for 3 seconds to close VCP...");
     await delay(3_000);
-    process.exit(1);
+    logger.info("Closing VCP");
+    close(vcp);
   };
 }
 

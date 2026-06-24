@@ -24,7 +24,7 @@ interface StartTransactionProps {
 export class TransactionManager {
   transactions: Map<
     TransactionId,
-    TransactionState & { meterValuesTimer: NodeJS.Timer }
+    TransactionState & { meterValuesTimer: ReturnType<typeof setInterval> }
   > = new Map();
 
   canStartNewTransaction(connectorId: number) {

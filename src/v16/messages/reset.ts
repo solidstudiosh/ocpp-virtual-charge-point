@@ -2,6 +2,8 @@ import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import { delay } from "../../utils";
 import type { VCP } from "../../vcp";
+import { logger } from "../../logger";
+import { close } from "../../close";
 
 const ResetReqSchema = z.object({
   type: z.enum(["Hard", "Soft"]),
@@ -19,10 +21,10 @@ class ResetOcppMessage extends OcppIncoming<ResetReqType, ResetResType> {
     call: OcppCall<z.infer<ResetReqType>>,
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
-    if (call.payload.type === "Hard") {
-      await delay(3_000);
-      vcp.close();
-    }
+    logger.info("Waiting for 3 seconds to close VCP...");
+    await delay(3_000);
+    logger.info("Closing VCP");
+    close(vcp);
   };
 }
 

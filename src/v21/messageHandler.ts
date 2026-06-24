@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { logger } from "../logger";
 import type {
   OcppCall,
   OcppCallError,
@@ -14,6 +15,7 @@ import { authorizeOcppOutgoing } from "./messages/authorize";
 import { batterySwapOcppOutgoing } from "./messages/batterySwap";
 import { bootNotificationOcppOutgoing } from "./messages/bootNotification";
 import { certificateSignedOcppIncoming } from "./messages/certificateSigned";
+import { cancelReservationOcppIncoming } from "./messages/cancelReservation";
 import { changeAvailabilityOcppIncoming } from "./messages/changeAvailability";
 import { changeTransactionTariffOcppIncoming } from "./messages/changeTransactionTariff";
 import { clearCacheOcppIncoming } from "./messages/clearCache";
@@ -111,7 +113,7 @@ export const ocppIncomingMessages: {
 } = {
   AdjustPeriodicEventStream: adjustPeriodicEventStreamOcppIncoming,
   AFRRSignal: afrrSignalOcppIncoming,
-  CancelReservation: changeAvailabilityOcppIncoming,
+  CancelReservation: cancelReservationOcppIncoming,
   ChangeAvailability: changeAvailabilityOcppIncoming,
   ChangeTransactionTariff: changeTransactionTariffOcppIncoming,
   CertificateSigned: certificateSignedOcppIncoming,
@@ -239,6 +241,11 @@ export const messageHandlerV21: OcppMessageHandler = {
   },
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   handleCallError: (vcp: VCP, error: OcppCallError<any>): void => {
-    // NOOP
+    logger.warn("Received CallError", {
+      messageId: error.messageId,
+      errorCode: error.errorCode,
+      errorDescription: error.errorDescription,
+      errorDetails: error.errorDetails,
+    });
   },
 };

@@ -74,10 +74,7 @@ web_modules/
 
 # dotenv environment variable files
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env.*
 *.env
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -138,3 +135,6 @@ cockpit/config.json
 # Vendored copies of sibling repos kept locally for reference (managed elsewhere)
 /platform/
 /websocket/
+
+# Claude Code
+CLAUDE.md

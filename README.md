@@ -37,25 +37,59 @@ PASSWORD - if used for OCPP Authentication, otherwise can be left blank
 Run OCPP 1.6:
 
 ```bash
-npx tsx index_16.ts
+npm start index_16.ts
 ```
 
 Run OCPP 2.0.1:
 
 ```bash
-npx tsx index_201.ts
+npm start index_201.ts
 ```
 
-When testing different configurations, you can create multiple `.env` files and pass the env file as an argument, for example:
+When testing different configurations, you can create multiple `.env` files and pass the env file or the env file suffix as an argument, for example:
 
 ```bash
-npm start -- --env-file=.env index_16.ts
+# uses .env
+npm start .env index_16.ts
+# uses .env if exists
+npm start index_16.ts
+# uses .env.production
+npm start .env.production index_16.ts
+# uses .env.production
+npm start production index_16.ts
+```
+
+### Auto-restart
+
+Normally, the VCP will exit after receiving the `Reset` message.
+If you want to let the VCP re-establish the WS connection after receiving the `Reset` message, you can use the `npm start:auto-restart` command.
+
+Example:
+```bash
+WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npm run start:auto-restart index_16.ts
+
+# ...
+2026-03-06 09:55:51 info: Receive message ⬅️  [2,"248a82ba-58e3-4a3d-ae8f-74470add510f","Reset",{"type":"Hard"}]
+2026-03-06 09:55:51 info: Responding with ➡️  [3,"248a82ba-58e3-4a3d-ae8f-74470add510f",{"status":"Accepted"}]
+2026-03-06 09:55:51 info: Waiting for 3 seconds to close VCP...
+2026-03-06 09:55:54 info: Closing VCP
+2026-03-06 09:55:54 info: Auto-restart enabled. Closing old VCP...
+2026-03-06 09:55:54 info: Waiting for 3 seconds...
+2026-03-06 09:55:57 info: Starting new VCP
+2026-03-06 09:55:57 info: Connecting... | {
+  endpoint: 'ws://localhost:3000',
+  chargePointId: 'vcp_16_test',
+  ocppVersion: 'OCPP_1.6',
+  basicAuthPassword: '123',
+  adminPort: 9999
+}
+# ...
 ```
 
 ## Example
 
 ```bash
-> WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npx tsx index_16.ts
+> WS_URL=ws://localhost:3000 CP_ID=vcp_16_test npm start index_16.ts
 
 2023-03-27 13:09:17 info: Connecting... | {
   endpoint: 'ws://localhost:3000',

@@ -40,6 +40,23 @@ class StopTransactionOcppMessage extends OcppOutgoing<
   StopTransactionReqType,
   StopTransactionResType
 > {
+  // Callers that cannot know the transactionId assigned by StartTransaction
+  // (e.g. admin commands) may send 0 as a placeholder - resolve it as long as
+  // there is exactly one ongoing transaction to resolve it to.
+  beforeSend = (
+    vcp: VCP,
+    payload: z.infer<StopTransactionReqType>,
+  ): z.infer<StopTransactionReqType> => {
+    if (payload?.transactionId !== 0) {
+      return payload;
+    }
+    const transactionId = vcp.transactionManager.onlyTransactionId();
+    if (transactionId === undefined) {
+      return payload;
+    }
+    return { ...payload, transactionId: Number(transactionId) };
+  };
+
   resHandler = async (
     vcp: VCP,
     call: OcppCall<z.infer<StopTransactionReqType>>,

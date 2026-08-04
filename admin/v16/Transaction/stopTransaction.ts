@@ -5,8 +5,11 @@ sendAdminCommand({
   action: "StopTransaction",
   messageId: uuid.v4(),
   payload: {
-    transactionId: 1,
+    // 0 is a placeholder: the VCP substitutes the id of the ongoing
+    // transaction, so it does not have to be known here. Left as 0 if there is
+    // no transaction, or more than one - then the CSMS decides how to respond.
+    transactionId: 0,
     timestamp: new Date(),
-    meterStop: 2000,
+    meterStop: Number.parseInt(process.env.METER_STOP ?? "2000"),
   },
 });

@@ -4,6 +4,7 @@ import {
   type OcppCallResult,
   OcppOutgoing,
 } from "../../ocppMessage";
+import { resolveTokenPlaceholder } from "../../tokenPlaceholder";
 import type { VCP } from "../../vcp";
 import {
   EVSETypeSchema,
@@ -93,6 +94,42 @@ class TransactionEventOcppOutgoing extends OcppOutgoing<
   TransactionEventReqType,
   TransactionEventResType
 > {
+  beforeSend = (
+    vcp: VCP,
+    payload: z.infer<TransactionEventReqType>,
+  ): z.infer<TransactionEventReqType> => {
+    let resolved = payload;
+    if (resolved.idToken) {
+      resolved = {
+        ...resolved,
+        idToken: {
+          ...resolved.idToken,
+          idToken: resolveTokenPlaceholder(resolved.idToken.idToken),
+        },
+      };
+    }
+    // Callers that cannot know the transactionId of the ongoing transaction
+    // (e.g. admin commands) may send "0" as a placeholder when updating or
+    // ending it - resolve it as long as there is exactly one transaction to
+    // resolve it to. Not for "Started", which is what assigns the id.
+    if (
+      resolved.eventType !== "Started" &&
+      resolved.transactionInfo?.transactionId === "0"
+    ) {
+      const transactionId = vcp.transactionManager.onlyTransactionId();
+      if (transactionId !== undefined) {
+        resolved = {
+          ...resolved,
+          transactionInfo: {
+            ...resolved.transactionInfo,
+            transactionId: String(transactionId),
+          },
+        };
+      }
+    }
+    return resolved;
+  };
+
   resHandler = async (
     _vcp: VCP,
     _call: OcppCall<z.infer<TransactionEventReqType>>,

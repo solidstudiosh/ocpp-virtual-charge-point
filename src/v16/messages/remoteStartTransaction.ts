@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { logger } from "../../logger";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
@@ -30,12 +31,27 @@ class RemoteStartTransactionOcppMessage extends OcppIncoming<
     call: OcppCall<z.infer<RemoteStartTransactionReqType>>,
   ): Promise<void> => {
     if (!call.payload.connectorId) {
-      vcp.respond(this.response(call, { status: "Rejected" }));
-      return;
+      if (process.env.CONNECTORLESS_FLOW_CONNECTOR_ID) {
+        call.payload.connectorId = Number(
+          process.env.CONNECTORLESS_FLOW_CONNECTOR_ID,
+        );
+        logger.info(
+          `RemoteStartTransaction has no connectorId - using the preconfigured CONNECTORLESS_FLOW_CONNECTOR_ID=${call.payload.connectorId}`,
+        );
+      } else {
+        logger.warn(
+          "Rejecting RemoteStartTransaction: no connectorId in the request. Set CONNECTORLESS_FLOW_CONNECTOR_ID to accept it on a fixed connector.",
+        );
+        vcp.respond(this.response(call, { status: "Rejected" }));
+        return;
+      }
     }
     if (
       !vcp.transactionManager.canStartNewTransaction(call.payload.connectorId)
     ) {
+      logger.warn(
+        `Rejecting RemoteStartTransaction: connector ${call.payload.connectorId} already has an ongoing transaction.`,
+      );
       vcp.respond(this.response(call, { status: "Rejected" }));
       return;
     }

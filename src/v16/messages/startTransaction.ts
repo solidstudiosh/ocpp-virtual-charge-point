@@ -4,6 +4,7 @@ import {
   type OcppCallResult,
   OcppOutgoing,
 } from "../../ocppMessage";
+import { resolveTokenPlaceholder } from "../../tokenPlaceholder";
 import type { VCP } from "../../vcp";
 import { ConnectorIdSchema, IdTagInfoSchema, IdTokenSchema } from "./_common";
 import { meterValuesOcppMessage } from "./meterValues";
@@ -29,6 +30,13 @@ class StartTransactionOcppMessage extends OcppOutgoing<
   StartTransactionReqType,
   StartTransactionResType
 > {
+  beforeSend = (
+    _vcp: VCP,
+    payload: z.infer<StartTransactionReqType>,
+  ): z.infer<StartTransactionReqType> => {
+    return { ...payload, idTag: resolveTokenPlaceholder(payload.idTag) };
+  };
+
   resHandler = async (
     vcp: VCP,
     call: OcppCall<z.infer<StartTransactionReqType>>,

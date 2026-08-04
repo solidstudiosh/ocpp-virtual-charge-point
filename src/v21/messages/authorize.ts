@@ -4,6 +4,7 @@ import {
   type OcppCallResult,
   OcppOutgoing,
 } from "../../ocppMessage";
+import { resolveTokenPlaceholder } from "../../tokenPlaceholder";
 import type { VCP } from "../../vcp";
 import {
   EnergyTransferMode,
@@ -45,6 +46,19 @@ class AuthorizeOcppOutgoing extends OcppOutgoing<
   AuthorizeReqType,
   AuthorizeResType
 > {
+  beforeSend = (
+    _vcp: VCP,
+    payload: z.infer<AuthorizeReqType>,
+  ): z.infer<AuthorizeReqType> => {
+    return {
+      ...payload,
+      idToken: {
+        ...payload.idToken,
+        idToken: resolveTokenPlaceholder(payload.idToken.idToken),
+      },
+    };
+  };
+
   resHandler = async (
     _vcp: VCP,
     _call: OcppCall<z.infer<AuthorizeReqType>>,

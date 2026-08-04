@@ -15,6 +15,7 @@ import {
 import { ocppOutbox } from "./ocppOutbox";
 import { type OcppVersion, toProtocolVersion } from "./ocppVersion";
 import {
+  getOcppOutgoingMessages,
   validateOcppIncomingRequest,
   validateOcppIncomingResponse,
   validateOcppOutgoingRequest,
@@ -121,18 +122,26 @@ export class VCP {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
     }
-    ocppOutbox.enqueue(ocppCall);
+    // Applied before enqueueing so the outbox holds exactly what went out on
+    // the wire - resHandlers read the payload back from there.
+    const beforeSend = getOcppOutgoingMessages(this.vcpOptions.ocppVersion)[
+      ocppCall.action
+    ]?.beforeSend;
+    const resolvedCall = beforeSend
+      ? { ...ocppCall, payload: beforeSend(this, ocppCall.payload) }
+      : ocppCall;
+    ocppOutbox.enqueue(resolvedCall);
     const jsonMessage = JSON.stringify([
       2,
-      ocppCall.messageId,
-      ocppCall.action,
-      ocppCall.payload,
+      resolvedCall.messageId,
+      resolvedCall.action,
+      resolvedCall.payload,
     ]);
     logger.info(`Sending message ➡️  ${jsonMessage}`);
     validateOcppOutgoingRequest(
       this.vcpOptions.ocppVersion,
-      ocppCall.action,
-      JSON.parse(JSON.stringify(ocppCall.payload)),
+      resolvedCall.action,
+      JSON.parse(JSON.stringify(resolvedCall.payload)),
     );
     this.ws.send(jsonMessage);
   }

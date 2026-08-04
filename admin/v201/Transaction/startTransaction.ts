@@ -17,7 +17,10 @@ sendAdminCommand({
       transactionId: transactionId,
     },
     idToken: {
-      idToken: "AABBCCDD",
+      // "__TOKEN__" is a placeholder: the VCP substitutes the TOKEN env
+      // var, so the token does not have to be edited per station. Spell
+      // out a token here to override it.
+      idToken: "__TOKEN__",
       type: "ISO14443",
     },
     meterValue: [

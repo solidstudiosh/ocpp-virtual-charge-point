@@ -2,7 +2,10 @@ import * as uuid from "uuid";
 import { sendAdminCommand } from "../../admin";
 
 const date = new Date();
-const transactionId = process.env.TRANSACTION_ID ?? uuid.v4();
+// "0" is a placeholder: the VCP substitutes the id of the ongoing transaction,
+// so it does not have to be known here. Left as "0" if there is no transaction,
+// or more than one - then the CSMS decides how to respond.
+const transactionId = process.env.TRANSACTION_ID ?? "0";
 
 sendAdminCommand({
   action: "TransactionEvent",

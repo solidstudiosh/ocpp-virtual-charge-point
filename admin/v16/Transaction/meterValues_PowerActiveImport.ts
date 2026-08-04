@@ -1,7 +1,10 @@
 import * as uuid from "uuid";
 import { sendAdminCommand } from "../../admin";
 
-const transactionId = Number.parseInt(process.env.TRANSACTION_ID ?? "1");
+// 0 is a placeholder: the VCP substitutes the id of the ongoing transaction, so
+// it does not have to be known here. Left as 0 if there is no transaction, or
+// more than one - then the CSMS decides how to respond.
+const transactionId = Number.parseInt(process.env.TRANSACTION_ID ?? "0");
 
 sendAdminCommand({
   action: "MeterValues",

@@ -28,7 +28,7 @@ const getOcppIncomingMessages = (ocppVersion: OcppVersion) => {
   }
 };
 
-const getOcppOutgoingMessages = (ocppVersion: OcppVersion) => {
+export const getOcppOutgoingMessages = (ocppVersion: OcppVersion) => {
   switch (ocppVersion) {
     case OcppVersion.OCPP_1_6:
       return ocppOutgoingMessages16;

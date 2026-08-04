@@ -4,6 +4,7 @@ import {
   type OcppCallResult,
   OcppOutgoing,
 } from "../../ocppMessage";
+import { resolveTokenPlaceholder } from "../../tokenPlaceholder";
 import type { VCP } from "../../vcp";
 import { IdTagInfoSchema } from "./_common";
 
@@ -21,6 +22,13 @@ class AuthorizeOcppMessage extends OcppOutgoing<
   AuthorizeReqType,
   AuthorizeResType
 > {
+  beforeSend = (
+    _vcp: VCP,
+    payload: z.infer<AuthorizeReqType>,
+  ): z.infer<AuthorizeReqType> => {
+    return { ...payload, idTag: resolveTokenPlaceholder(payload.idTag) };
+  };
+
   resHandler = async (
     _vcp: VCP,
     _call: OcppCall<z.infer<AuthorizeReqType>>,

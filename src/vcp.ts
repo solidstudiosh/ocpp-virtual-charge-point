@@ -90,7 +90,7 @@ export class VCP {
         rejectUnauthorized: false,
         followRedirects: true,
         headers: {
-          ...(this.vcpOptions.basicAuthPassword && {
+          ...(this.vcpOptions.basicAuthPassword !== undefined && {
             Authorization: `Basic ${Buffer.from(
               `${this.vcpOptions.chargePointId}:${this.vcpOptions.basicAuthPassword}`,
             ).toString("base64")}`,

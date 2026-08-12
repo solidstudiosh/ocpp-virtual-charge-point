@@ -69,7 +69,14 @@ export class VCP {
         ),
         (c) => {
           const validated = c.req.valid("json");
-          this.send(call(validated.action, validated.payload));
+          try {
+            this.send(call(validated.action, validated.payload));
+          } catch (error) {
+            logger.error(
+              `Admin command ${validated.action} not sent: ${String(error)}`,
+            );
+            return c.text(`Not sent: ${String(error)}`, 503);
+          }
           return c.text("OK");
         },
       );

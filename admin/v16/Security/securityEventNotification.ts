@@ -4,6 +4,6 @@ import { sendAdminCommand } from "../../admin";
 sendAdminCommand(
   securityEventNotificationOcppMessage.request({
     timestamp: new Date().toISOString(),
-    type: "InalidCentralSystemCertificate",
+    type: "InvalidCentralSystemCertificate",
   }),
 );

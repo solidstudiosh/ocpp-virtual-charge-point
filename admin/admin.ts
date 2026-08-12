@@ -6,7 +6,7 @@ const adminPort = process.env.ADMIN_PORT ?? "9999";
 
 // biome-ignore lint/suspicious/noExplicitAny: ocpp types
 export const sendAdminCommand = async (command: OcppCall<any>) => {
-  await fetch(`http://localhost:${adminPort}/execute`, {
+  const response = await fetch(`http://localhost:${adminPort}/execute`, {
     method: "POST",
     body: JSON.stringify({
       action: command.action,
@@ -16,4 +16,10 @@ export const sendAdminCommand = async (command: OcppCall<any>) => {
       "Content-Type": "application/json",
     },
   });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(
+      `Admin command ${command.action} failed: ${response.status} ${body}`,
+    );
+  }
 };

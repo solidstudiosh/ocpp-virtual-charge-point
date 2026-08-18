@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
+import { getConfiguration } from "../configurationStore";
 
 const GetConfigurationReqSchema = z.object({
   key: z.array(z.string().max(50)).nullish(),
@@ -29,34 +30,8 @@ class GetConfigurationOcppMessage extends OcppIncoming<
     vcp: VCP,
     call: OcppCall<z.infer<GetConfigurationReqType>>,
   ): Promise<void> => {
-    vcp.respond(
-      this.response(call, {
-        configurationKey: [
-          {
-            key: "SupportedFeatureProfiles",
-            readonly: true,
-            value:
-              "Core,FirmwareManagement,LocalAuthListManagement,Reservation,SmartCharging,RemoteTrigger",
-          },
-          {
-            key: "ChargeProfileMaxStackLevel",
-            readonly: true,
-            value: "99",
-          },
-          {
-            key: "HeartbeatInterval",
-            readonly: false,
-            value: "300",
-          },
-          {
-            key: "GetConfigurationMaxKeys",
-            readonly: true,
-            value: "99",
-          },
-        ],
-        unknownKey: [],
-      }),
-    );
+    const { configurationKey, unknownKey } = getConfiguration(call.payload.key);
+    vcp.respond(this.response(call, { configurationKey, unknownKey }));
   };
 }
 

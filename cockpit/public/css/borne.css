@@ -1,0 +1,151 @@
+/* borne.css — the charge-point unit: card, head, screen + per-tab views, gauges, curve,
+   EVSE selector, receipt, control panel, state-driven accents. */
+
+.borne-card {
+  --accent: var(--cyan);
+  position: relative; border-radius: 20px; padding: 18px 18px 20px; overflow: hidden;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(34,211,238,0.10), transparent 60%),
+    linear-gradient(165deg, #0b1220, #131c2e 55%, #0b1220);
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 18%, transparent),
+              inset 0 0 50px rgba(0,0,0,0.55);
+  transition: border-color .3s, box-shadow .3s;
+  display: flex; flex-direction: column;
+}
+.borne-card::before { /* side vent lines */
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:20px;
+  background: repeating-linear-gradient(90deg, transparent 0 7px, rgba(255,255,255,0.012) 7px 8px);
+}
+
+.borne-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid rgba(148,163,184,0.12);
+}
+.led { width:11px; height:11px; border-radius:50%; background:#475569; display:inline-block;
+       box-shadow:0 0 10px currentColor; color:#475569; transition:all .3s; }
+
+.borne-screen {
+  position:relative; border-radius:14px; padding:20px 16px; margin-bottom:18px;
+  background: radial-gradient(130% 100% at 50% 0%, rgba(34,211,238,0.06), #010409 70%);
+  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.7), 0 0 14px color-mix(in srgb, var(--accent) 12%, transparent);
+  display:flex; flex-direction:column; align-items:center; gap:16px; min-height:170px; justify-content:center;
+  flex:1;
+}
+.borne-status {
+  font-family: ui-monospace, monospace; font-size: 26px; letter-spacing:0.18em; font-weight:600;
+  color: var(--accent); text-shadow: 0 0 14px currentColor; text-align:center;
+}
+.borne-gauges { display:flex; gap:30px; width:100%; justify-content:center; }
+.gauge { text-align:center; width:120px; }
+.gauge .metric { font-family: ui-monospace, monospace; font-size:34px; color:#e6fbff;
+                 text-shadow:0 0 12px color-mix(in srgb, var(--accent) 70%, transparent); }
+.gauge small { display:block; font-size:10px; color:#64748b; letter-spacing:0.2em; margin-top:-2px; }
+.gauge-bar { height:5px; border-radius:3px; background:rgba(148,163,184,0.12); margin-top:8px; overflow:hidden; }
+.gauge-bar i { display:block; height:100%; width:0%; border-radius:3px;
+               background:linear-gradient(90deg, var(--accent), #a5f3fc); box-shadow:0 0 10px var(--accent);
+               transition:width .5s ease; }
+.borne-readout { display:flex; gap:18px; flex-wrap:wrap; justify-content:center; letter-spacing:0.12em; }
+
+/* live power-limit reason badge */
+.cap-badge { font-family:ui-monospace,monospace; font-size:10px; letter-spacing:0.1em; padding:2px 9px;
+  border-radius:999px; border:1px solid var(--amber); color:var(--amber);
+  background:color-mix(in srgb,var(--amber) 12%, transparent); }
+.cap-badge.hidden { display:none; }
+.cap-badge[data-kind="smart"] { border-color:var(--cyan); color:var(--cyan);
+  background:color-mix(in srgb,var(--cyan) 12%, transparent); }
+
+/* background charge curve (behind the screen content) */
+.curve-canvas { position:absolute; inset:0; z-index:0; pointer-events:none; width:100%; height:100%; }
+.borne-screen > .borne-status, .borne-screen > .screen-view { position:relative; z-index:1; }
+
+/* per-tab screen views (status stays on top, details adapt) */
+.screen-view { display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; }
+.screen-view.hidden { display:none; }
+.scr-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px 6px; width:100%; text-align:center; }
+.scr-grid b { display:block; font-family:ui-monospace,monospace; font-size:20px; color:#e6fbff;
+              text-shadow:0 0 10px color-mix(in srgb,var(--accent) 60%, transparent); }
+.scr-grid small { font-size:8px; letter-spacing:0.18em; color:#64748b; }
+.scr-line { color:#64748b; }
+.scr-rows { width:100%; display:flex; flex-direction:column; gap:8px; }
+.scr-rows > div { display:flex; justify-content:space-between; align-items:center; gap:10px;
+                  border-bottom:1px dashed rgba(148,163,184,0.18); padding-bottom:6px; }
+.scr-rows span { color:#5b6b85; letter-spacing:0.18em; }
+.scr-rows b { color:var(--accent); text-shadow:0 0 8px currentColor; text-align:right; word-break:break-all; }
+
+/* legacy single cable + plug (kept for fallback styling) */
+.borne-cable { height:26px; width:6px; margin:0 auto; border-radius:3px; position:relative;
+               background:linear-gradient(#1e293b,#0f172a); overflow:hidden; }
+.borne-cable .flow { position:absolute; left:0; right:0; height:8px; top:-8px; opacity:0;
+                     background:linear-gradient(var(--accent), transparent); }
+.borne-plug { width:60px; height:60px; margin:0 auto 4px; border-radius:50%; position:relative;
+              background: radial-gradient(circle, #1b2740 38%, #0b1220 70%);
+              border:3px solid color-mix(in srgb, var(--accent) 40%, transparent); transition:all .3s; }
+.borne-plug span { position:absolute; inset:38%; border-radius:50%; background:var(--accent);
+                   box-shadow:0 0 12px var(--accent); opacity:.5; }
+
+/* inline EVSE selector (in the borne head — no extra vertical space) */
+.evse-toggle { display:inline-flex; gap:4px; }
+.evse-pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; cursor:pointer;
+  font-family:ui-monospace,monospace; font-size:11px; color:#94a3b8;
+  background:rgba(2,6,23,0.6); border:1px solid rgba(148,163,184,0.2); transition:all .15s; }
+.evse-pill:hover { color:#fff; border-color:color-mix(in srgb,var(--accent) 50%, transparent); }
+.evse-pill.sel { color:#fff; border-color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 16%, #0b1220); box-shadow:0 0 10px color-mix(in srgb,var(--accent) 30%, transparent); }
+.evse-dot { width:7px; height:7px; border-radius:50%; background:#475569; }
+.evse-pill[data-state="charging"] .evse-dot { background:var(--green); box-shadow:0 0 7px var(--green); animation:pulse 1.2s infinite; }
+.evse-pill[data-state="busy"] .evse-dot { background:var(--amber); box-shadow:0 0 7px var(--amber); }
+
+/* end-of-charge receipt overlay */
+.receipt { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; gap:12px;
+  align-items:center; justify-content:center; padding:18px; border-radius:14px;
+  background:radial-gradient(120% 100% at 50% 0%, color-mix(in srgb,var(--accent) 14%, transparent), #010409 80%);
+  backdrop-filter:blur(2px); }
+.receipt.hidden { display:none; }
+.receipt-title { font-family:ui-monospace,monospace; letter-spacing:0.2em; color:var(--accent);
+  text-shadow:0 0 12px currentColor; font-size:14px; }
+.receipt .scr-rows { max-width:240px; }
+
+/* control panel */
+.borne-controls { margin-top:16px; padding-top:16px; border-top:1px solid rgba(148,163,184,0.12); }
+.ctrl-label { font-family:ui-monospace,monospace; font-size:9px; letter-spacing:0.25em; color:#5b6b85; margin-bottom:7px; }
+.seg { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; margin-bottom:14px;
+       background:color-mix(in srgb, var(--accent) 7%, transparent); border:1px solid color-mix(in srgb, var(--accent) 18%, transparent); border-radius:12px; }
+.seg-btn { font-family:ui-monospace,monospace; font-size:11px; padding:7px 4px; border-radius:8px; cursor:pointer;
+           background:transparent; border:0; color:#7f8ea8; transition:all .12s; }
+.seg-btn:hover { color:#cbd5e1; }
+.seg-btn.on { background:color-mix(in srgb, var(--accent) 18%, #1b2740); color:#fff;
+              box-shadow:0 0 12px color-mix(in srgb,var(--accent) 30%, transparent); }
+/* fixed-height control area: panels are stacked (absolute) so switching views never
+   changes the block height → the screen above stays exactly the same size */
+.ctrl-panels { position:relative; height: 244px; }
+.ctrl-panel { position:absolute; inset:0; overflow-y:auto; }
+.ctrl-panel.hidden { display:none; }
+.ctrl-panel .field label { font-size:10px; }
+.kbtn {
+  font-family:ui-monospace,monospace; font-size:13px; padding:9px 6px; border-radius:9px; cursor:pointer;
+  color:#cbd5e1; background:linear-gradient(180deg, #1b2740, #0f1726);
+  border:1px solid rgba(148,163,184,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 4px rgba(0,0,0,0.4);
+  transition:all .12s;
+}
+.kbtn:hover { border-color:var(--accent); color:#fff; box-shadow:0 0 12px color-mix(in srgb,var(--accent) 30%, transparent); }
+.kbtn:active { transform:translateY(1px); }
+.kbtn.on { border-color:var(--accent); color:#fff; background:linear-gradient(180deg, color-mix(in srgb,var(--accent) 22%, #1b2740), #0f1726);
+           box-shadow:0 0 14px color-mix(in srgb,var(--accent) 40%, transparent); }
+.kbtn-warn { color:#fca5a5; } .kbtn-warn:hover { border-color:var(--red); box-shadow:0 0 12px rgba(248,113,113,.3); }
+.kbtn-go { color:#6ee7b7; } .kbtn-go:hover { border-color:var(--green); box-shadow:0 0 12px rgba(52,211,153,.3); }
+
+/* state-driven accents */
+.borne-card[data-state="available"] { --accent: var(--cyan); }
+.borne-card[data-state="available"] .led { color:var(--cyan); background:var(--cyan); }
+.borne-card[data-state="charging"] { --accent: var(--green); }
+.borne-card[data-state="charging"] .led { color:var(--green); background:var(--green); animation:pulse 1.2s infinite; }
+.borne-card[data-state="charging"] .borne-plug { animation:pulse 1.2s infinite; box-shadow:0 0 22px var(--green); }
+.borne-card[data-state="charging"] .borne-cable .flow { opacity:1; animation:flow 1s linear infinite; }
+.borne-card[data-state="faulted"] { --accent: var(--red); }
+.borne-card[data-state="faulted"] .led { color:var(--red); background:var(--red); animation:pulse .6s infinite; }
+.borne-card[data-state="offline"] { --accent:#64748b; opacity:.85; }
+.borne-card[data-state="offline"] .led { color:#475569; background:#475569; }
+@keyframes flow { from{transform:translateY(0)} to{transform:translateY(34px)} }

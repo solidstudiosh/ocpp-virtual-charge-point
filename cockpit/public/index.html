@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VCP Cockpit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/borne.css" />
+  <link rel="stylesheet" href="/css/boot.css" />
+  <link rel="stylesheet" href="/css/themes/kawaii.css" />
+  <link rel="stylesheet" href="/css/themes/retro.css" />
+  <link rel="stylesheet" href="/css/themes/terminal.css" />
+  <link rel="stylesheet" href="/css/themes/pastel.css" />
+  <script>try{var t=localStorage.getItem('cockpit-theme');document.documentElement.dataset.theme=['futuristic','kawaii','retro','terminal','pastel'].includes(t)?t:'futuristic'}catch(e){}</script>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen antialiased">
+  <div class="scanlines"></div>
+
+  <!-- Boot animation -->
+  <div id="boot" class="boot">
+    <div class="boot-inner">
+      <div class="boot-bolt-wrap">
+        <span class="boot-ring"></span><span class="boot-ring"></span><span class="boot-ring"></span>
+        <div class="boot-bolt">⚡</div>
+      </div>
+      <h1 class="boot-title">PARERA <span>PULSE</span></h1>
+      <div class="boot-sub">INITIALISATION DU COCKPIT</div>
+      <div class="boot-bar"><i></i></div>
+      <div class="boot-hint">▸ cliquer pour continuer</div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="border-b border-cyan-500/20 bg-slate-950/85 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-[1500px] mx-auto px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl brand-bolt">⚡</span>
+        <h1 class="font-mono text-lg tracking-[0.22em] neon-text brand-title">PARERA&nbsp;<span>PULSE</span></h1>
+        <span id="cockpit-link" class="text-xs text-slate-500 font-mono hidden sm:inline">· VCP COCKPIT</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-start-all" class="btn btn-go">⏻ TOUT LANCER</button>
+        <button id="btn-stop-all" class="btn btn-stop">■ TOUT ARRÊTER</button>
+        <span class="w-px h-6 bg-slate-700 mx-1"></span>
+        <button id="toggle-servers" class="btn" aria-pressed="false">🖧 Serveurs</button>
+        <button id="toggle-config" class="btn" aria-pressed="false">⚙ Config</button>
+      </div>
+    </div>
+
+    <!-- Always-visible status bar -->
+    <div class="border-t border-cyan-500/10 bg-slate-950/60">
+      <div class="max-w-[1500px] mx-auto px-6 py-2 flex items-center gap-2 overflow-x-auto status-bar">
+        <div id="status-chips" class="flex items-center gap-2"></div>
+        <span class="w-px h-5 bg-slate-700 mx-1 shrink-0"></span>
+        <div id="health-row" class="flex items-center gap-2 shrink-0"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Collapsible: Serveurs -->
+  <section id="panel-servers" class="drawer max-w-[1500px] mx-auto px-6">
+    <div class="panel mt-4 grid grid-cols-12 gap-4">
+      <div class="col-span-12 md:col-span-5">
+        <div class="panel-title">SERVEURS — détail</div>
+        <div id="services" class="space-y-2"></div>
+      </div>
+      <div class="col-span-12 md:col-span-7 flex flex-col">
+        <div class="panel-title flex items-center justify-between">
+          <span>LOGS — <span id="log-target" class="text-cyan-300">aucun</span></span>
+          <button id="btn-clear-logs" class="text-[11px] text-slate-500 hover:text-slate-300 font-mono">clear</button>
+        </div>
+        <div id="svc-logs" class="svc-logs font-mono text-[11px] overflow-y-auto flex-1"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Collapsible: Config -->
+  <section id="panel-config" class="drawer max-w-[1500px] mx-auto px-6">
+    <div class="panel mt-4">
+      <div class="panel-title">CONFIGURATION</div>
+      <div class="cfg-grid text-sm">
+        <!-- Chemins locaux -->
+        <section class="cfg-sec cfg-span-2">
+          <h4 class="cfg-h">📁 Chemins locaux</h4>
+          <div class="cfg-fields cols-2">
+            <div class="field">
+              <label>Dossier <code>websocket/</code></label>
+              <div class="flex gap-2">
+                <input id="cfg-websocketPath" class="inp" placeholder="/chemin/vers/websocket" />
+                <button class="btn btn-pick" data-pick="websocketPath">📁</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Dossier <code>platform/</code></label>
+              <div class="flex gap-2">
+                <input id="cfg-platformPath" class="inp" placeholder="/chemin/vers/platform" />
+                <button class="btn btn-pick" data-pick="platformPath">📁</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Borne -->
+        <section class="cfg-sec">
+          <h4 class="cfg-h">🔌 Borne</h4>
+          <div class="cfg-fields cols-2">
+            <div class="field"><label>Identity (CP_ID)</label><input id="cfg-identity" class="inp" /></div>
+            <div class="field"><label>Version OCPP</label>
+              <select id="cfg-ocppVersion" class="inp">
+                <option value="OCPP_1.6">OCPP 1.6</option>
+                <option value="OCPP_2.0.1">OCPP 2.0.1</option>
+              </select>
+            </div>
+            <div class="field"><label>WS_URL</label><input id="cfg-wsUrl" class="inp" placeholder="ws://localhost:3334" /></div>
+            <div class="field"><label>Admin port</label><input id="cfg-adminPort" class="inp" type="number" /></div>
+            <div class="field"><label>Connecteurs</label><input id="cfg-connectors" class="inp" type="number" min="1" max="4" /></div>
+            <div class="field"><label>Durée charge sim (s)</label><input id="cfg-sessionFullSeconds" class="inp" type="number" min="20" /></div>
+          </div>
+        </section>
+
+        <!-- Apparence (right column, next to Borne) -->
+        <section class="cfg-sec">
+          <h4 class="cfg-h">🎨 Thème</h4>
+          <div id="theme-picker" class="theme-picker"></div>
+        </section>
+
+        <!-- Connexion -->
+        <section class="cfg-sec cfg-span-2">
+          <h4 class="cfg-h">🛰 Connexion</h4>
+          <div class="cfg-fields">
+            <div class="field" style="max-width:220px">
+              <label>Mode</label>
+              <select id="cfg-mode" class="inp">
+                <option value="local">Local</option>
+                <option value="staging">Staging</option>
+              </select>
+            </div>
+            <div id="staging-fields" class="hidden cfg-staging">
+              <p class="cfg-note">🛰 La borne se connecte à l'OCPP de staging (client sortant, pas de ngrok).
+                Aucun serveur local n'est lancé. VPN requis si l'endpoint est privé.</p>
+              <div class="cfg-fields cols-3">
+                <div class="field"><label>WS_URL staging (wss://…)</label><input id="cfg-staging-wsUrl" class="inp" placeholder="wss://…" /></div>
+                <div class="field"><label>Identity borne réelle</label><input id="cfg-staging-identity" class="inp" /></div>
+                <div class="field"><label>Password (basic-auth)</label><input id="cfg-staging-password" class="inp" type="password" /></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="v201-warning" class="hidden cfg-warn">
+        ⚠ Le bridge <code>websocket/</code> force <code>ocpp1.6</code>. Pour tester la 2.0.1 en
+        local, patche le sous-protocole dans <code>middlewares/ocpp_backend.rb</code>.
+      </div>
+      <div class="mt-4"><button id="btn-save-config" class="btn btn-go">💾 Enregistrer</button></div>
+    </div>
+  </section>
+
+  <!-- Main: borne (with integrated controls) + OCPP logs — both always visible -->
+  <main class="max-w-[1500px] mx-auto px-6 py-6 grid grid-cols-12 gap-6 items-start">
+    <!-- BORNE -->
+    <section class="col-span-12 lg:col-span-6">
+      <div class="borne-card" id="borne-unit" data-state="offline" style="height: calc(100vh - 160px)">
+        <!-- top bezel -->
+        <div class="borne-head">
+          <div class="flex items-center gap-2">
+            <span class="led" id="borne-led"></span>
+            <span class="font-mono text-sm tracking-[0.3em] text-cyan-200">EVSEEM</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div id="evse-toggle" class="evse-toggle" title="Connecteur actif"></div>
+            <span class="font-mono text-[11px] text-slate-400">⚡ <span id="borne-identity">…</span></span>
+          </div>
+        </div>
+
+        <!-- screen — status always on top, details adapt to the active tab -->
+        <div class="borne-screen">
+          <canvas id="curve" class="curve-canvas"></canvas>
+          <div id="borne-status" class="borne-status">UNKNOWN</div>
+
+          <!-- charge view: power / energy gauges -->
+          <div class="screen-view" data-screen="charge">
+            <div class="borne-gauges">
+              <div class="gauge">
+                <span id="borne-power" class="metric">—</span><small>kW</small>
+                <div class="gauge-bar"><i id="power-bar"></i></div>
+              </div>
+              <div class="gauge">
+                <span id="borne-energy" class="metric">—</span><small>kWh</small>
+                <div class="gauge-bar"><i id="energy-bar"></i></div>
+              </div>
+            </div>
+            <div id="cap-badge" class="cap-badge hidden"></div>
+            <div class="borne-readout font-mono text-[10px] text-slate-500">
+              <span>EVSE <span id="borne-connector" class="text-cyan-300">—</span></span>
+              <span>TX <span id="borne-tx" class="text-cyan-300">—</span></span>
+              <span>BOOT <span id="borne-boot" class="text-cyan-300">—</span></span>
+            </div>
+          </div>
+
+          <!-- actions view: live operations -->
+          <div class="screen-view hidden" data-screen="actions">
+            <div class="scr-grid">
+              <div><b id="scr-link">—</b><small>LIEN</small></div>
+              <div><b id="scr-connector">—</b><small>CONNECTEUR</small></div>
+              <div><b id="scr-msgout">0</b><small>MSG ↑</small></div>
+              <div><b id="scr-msgin">0</b><small>MSG ↓</small></div>
+            </div>
+            <div class="scr-line font-mono text-[10px]">dernier boot <span id="scr-boot" class="text-cyan-300">—</span></div>
+          </div>
+
+          <!-- config view: connection identity -->
+          <div class="screen-view hidden" data-screen="config">
+            <div class="scr-rows font-mono text-[11px]">
+              <div><span>IDENTITY</span><b id="scr-identity">—</b></div>
+              <div><span>OCPP</span><b id="scr-version">—</b></div>
+              <div><span>ENDPOINT</span><b id="scr-endpoint">—</b></div>
+              <div><span>HEARTBEAT</span><b id="scr-heartbeat">—</b></div>
+            </div>
+          </div>
+
+          <!-- transient end-of-charge receipt overlay -->
+          <div id="receipt" class="receipt hidden">
+            <div class="receipt-title">⚡ CHARGE TERMINÉE</div>
+            <div class="scr-rows font-mono text-[11px]">
+              <div><span>CONNECTEUR</span><b id="rcp-connector">—</b></div>
+              <div><span>DURÉE</span><b id="rcp-duration">—</b></div>
+              <div><span>ÉNERGIE</span><b id="rcp-energy">—</b></div>
+              <div><span>P MOY / MAX</span><b id="rcp-power">—</b></div>
+              <div><span>TX</span><b id="rcp-tx">—</b></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- integrated control panel with 3 switchable views -->
+        <div class="borne-controls">
+          <div class="seg" id="ctrl-tabs">
+            <button class="seg-btn on" data-tab="charge">⚡ Charge</button>
+            <button class="seg-btn" data-tab="actions">🎛 Actions</button>
+            <button class="seg-btn" data-tab="config">⚙ Config</button>
+          </div>
+
+          <div class="ctrl-panels">
+          <!-- view: charge cycle -->
+          <div class="ctrl-panel" data-panel="charge">
+            <div class="ctrl-label">SCÉNARIO DE CHARGE (idTag) — EVSE <span id="charge-evse" class="text-cyan-300">1</span></div>
+            <select id="charge-scenario" class="inp mb-1"></select>
+            <div id="scenario-hint" class="text-[10px] font-mono mb-2 min-h-[14px]"></div>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="kbtn kbtn-go" data-charge="start">▶ Démarrer</button>
+              <button class="kbtn kbtn-warn" data-charge="stop">⏹ Arrêter</button>
+            </div>
+          </div>
+
+          <!-- view: direct actions -->
+          <div class="ctrl-panel hidden" data-panel="actions">
+            <div class="ctrl-label">STATUT CONNECTEUR</div>
+            <div id="status-actions" class="grid grid-cols-3 gap-2 mb-3"></div>
+            <div class="ctrl-label">CONNEXION</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="kbtn kbtn-warn" data-conn="disconnect">⏏ Déconnecter</button>
+              <button class="kbtn kbtn-go" data-conn="reconnect">↻ Reconnecter</button>
+            </div>
+          </div>
+
+          <!-- view: borne OCPP configuration (GetConfiguration) -->
+          <div class="ctrl-panel hidden" data-panel="config">
+            <div class="ctrl-label flex items-center justify-between">
+              <span>CONFIGURATION OCPP DE LA BORNE</span>
+              <button id="ocfg-refresh" class="text-cyan-300 hover:text-white" title="Rafraîchir">↻</button>
+            </div>
+            <div id="ocpp-config" class="ocfg"></div>
+            <div class="text-[10px] text-slate-500 mt-2 font-mono">
+              Connexion (identity, WS_URL…) → bouton <b>⚙ Config</b> du bandeau.
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OCPP LOGS -->
+    <section class="col-span-12 lg:col-span-6">
+      <div class="panel flex flex-col" style="height: calc(100vh - 160px)">
+        <div class="panel-title flex items-center justify-between">
+          <span>FLUX OCPP</span>
+          <button id="btn-clear-feed" class="text-[11px] text-slate-500 hover:text-slate-300 font-mono">clear</button>
+        </div>
+        <div id="feed" class="feed flex-1 overflow-y-auto font-mono text-xs space-y-1 pr-1"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

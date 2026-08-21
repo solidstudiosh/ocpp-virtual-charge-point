@@ -25,7 +25,7 @@ viability was verified empirically before this design was written:
 | What does Node need? | The `--experimental-ffi` flag. Without it Core throws `OpenTUI native FFI is not available for this runtime yet`. |
 | Which Node version? | Upstream docs demand 26.4.0 *exactly*; that is their CI acceptance gate. Verified working on the repo's Volta pin, 26.1.0. |
 | Does `NODE_OPTIONS` carry the flag? | Yes — `NODE_OPTIONS="--experimental-ffi"` is accepted, so npm scripts stay clean. |
-| Is there a test renderer? | Yes — `@opentui/core/testing` exports `createTestRenderer`, `captureCharFrame`, `mockInput`, `ManualClock`. |
+| Is there a test renderer? | Yes — `@opentui/core/testing` exports `createTestRenderer`, which returns `captureCharFrame`, `mockInput`, `waitForVisualIdle`, `flush`, `renderOnce`, `resize`. |
 
 Bindings for React and Solid were both evaluated and rejected: React is being
 removed by intent, and `@opentui/solid` requires a Babel pipeline (its Node
@@ -164,8 +164,9 @@ The migration improves determinism rather than merely preserving coverage.
 
 - `createTestRenderer()` + `captureCharFrame()` replace `ink-testing-library`.
   Existing `.toContain(...)` assertions largely survive unchanged.
-- `renderer.settle()` replaces `flushFrames()`'s `setTimeout(10)`, removing
-  timing flakiness from every render test.
+- The test renderer's `waitForVisualIdle()` replaces `flushFrames()`'s
+  `setTimeout(10)`, removing timing flakiness from every render test.
+  (`settle()` exists on `CliRenderer` but not on the test renderer.)
 - The `View` contract enables true widget-level tests: construct, `update()`,
   assert the frame — with no app-level scaffolding.
 - Pure-logic suites (`state.test.ts`, `batchLoop`, `convertQueue`) are untouched.

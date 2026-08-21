@@ -1855,8 +1855,10 @@ export function createRule(ctx: RenderContext): View<Record<string, never>> {
     id: `rule-${ruleCounter++}`,
     content: "─".repeat(200),
     fg: color.chrome,
+    // No `truncate`: Core's truncation inserts a literal "..." into the
+    // middle of the run, e.g. `────...────`. Overflow is clipped by the
+    // parent box instead, giving a solid divider.
     wrapMode: "none",
-    truncate: true,
   });
   return { root, update: () => {}, destroy: () => root.destroyRecursively() };
 }
@@ -1864,7 +1866,7 @@ export function createRule(ctx: RenderContext): View<Record<string, never>> {
 let ruleCounter = 0;
 ```
 
-The rule is over-long and clipped by `truncate`, which replaces the Ink version's explicit `width` prop — Core clips to the parent, so the caller no longer has to compute the inner width.
+The rule is over-long and clipped by the parent box. Do NOT add `truncate: true` here: Core's truncation renders a visible `...` in the middle of the line (`────...────`) instead of a solid divider. Clipping replaces the Ink version's explicit `width` prop, so callers no longer compute an inner width.
 
 - [ ] **Step 4: Write `screens/run.ts`**
 
@@ -2956,7 +2958,11 @@ export function createSummaryScreen(
     id: "summary-list",
     scrollY: true,
     viewportCulling: true,
-    flexGrow: 1,
+    // Explicit height, set in `update`. A `flexGrow: 1` ScrollBox with no
+    // height collapses the banner and title rows above it to zero — the
+    // pass/fail line silently disappears. `widgets/logTail.ts` sizes its
+    // ScrollBox the same way.
+    height: 1,
   });
   const help = new TextRenderable(ctx, {
     id: "summary-help",
@@ -3020,6 +3026,9 @@ export function createSummaryScreen(
 
     // border(2) + title(1) + banner(1) + rule(1) + rule(1) + help(1) = 7.
     pageRows = Math.max(1, p.height - 7);
+    // Size the viewport to the same budget `scrollPage` advances by, so a
+    // page scroll moves exactly one screenful with no overlap.
+    list.height = pageRows;
     help.content = helpLine("complete", { canBegin: false });
   };
 

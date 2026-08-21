@@ -113,4 +113,29 @@ describe("run screen", () => {
     // well below the SESSIONS column's first line, not on the same row.
     expect(narrowLogRow).toBeGreaterThan(narrowSessionsRow + 1);
   });
+
+  it("renders the file dots inline with the title, not below the body", async () => {
+    const h = await renderView(
+      createRunScreen,
+      props({
+        files: [
+          { path: "./data/a.json", status: "done" as const },
+          { path: "./data/b.json", status: "running" as const },
+          { path: "./data/c.json", status: "pending" as const },
+        ],
+        currentIndex: 1,
+      }),
+      { width: 90, height: 20 },
+    );
+    const lines = (await h.frame()).split("\n");
+    const titleRow = lines.findIndex((l) => l.includes("REPLAY"));
+    expect(titleRow).toBeGreaterThanOrEqual(0);
+    // The dots must be on the SAME row as the title.
+    expect(lines[titleRow]).toContain("▶");
+    // ...and the batch counter should be there too.
+    expect(lines[titleRow]).toContain("file 2/3");
+    // The dots must not run flush into the elapsed-time clock.
+    expect(lines[titleRow]).not.toMatch(/[▶✓·]\d/);
+    h.destroy();
+  });
 });

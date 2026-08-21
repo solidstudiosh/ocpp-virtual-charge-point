@@ -487,7 +487,9 @@ describe("keymap", () => {
     });
 
     router.handle({ name: "p" });
-    expect(onAction).toHaveBeenCalledWith("pause");
+    // The key is passed through: multi-key bindings (up/down, pageup/pagedown)
+    // resolve their direction from it in Task 14's dispatch table.
+    expect(onAction).toHaveBeenCalledWith("pause", { name: "p" });
 
     // A key bound only in another phase is ignored.
     onAction.mockClear();
@@ -566,6 +568,7 @@ export const BINDINGS: Binding[] = [
 
   // --- converting ---
   { phase: "converting", keys: ["up", "down"], hint: "↑↓", label: "field", action: "field" },
+  { phase: "converting", keys: ["space", "left", "right"], hint: "Space/←→", label: "toggle", action: "toggleRebase" },
   { phase: "converting", keys: ["return"], hint: "Enter", label: "accept", action: "accept" },
   { phase: "converting", keys: ["escape"], hint: "Esc", label: "cancel", action: "cancel" },
 
@@ -3302,6 +3305,7 @@ Inside `onAction`, map each action id from `keymap.ts` to behaviour. Every actio
 | selecting | `begin` | `phase = "running"; options.onBegin(select.selection(), idTag || undefined)` |
 | selecting | `quit` | `options.onExit?.()` |
 | converting | `field` | `convert.field(key.name === "up" ? -1 : 1)` |
+| converting | `toggleRebase` | `convert.toggleRebase()` |
 | converting | `accept` | if `isErrorMode()` skip the file; else if `canAccept()` write the converted file and advance the queue |
 | converting | `cancel` | return to `selecting`, keeping files already written |
 | running | `pause` | `replayController.togglePause(); paused = replayController.paused; rerender()` |

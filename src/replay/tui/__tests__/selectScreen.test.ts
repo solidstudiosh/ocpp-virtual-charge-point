@@ -72,8 +72,13 @@ describe("select screen", () => {
       { width: 90, height: 20 },
     );
     const frame = await h.frame();
-    expect(frame).toContain("CS_TEST_1");
-    expect(frame).toContain("auth ✓");
+    // The right pane must show the RESOLVED id, not the raw path. The
+    // fixture is named CS_TEST_1.json, so a bare-path regression would
+    // still contain "CS_TEST_1" — the absent ".json" is what proves it.
+    const lines = frame.split("\n");
+    const selectedPane = lines.filter((l) => l.includes("auth ✓")).join("\n");
+    expect(selectedPane).toContain("CS_TEST_1");
+    expect(selectedPane).not.toContain(".json");
     h.destroy();
   });
 
@@ -87,6 +92,61 @@ describe("select screen", () => {
 
     h.view.selectAll();
     expect(await h.frame()).toContain("[B] begin");
+    h.destroy();
+  });
+
+  it("navigates into a directory and resets the cursor", async () => {
+    const dir = fixture();
+    const h = await renderView(createSelectScreen, props(dir), {
+      width: 90,
+      height: 20,
+    });
+    h.view.move(1); // off the ".." row, onto "nested/"
+    h.view.open();
+    const frame = await h.frame();
+    expect(frame).toContain("nested");
+    expect(frame).toContain(".."); // cursor reset to the parent row
+    h.destroy();
+  });
+
+  it("is inert at the filesystem root", async () => {
+    const h = await renderView(createSelectScreen, props("/"), {
+      width: 90,
+      height: 20,
+    });
+    const before = await h.frame();
+    h.view.up();
+    expect(await h.frame()).toBe(before);
+    h.destroy();
+  });
+
+  it("clamps the cursor at both ends", async () => {
+    const dir = fixture();
+    const h = await renderView(createSelectScreen, props(dir), {
+      width: 90,
+      height: 20,
+    });
+    h.view.move(-100);
+    h.view.page(-100);
+    const top = await h.frame();
+    h.view.move(100);
+    h.view.page(100);
+    const bottom = await h.frame();
+    expect(top).not.toBe(bottom); // the cursor genuinely moved
+    h.destroy();
+  });
+
+  it("toggles a file into and out of the selection", async () => {
+    const dir = fixture();
+    const h = await renderView(createSelectScreen, props(dir), {
+      width: 90,
+      height: 20,
+    });
+    h.view.move(2); // onto a .json file — dirs sort first, so row 2 is a file
+    h.view.toggle();
+    expect(h.view.selection()).toHaveLength(1);
+    h.view.toggle();
+    expect(h.view.selection()).toHaveLength(0);
     h.destroy();
   });
 });

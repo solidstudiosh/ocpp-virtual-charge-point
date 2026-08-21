@@ -40,7 +40,15 @@ export interface SelectScreenView extends View<SelectScreenProps> {
 
 function readEntries(dir: string): Entry[] {
   const out: Entry[] = [];
-  for (const name of readdirSync(dir).sort()) {
+  let names: string[];
+  try {
+    names = readdirSync(dir);
+  } catch {
+    // Directory vanished or is unreadable mid-session; show it as empty
+    // rather than tearing the TUI down.
+    return out;
+  }
+  for (const name of names.sort()) {
     const path = join(dir, name);
     let isDir = false;
     try {
@@ -52,7 +60,10 @@ function readEntries(dir: string): Entry[] {
       out.push({ name, path, isDir });
     }
   }
-  return out;
+  // Directories first, then files — matching the Ink browser's ordering.
+  return out.sort((a, b) =>
+    a.isDir === b.isDir ? a.name.localeCompare(b.name) : a.isDir ? -1 : 1,
+  );
 }
 
 export function createSelectScreen(

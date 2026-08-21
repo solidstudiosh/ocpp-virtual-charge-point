@@ -29,6 +29,9 @@ These were confirmed empirically against `@opentui/core@0.5.6` on Node 26.1.0. U
 
 ```ts
 // Construction — the renderer doubles as the RenderContext.
+// GOTCHA (verified): BoxRenderable defaults to flexDirection "column", NOT
+// "row" as CSS flexbox does. Any box whose children sit side by side MUST
+// pass flexDirection: "row" explicitly, or they stack vertically.
 new BoxRenderable(ctx, { id, width, height, border, borderColor,
                          flexDirection, paddingLeft, flexGrow, flexShrink })
 new TextRenderable(ctx, { id, content, fg, bg, attributes,
@@ -1111,7 +1114,10 @@ export function createProgressBar(
   ctx: RenderContext,
   initial: ProgressBarProps,
 ): View<ProgressBarProps> {
-  const root = new BoxRenderable(ctx, { id: `bar-${initial.label}` });
+  const root = new BoxRenderable(ctx, {
+    id: `bar-${initial.label}`,
+    flexDirection: "row",
+  });
   const label = new TextRenderable(ctx, { id: "label", fg: color.dim });
   const filled = new TextRenderable(ctx, { id: "filled" });
   const empty = new TextRenderable(ctx, { id: "empty", fg: color.dim });
@@ -1169,7 +1175,10 @@ export function createProgressStrip(
   ctx: RenderContext,
   initial: ProgressStripProps,
 ): View<ProgressStripProps> {
-  const root = new BoxRenderable(ctx, { id: "progressstrip" });
+  const root = new BoxRenderable(ctx, {
+    id: "progressstrip",
+    flexDirection: "row",
+  });
   const bw = barWidthFor(initial.width);
 
   const sess = createProgressBar(ctx, {
@@ -1446,7 +1455,7 @@ export function createFileDots(
   ctx: RenderContext,
   initial: FileDotsProps,
 ): View<FileDotsProps> {
-  const root = new BoxRenderable(ctx, { id: "filedots" });
+  const root = new BoxRenderable(ctx, { id: "filedots", flexDirection: "row" });
   const pool: TextRenderable[] = [];
 
   const update = (p: FileDotsProps) => {
@@ -1581,7 +1590,7 @@ export function createIdTagField(
   ctx: RenderContext,
   initial: IdTagFieldProps,
 ): IdTagFieldView {
-  const root = new BoxRenderable(ctx, { id: "idtag" });
+  const root = new BoxRenderable(ctx, { id: "idtag", flexDirection: "row" });
 
   const label = new TextRenderable(ctx, {
     id: "idtag-label",
@@ -1784,7 +1793,10 @@ export function createFrame(ctx: RenderContext, initial: FrameProps): FrameView 
     flexGrow: 1,
   });
 
-  const titleRow = new BoxRenderable(ctx, { id: "frame-title-row" });
+  const titleRow = new BoxRenderable(ctx, {
+    id: "frame-title-row",
+    flexDirection: "row",
+  });
   const title = new TextRenderable(ctx, {
     id: "frame-title",
     fg: color.accent,
@@ -1889,7 +1901,11 @@ export function createRunScreen(
     width: initial.width,
   });
 
-  const columns = new BoxRenderable(ctx, { id: "run-columns", flexGrow: 1 });
+  const columns = new BoxRenderable(ctx, {
+    id: "run-columns",
+    flexDirection: "row",
+    flexGrow: 1,
+  });
   const leftCol = new BoxRenderable(ctx, {
     id: "run-left",
     flexDirection: "column",
@@ -1938,7 +1954,10 @@ export function createRunScreen(
     );
   }
 
-  const statusRow = new BoxRenderable(ctx, { id: "run-status" });
+  const statusRow = new BoxRenderable(ctx, {
+    id: "run-status",
+    flexDirection: "row",
+  });
   const action = new TextRenderable(ctx, {
     id: "run-action",
     fg: color.accent,
@@ -2245,7 +2264,11 @@ export function createSelectScreen(
     editing: initial.editingIdTag,
   });
 
-  const columns = new BoxRenderable(ctx, { id: "select-cols", flexGrow: 1 });
+  const columns = new BoxRenderable(ctx, {
+    id: "select-cols",
+    flexDirection: "row",
+    flexGrow: 1,
+  });
   const leftCol = new BoxRenderable(ctx, {
     id: "select-left",
     flexDirection: "column",
@@ -2597,7 +2620,10 @@ export function createConvertScreen(
   });
 
   const mkRow = (id: string, label: string) => {
-    const box = new BoxRenderable(ctx, { id: `${id}-row` });
+    const box = new BoxRenderable(ctx, {
+      id: `${id}-row`,
+      flexDirection: "row",
+    });
     const lbl = new TextRenderable(ctx, {
       id: `${id}-label`,
       content: label.padEnd(12),

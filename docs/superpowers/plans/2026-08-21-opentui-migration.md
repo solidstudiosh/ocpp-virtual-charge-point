@@ -185,7 +185,7 @@ function createLabel(ctx: RenderContext, initial: { text: string }): View<{
       root.content = props.text;
     },
     destroy() {
-      root.destroy();
+      root.destroyRecursively();
     },
   };
 }
@@ -232,6 +232,13 @@ export interface View<P> {
   readonly root: Renderable;
   /** Idempotent. Assign to properties; never rebuild the tree. */
   update(props: P): void;
+  /**
+   * Free the whole subtree. Implementations MUST call
+   * `root.destroyRecursively()`, never `root.destroy()` — Core's `destroy()`
+   * only detaches direct children (`this.remove(child)`) and frees its own
+   * Yoga node, so plain `destroy()` leaks every pooled row and every internal
+   * box of a composite like `ScrollBoxRenderable`.
+   */
   destroy(): void;
 }
 
@@ -814,7 +821,7 @@ export function createLogTail(
     root,
     update,
     destroy() {
-      root.destroy();
+      root.destroyRecursively();
     },
   };
 }
@@ -994,7 +1001,7 @@ export function createSessionList(
     root,
     update,
     destroy() {
-      root.destroy();
+      root.destroyRecursively();
     },
   };
 }
@@ -1121,7 +1128,7 @@ export function createProgressBar(
   };
 
   update(initial);
-  return { root, update, destroy: () => root.destroy() };
+  return { root, update, destroy: () => root.destroyRecursively() };
 }
 ```
 
@@ -1221,7 +1228,7 @@ export function createProgressStrip(
       sess.destroy();
       msg.destroy();
       cur.destroy();
-      root.destroy();
+      root.destroyRecursively();
     },
   };
 }
@@ -1417,7 +1424,7 @@ export function createFileQueue(
   };
 
   update(initial);
-  return { root, update, destroy: () => root.destroy() };
+  return { root, update, destroy: () => root.destroyRecursively() };
 }
 
 export interface FileDotsProps {
@@ -1453,7 +1460,7 @@ export function createFileDots(
   };
 
   update(initial);
-  return { root, update, destroy: () => root.destroy() };
+  return { root, update, destroy: () => root.destroyRecursively() };
 }
 ```
 
@@ -1608,7 +1615,7 @@ export function createIdTagField(
     update,
     value: () => input.value,
     destroy() {
-      root.destroy();
+      root.destroyRecursively();
     },
   };
 }
@@ -1804,7 +1811,7 @@ export function createFrame(ctx: RenderContext, initial: FrameProps): FrameView 
   };
   update(initial);
 
-  return { root, body, update, destroy: () => root.destroy() };
+  return { root, body, update, destroy: () => root.destroyRecursively() };
 }
 
 /** A single-row horizontal divider, dimmed to read as chrome. */
@@ -1816,7 +1823,7 @@ export function createRule(ctx: RenderContext): View<Record<string, never>> {
     wrapMode: "none",
     truncate: true,
   });
-  return { root, update: () => {}, destroy: () => root.destroy() };
+  return { root, update: () => {}, destroy: () => root.destroyRecursively() };
 }
 
 let ruleCounter = 0;
@@ -3285,7 +3292,7 @@ export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
     },
     destroy() {
       current?.view.destroy();
-      root.destroy();
+      root.destroyRecursively();
     },
   };
 }

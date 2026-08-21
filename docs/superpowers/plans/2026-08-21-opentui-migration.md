@@ -1817,6 +1817,9 @@ export function createFrame(ctx: RenderContext, initial: FrameProps): FrameView 
     id: "frame-right",
     fg: color.dim,
     wrapMode: "none",
+    // Keep title-row extras (e.g. file dots) off the clock; without this the
+    // two run together as `✓▶·1m5.0s`.
+    marginLeft: 2,
   });
   titleRow.add(title);
   titleRow.add(spacer);

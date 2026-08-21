@@ -1772,6 +1772,14 @@ export interface FrameProps {
 export interface FrameView extends View<FrameProps> {
   /** Attach screen content here, not to `root`. */
   readonly body: BoxRenderable;
+  /**
+   * Extra title-row content, between the title and the right-aligned clock
+   * — e.g. a batch progress indicator. Attach here, not to `root`: `root`'s
+   * only children are the title row and the body, so anything added
+   * directly to `root` renders as a new row BELOW the body rather than
+   * inline with the title.
+   */
+  readonly titleExtra: BoxRenderable;
 }
 
 /**
@@ -1996,8 +2004,8 @@ export function createRunScreen(
   frame.body.add(helpBlock);
   frame.body.add(createRule(ctx).root);
   frame.body.add(statusRow);
-  // The dots live on the frame's right-hand title slot area.
-  frame.root.add(dots.root);
+  // Title-row slot, not `frame.root` — see FrameView.titleExtra.
+  frame.titleExtra.add(dots.root);
 
   const update = (p: RunScreenProps) => {
     const fileBase = p.state.file ? basename(p.state.file) : "(loading)";
@@ -2014,13 +2022,20 @@ export function createRunScreen(
 
     tally.content = `SESSIONS ${icon.done}${p.state.successfulStarts} ${icon.rejected}${p.state.rejected} ${icon.truncated}${p.state.truncated}`;
 
-    // title(1) + strip(1) + rule(1) + rule(1) + status(1) = 5 rows of chrome.
-    const body = Math.max(3, p.height - 5 - (p.showHelp ? HELP_DETAILS.length : 0));
+    // border(2) + title(1) + strip(1) + rule(1) + rule(1) + status(1)
+    // = 7 rows of chrome consumed outside the two-column body. Forgetting
+    // the frame's two border rows overflows the flex-grow columns box into
+    // the help block and status row.
+    const body = Math.max(
+      3,
+      p.height - 7 - (p.showHelp ? HELP_DETAILS.length : 0),
+    );
     const wide = p.width >= NARROW_COLS;
     columns.flexDirection = wide ? "row" : "column";
+    // Core's width setter takes number | "auto" | template — not undefined.
     leftCol.width = wide
       ? Math.max(24, Math.min(Math.floor(p.width * 0.5), 52))
-      : undefined;
+      : "auto";
 
     sessions.update({
       sessions: p.state.sessions,
@@ -2317,7 +2332,8 @@ export function createSelectScreen(
     showParent() ? entries[i - 1] : entries[i];
 
   const render = () => {
-    const listRows = Math.max(3, latest.height - 6);
+    // border(2) + title(1) + idTag(1) + rule(1) + rule(1) + help(1) = 7.
+    const listRows = Math.max(3, latest.height - 7);
     const start = Math.min(
       Math.max(0, cursor - Math.floor(listRows / 2)),
       Math.max(0, total() - listRows),
@@ -2361,7 +2377,8 @@ export function createSelectScreen(
     queue.update({
       files: list.map(latest.fileStatusFor),
       currentIndex: -1,
-      rows: Math.max(3, latest.height - 7),
+      // As listRows, minus this pane's own SELECTED label row.
+      rows: Math.max(3, latest.height - 8),
     });
 
     frame.update({
@@ -2968,8 +2985,8 @@ export function createSummaryScreen(
     }
     for (let i = lines.length; i < pool.length; i++) pool[i].visible = false;
 
-    // title(1) + banner(1) + rule(1) + rule(1) + help(1) = 5 rows of chrome.
-    pageRows = Math.max(1, p.height - 5);
+    // border(2) + title(1) + banner(1) + rule(1) + rule(1) + help(1) = 7.
+    pageRows = Math.max(1, p.height - 7);
     help.content = helpLine("complete", { canBegin: false });
   };
 

@@ -855,7 +855,7 @@ A windowed list that follows the running session. The blank-row padding disappea
 
 **Interfaces:**
 - Consumes: `View`; `SessionRow` from `../state`; `sessionColor`, `sessionIcon` from `../theme`.
-- Produces: `createSessionList(ctx, props): View<SessionListProps>` where `SessionListProps = { sessions: SessionRow[]; rows: number }`; also `formatSessionRow(s): string` and `windowStart(total, budget, runningIndex): number`, both reused by the summary screen in Task 13.
+- Produces: `createSessionList(ctx, props): View<SessionListProps>` where `SessionListProps = { sessions: SessionRow[]; rows: number }`; also `formatSessionRow(s): string` and `windowStart(total, budget, runningIndex): number`. Both are used only inside this widget; they are exported so the pure windowing arithmetic can be unit-tested directly rather than only through rendered frames. (An earlier draft claimed Task 13 reuses them — it does not; the summary screen uses `buildSummaryLines` with a `ScrollBox`.)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -941,7 +941,13 @@ export function formatSessionRow(s: SessionRow): string {
   return `${head} cid=${s.connectorId ?? "?"} idTag=${s.idTag ?? "?"} tx=${s.txId ?? "?"}${reason}`;
 }
 
-/** First visible index, centring the running session when the list overflows. */
+/**
+ * First visible index, centring the running session when the list overflows.
+ *
+ * With no running session (`runningIndex === -1`) the anchor is `total`, so
+ * the window sits at the tail — deliberate: when nothing is in flight the
+ * most recent sessions are the interesting ones.
+ */
 export function windowStart(
   total: number,
   budget: number,

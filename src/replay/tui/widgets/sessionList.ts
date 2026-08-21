@@ -19,7 +19,13 @@ export function formatSessionRow(s: SessionRow): string {
   return `${head} cid=${s.connectorId ?? "?"} idTag=${s.idTag ?? "?"} tx=${s.txId ?? "?"}${reason}`;
 }
 
-/** First visible index, centring the running session when the list overflows. */
+/**
+ * First visible index, centring the running session when the list overflows.
+ *
+ * With no running session (`runningIndex === -1`) the anchor is `total`, so
+ * the window sits at the tail — deliberate: when nothing is in flight the
+ * most recent sessions are the interesting ones.
+ */
 export function windowStart(
   total: number,
   budget: number,

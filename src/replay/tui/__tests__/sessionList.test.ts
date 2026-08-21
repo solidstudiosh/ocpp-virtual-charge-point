@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { SessionRow } from "../state";
 import { renderView } from "../testHarness";
-import { createSessionList, formatSessionRow } from "../widgets/sessionList";
+import {
+  createSessionList,
+  formatSessionRow,
+  windowStart,
+} from "../widgets/sessionList";
 
 const row = (index: number, over: Partial<SessionRow> = {}): SessionRow => ({
   index,
@@ -90,5 +94,41 @@ describe("SessionList", () => {
     expect(h.view.root.getChildren()[0]).toBe(firstRow);
     expect(h.view.root.getChildren()[1]).toBe(secondRow);
     h.destroy();
+  });
+
+  it("hides surplus rows when the session list shrinks", async () => {
+    const sessions = Array.from({ length: 6 }, (_, i) => row(i));
+    const h = await renderView(
+      createSessionList,
+      { sessions, rows: 6 },
+      { width: 60, height: 8 },
+    );
+    expect(await h.frame()).toContain("#  5");
+
+    h.view.update({ sessions: sessions.slice(0, 2), rows: 6 });
+    const after = await h.frame();
+    expect(after).toContain("#  1");
+    expect(after).not.toContain("#  5");
+    h.destroy();
+  });
+});
+
+describe("windowStart", () => {
+  it("returns 0 when the list fits the budget", () => {
+    expect(windowStart(3, 5, 1)).toBe(0);
+    expect(windowStart(5, 5, 4)).toBe(0);
+  });
+
+  it("never returns a negative start when the running session is at the top", () => {
+    expect(windowStart(20, 4, 0)).toBe(0);
+  });
+
+  it("clamps to the end when the running session is last", () => {
+    // start must leave a full budget of rows: 20 - 4 = 16
+    expect(windowStart(20, 4, 19)).toBe(16);
+  });
+
+  it("shows the tail when no session is running", () => {
+    expect(windowStart(20, 4, -1)).toBe(16);
   });
 });

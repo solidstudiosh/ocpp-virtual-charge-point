@@ -122,6 +122,13 @@ export const BINDINGS: Binding[] = [
   },
   {
     phase: "converting",
+    keys: ["space", "left", "right"],
+    hint: "Space/←→",
+    label: "toggle",
+    action: "toggleRebase",
+  },
+  {
+    phase: "converting",
     keys: ["return"],
     hint: "Enter",
     label: "accept",
@@ -239,7 +246,7 @@ export interface KeyRouter {
 export function createKeyRouter(opts: {
   getPhase: () => Phase;
   getContext: () => KeyContext;
-  onAction: (action: string) => void;
+  onAction: (action: string, key: KeyLike) => void;
 }): KeyRouter {
   return {
     handle(key) {
@@ -249,7 +256,7 @@ export function createKeyRouter(opts: {
         b.keys.includes(key.name),
       );
       if (hit === undefined) return false;
-      opts.onAction(hit.action);
+      opts.onAction(hit.action, key);
       return true;
     },
   };

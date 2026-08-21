@@ -34,12 +34,25 @@ describe("keymap", () => {
     });
 
     router.handle({ name: "p" });
-    expect(onAction).toHaveBeenCalledWith("pause");
+    expect(onAction).toHaveBeenCalledWith("pause", { name: "p" });
 
     // A key bound only in another phase is ignored.
     onAction.mockClear();
     router.handle({ name: "f" });
     expect(onAction).not.toHaveBeenCalled();
+  });
+
+  it("passes the key through so multi-key bindings resolve direction", () => {
+    const onAction = vi.fn();
+    const router = createKeyRouter({
+      getPhase: () => "complete",
+      getContext: () => ({ canBegin: false }),
+      onAction,
+    });
+    router.handle({ name: "up" });
+    router.handle({ name: "down" });
+    expect(onAction).toHaveBeenNthCalledWith(1, "scroll", { name: "up" });
+    expect(onAction).toHaveBeenNthCalledWith(2, "scroll", { name: "down" });
   });
 
   it("respects `when` guards at dispatch time, not just in help", () => {

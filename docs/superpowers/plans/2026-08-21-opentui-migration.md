@@ -167,7 +167,7 @@ The single convention that keeps imperative UI code from rotting.
 Create `src/replay/tui/__tests__/view.test.ts`:
 
 ```ts
-import { TextRenderable, type RenderContext } from "@opentui/core";
+import { TextRenderable } from "@opentui/core";
 import { describe, expect, it } from "vitest";
 import { renderView } from "../testHarness";
 import type { View } from "../view";

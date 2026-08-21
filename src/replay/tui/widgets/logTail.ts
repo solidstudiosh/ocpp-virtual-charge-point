@@ -75,7 +75,7 @@ export function createLogTail(
     root,
     update,
     destroy() {
-      root.destroy();
+      root.destroyRecursively();
     },
   };
 }

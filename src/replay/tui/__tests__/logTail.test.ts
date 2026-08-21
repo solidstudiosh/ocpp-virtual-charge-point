@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ScrollBoxRenderable } from "@opentui/core";
 import { renderView } from "../testHarness";
 import type { LogLine } from "../state";
 import { createLogTail } from "../widgets/logTail";
@@ -46,6 +47,36 @@ describe("LogTail", () => {
     const frame = await h.frame();
     expect(frame).toContain("entry-39");
     expect(frame).not.toContain("entry-0");
+    h.destroy();
+  });
+
+  it("retains scrolled-off history rather than discarding it", async () => {
+    const logs = Array.from({ length: 40 }, (_, i) => line(i, `entry-${i}`));
+    const h = await renderView(
+      createLogTail,
+      { logs, height: 5 },
+      { width: 40, height: 6 },
+    );
+    expect(await h.frame()).not.toContain("entry-0");
+
+    // Scroll back to the top; the oldest line must still be there.
+    (h.view.root as ScrollBoxRenderable).scrollTop = 0;
+    expect(await h.frame()).toContain("entry-0");
+    h.destroy();
+  });
+
+  it("recycles row renderables instead of rebuilding them", async () => {
+    const h = await renderView(
+      createLogTail,
+      { logs: [line(1, "first")], height: 5 },
+      { width: 40, height: 6 },
+    );
+    await h.frame();
+    const firstRow = h.view.root.getChildren()[1];
+
+    h.view.update({ logs: [line(1, "first"), line(2, "second")], height: 5 });
+    await h.frame();
+    expect(h.view.root.getChildren()[1]).toBe(firstRow);
     h.destroy();
   });
 });

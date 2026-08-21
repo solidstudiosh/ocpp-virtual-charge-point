@@ -25,6 +25,17 @@ describe("keymap", () => {
     }
   });
 
+  it("never binds the same key twice within a phase", () => {
+    const seen = new Set<string>();
+    for (const b of BINDINGS) {
+      for (const k of b.keys) {
+        const id = `${b.phase}:${k}`;
+        expect(seen.has(id)).toBe(false);
+        seen.add(id);
+      }
+    }
+  });
+
   it("dispatches the action for a pressed key in the active phase", () => {
     const onAction = vi.fn();
     const router = createKeyRouter({
@@ -64,5 +75,16 @@ describe("keymap", () => {
     });
     router.handle({ name: "B" });
     expect(onAction).not.toHaveBeenCalled();
+  });
+
+  it("dispatches a guarded binding once its guard passes", () => {
+    const onAction = vi.fn();
+    const router = createKeyRouter({
+      getPhase: () => "selecting",
+      getContext: () => ({ canBegin: true }),
+      onAction,
+    });
+    router.handle({ name: "B" });
+    expect(onAction).toHaveBeenCalledWith("begin", { name: "B" });
   });
 });

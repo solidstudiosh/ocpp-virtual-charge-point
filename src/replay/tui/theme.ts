@@ -10,19 +10,26 @@
 
 import type { SessionStatus } from "./state";
 
-/** Semantic colour names (Ink colour strings). */
+/** Semantic palette. Hex strings; Core parses them to RGBA. */
 export const color = {
   /** Active / in-flight / cursor. */
-  accent: "cyan",
-  success: "green",
-  error: "red",
+  accent: "#00d7d7",
+  success: "#5faf5f",
+  error: "#d75f5f",
   /** Truncated, paused, and other "attention" states. */
-  warn: "yellow",
+  warn: "#d7af5f",
   /** Directories in the file browser. */
-  dir: "blue",
+  dir: "#5f87d7",
   /** Frame borders and chrome. */
-  chrome: "gray",
+  chrome: "#6c6c6c",
+  /** Secondary/de-emphasised text. Replaces Ink's `dimColor`. */
+  dim: "#8a8a8a",
+  /** Default body text. */
+  text: "#d0d0d0",
 } as const;
+
+/** Core text attribute bitmask for bold. Replaces Ink's `bold` prop. */
+export const ATTR_BOLD = 1;
 
 /** Status glyphs, shared by SessionList, the batch indicator and tallies. */
 export const icon = {
@@ -54,7 +61,7 @@ export function sessionIcon(status: SessionStatus): string {
   }
 }
 
-export function sessionColor(status: SessionStatus): string | undefined {
+export function sessionColor(status: SessionStatus): string {
   switch (status) {
     case "done":
       return color.success;
@@ -65,15 +72,13 @@ export function sessionColor(status: SessionStatus): string | undefined {
     case "running":
       return color.accent;
     default:
-      return undefined;
+      return color.text;
   }
 }
 
 /** Colour for a log line based on its level. */
-export function levelColor(level: string): string | undefined {
-  return level === "error"
-    ? color.error
-    : level === "warn"
-      ? color.warn
-      : undefined;
+export function levelColor(level: string): string {
+  if (level === "error") return color.error;
+  if (level === "warn") return color.warn;
+  return color.text;
 }

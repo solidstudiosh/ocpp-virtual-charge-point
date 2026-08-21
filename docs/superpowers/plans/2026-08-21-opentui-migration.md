@@ -2629,6 +2629,14 @@ export interface ConvertScreenProps {
 
 export interface ConvertScreenView extends View<ConvertScreenProps> {
   field(delta: number): void;
+  /**
+   * Index of the focused field row (0-2).
+   *
+   * Focus is signalled only by colour and the bold attribute, which
+   * `captureCharFrame()` strips — so without this accessor `field()`'s
+   * clamping is unobservable and therefore untestable.
+   */
+  focusedRow(): number;
   values(): ConvertFormValues;
   isErrorMode(): boolean;
   canAccept(): boolean;
@@ -2776,6 +2784,7 @@ export function createConvertScreen(
       rebaseTimestamps: rebase,
     }),
     isErrorMode: errorMode,
+    focusedRow: () => row,
     canAccept: () => !errorMode() && stationInput.value.trim().length > 0,
     destroy() {
       frame.destroy();

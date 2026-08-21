@@ -1,5 +1,6 @@
 import { BoxRenderable, InputRenderable, TextRenderable } from "@opentui/core";
 import type { RenderContext } from "@opentui/core";
+import { helpLine } from "../keymap";
 import { ATTR_BOLD, color } from "../theme";
 import type { View } from "../view";
 import { createFrame, createRule } from "../widgets/frame";
@@ -40,6 +41,14 @@ export interface ConvertScreenView extends View<ConvertScreenProps> {
   isErrorMode(): boolean;
   canAccept(): boolean;
   toggleRebase(): void;
+  /**
+   * Index of the focused field row (0-2).
+   *
+   * Focus is signalled only by colour and the bold attribute, which
+   * `captureCharFrame()` strips — so without this accessor `field()`'s
+   * clamping is unobservable and therefore untestable.
+   */
+  focusedRow(): number;
 }
 
 export function createConvertScreen(
@@ -141,9 +150,12 @@ export function createConvertScreen(
     rebaseValue.fg = row === 2 && !errorMode() ? color.accent : color.text;
     rebaseValue.attributes = row === 2 ? ATTR_BOLD : 0;
 
+    // Normal mode derives from the keymap table, so adding a `converting`
+    // binding updates this line automatically. Error mode cannot: it
+    // re-purposes Enter as "skip", which the table has no way to express.
     help.content = errorMode()
       ? "[Enter] skip  [Esc] cancel"
-      : "[↑↓] field  [Space/←→] toggle  [Enter] accept  [Esc] cancel";
+      : helpLine("converting", { canBegin: false });
   };
 
   const update = (p: ConvertScreenProps) => {
@@ -181,6 +193,7 @@ export function createConvertScreen(
     }),
     isErrorMode: errorMode,
     canAccept: () => !errorMode() && stationInput.value.trim().length > 0,
+    focusedRow: () => row,
     destroy() {
       frame.destroy();
     },

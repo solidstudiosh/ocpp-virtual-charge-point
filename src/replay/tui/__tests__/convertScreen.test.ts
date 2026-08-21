@@ -161,4 +161,36 @@ describe("convert screen", () => {
     expect(h.view.values().rebaseTimestamps).toBe(false);
     h.destroy();
   });
+
+  it("clamps field focus at both ends", async () => {
+    const h = await renderView(createConvertScreen, props(), {
+      width: 80,
+      height: 16,
+    });
+    expect(h.view.focusedRow()).toBe(0);
+
+    h.view.field(-5); // must not underflow
+    expect(h.view.focusedRow()).toBe(0);
+
+    h.view.field(+1);
+    expect(h.view.focusedRow()).toBe(1);
+
+    h.view.field(+5); // must clamp at the last row
+    expect(h.view.focusedRow()).toBe(2);
+    h.view.field(+5);
+    expect(h.view.focusedRow()).toBe(2);
+    h.destroy();
+  });
+
+  it("ignores field navigation in error mode", async () => {
+    const h = await renderView(
+      createConvertScreen,
+      props({ error: "unreadable frame at line 4", stats: undefined }),
+      { width: 80, height: 16 },
+    );
+    expect(h.view.focusedRow()).toBe(0);
+    h.view.field(1);
+    expect(h.view.focusedRow()).toBe(0);
+    h.destroy();
+  });
 });

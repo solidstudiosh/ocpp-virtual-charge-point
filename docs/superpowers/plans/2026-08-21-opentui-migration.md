@@ -3533,3 +3533,169 @@ Expected: lint, format, typecheck and the whole suite pass.
 git add -A
 git commit -m "chore(replay): remove Ink remnants and document the OpenTUI runtime"
 ```
+
+---
+
+### Task 17: Terminal-theme-aware palette
+
+Added mid-execution after the Task 3 review (ruling R3). Ink's `undefined` colour meant "inherit the terminal's foreground", so the old UI stayed legible on light and dark terminals alike. Core has **no inherit sentinel** — an unset `fg` renders pure white (verified: `rgba(255,255,255,255)`), and a fixed `#d0d0d0` is washed out on a light background. Closing this is capability parity, not polish.
+
+**Files:**
+- Modify: `src/replay/tui/theme.ts`
+- Modify: `src/replay/tui/__tests__/theme.test.ts`
+- Modify: `index_replay_16_tui.ts`
+
+**Interfaces:**
+- Consumes: `ThemeMode` from `@opentui/core`.
+- Produces: `applyThemeMode(mode: ThemeMode): void`. `color` keeps its exact shape and member names, so **no widget or screen changes** — they read `color.x` at construct/update time and pick up whichever palette was applied at startup.
+
+- [ ] **Step 1: Write the failing test**
+
+Append to `src/replay/tui/__tests__/theme.test.ts`:
+
+```ts
+import { applyThemeMode, color, sessionColor } from "../theme";
+
+describe("theme mode", () => {
+  // Restore the default so mode changes cannot leak between test files.
+  afterEach(() => applyThemeMode("dark"));
+
+  it("darkens body text for light terminals", () => {
+    applyThemeMode("dark");
+    const darkText = color.text;
+    applyThemeMode("light");
+    expect(color.text).not.toBe(darkText);
+    // Light-mode body text must be dark enough to read on white.
+    const [r, g, b] = [1, 3, 5].map((i) =>
+      Number.parseInt(color.text.slice(i, i + 2), 16),
+    );
+    expect((r + g + b) / 3).toBeLessThan(128);
+  });
+
+  it("restores the dark palette", () => {
+    applyThemeMode("light");
+    applyThemeMode("dark");
+    const [r, g, b] = [1, 3, 5].map((i) =>
+      Number.parseInt(color.text.slice(i, i + 2), 16),
+    );
+    expect((r + g + b) / 3).toBeGreaterThan(128);
+  });
+
+  it("keeps every semantic token defined in both modes", () => {
+    for (const mode of ["light", "dark"] as const) {
+      applyThemeMode(mode);
+      for (const key of [
+        "accent", "success", "error", "warn", "dir", "chrome", "dim", "text",
+      ] as const) {
+        expect(color[key]).toMatch(/^#[0-9a-f]{6}$/);
+      }
+    }
+  });
+
+  // Closes the coverage gap the Task 3 review flagged as a Minor.
+  it("maps every session status to its semantic colour", () => {
+    applyThemeMode("dark");
+    expect(sessionColor("rejected")).toBe(color.error);
+    expect(sessionColor("truncated")).toBe(color.warn);
+    expect(sessionColor("running")).toBe(color.accent);
+  });
+});
+```
+
+- [ ] **Step 2: Run it to verify it fails**
+
+Run: `npm test -- theme`
+Expected: FAIL — `applyThemeMode` is not exported.
+
+- [ ] **Step 3: Make the palette swappable**
+
+In `theme.ts`, replace the `color` const with a mutable token object plus two palettes. Keep every member name identical so no consumer changes:
+
+```ts
+import type { ThemeMode } from "@opentui/core";
+
+export interface ThemePalette {
+  accent: string;
+  success: string;
+  error: string;
+  warn: string;
+  dir: string;
+  chrome: string;
+  dim: string;
+  text: string;
+}
+
+const DARK: ThemePalette = {
+  accent: "#00d7d7",
+  success: "#5faf5f",
+  error: "#d75f5f",
+  warn: "#d7af5f",
+  dir: "#5f87d7",
+  chrome: "#6c6c6c",
+  dim: "#8a8a8a",
+  text: "#d0d0d0",
+};
+
+/** Darkened for light backgrounds; same semantics, same member names. */
+const LIGHT: ThemePalette = {
+  accent: "#007070",
+  success: "#2f7a2f",
+  error: "#a32222",
+  warn: "#8a6a00",
+  dir: "#2a4fa3",
+  chrome: "#9a9a9a",
+  dim: "#6c6c6c",
+  text: "#2a2a2a",
+};
+
+/**
+ * Live semantic palette. Mutated in place by `applyThemeMode` at startup,
+ * before any screen mounts, so widgets can keep reading `color.x` directly.
+ *
+ * Core has no "inherit the terminal foreground" colour — an unset `fg`
+ * renders pure white — so the palette must be chosen explicitly rather than
+ * delegated to the terminal the way Ink's `undefined` did.
+ */
+export const color: ThemePalette = { ...DARK };
+
+export function applyThemeMode(mode: ThemeMode): void {
+  Object.assign(color, mode === "light" ? LIGHT : DARK);
+}
+```
+
+`ATTR_BOLD`, `icon`, `sessionIcon`, `sessionColor` and `levelColor` are unchanged — `sessionColor`/`levelColor` already read through `color`, so they follow the active palette automatically.
+
+- [ ] **Step 4: Run the test to verify it passes**
+
+Run: `npm test -- theme`
+Expected: PASS — all seven cases (three from Task 3, four new).
+
+- [ ] **Step 5: Select the palette at startup**
+
+In `index_replay_16_tui.ts`, immediately after `createCliRenderer` and **before** `createApp`:
+
+```ts
+import { applyThemeMode } from "./src/replay/tui/theme";
+
+// Core cannot inherit the terminal's foreground, so pick a palette that
+// suits it. Terminals that do not answer the query fall back to dark.
+applyThemeMode((await renderer.waitForThemeMode(250)) ?? "dark");
+```
+
+The 250 ms cap matters: `waitForThemeMode` queries the terminal over OSC and many terminals never reply. Do not await it unbounded.
+
+- [ ] **Step 6: Verify on a real terminal**
+
+```bash
+npm run check && npm test
+npm run replay:16:tui:pick
+```
+
+Expected: full suite green; the TUI is legible. If your terminal is dark, temporarily force the light branch (`applyThemeMode("light")`) once to confirm the light palette renders readably, then revert that edit.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/replay/tui/theme.ts src/replay/tui/__tests__/theme.test.ts index_replay_16_tui.ts
+git commit -m "feat(replay): adapt the palette to the terminal's theme mode"
+```

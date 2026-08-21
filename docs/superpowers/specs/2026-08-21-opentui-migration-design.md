@@ -67,6 +67,11 @@ Implementation is complete when every item below behaves as it does today.
   `f` new round, `q`/`Enter` quit.
 
 ### Cross-cutting
+- **Legibility on both light and dark terminals.** Ink's `undefined` colour
+  inherited the terminal foreground. Core has no inherit sentinel (an unset
+  `fg` renders pure white), so the palette must adapt explicitly via
+  `renderer.waitForThemeMode()`. Discovered during the Task 3 review; see
+  Task 17.
 - idTag override inline editor (`t`, `Enter`, `Esc`, backspace).
 - File-log toggle writing per-session logs under `./data/replay-session-logs`.
 - Responsive: narrow terminals (< 56 columns) stack vertically.

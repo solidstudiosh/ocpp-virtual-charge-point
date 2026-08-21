@@ -1002,6 +1002,9 @@ export function createSessionList(
       r.content = formatSessionRow(s);
       r.fg = sessionColor(s.status);
     }
+    // The row budget shrinks when the terminal does. Hide pooled rows beyond
+    // it, or the previous, taller layout's rows linger on screen.
+    for (let i = props.rows; i < pool.length; i++) pool[i].visible = false;
   };
 
   update(initial);
@@ -1436,6 +1439,9 @@ export function createFileQueue(
       r.content = formatFileRow(f);
       r.fg = statusColor(f.status, start + i === p.currentIndex);
     }
+    // The row budget shrinks when the terminal does. Hide pooled rows beyond
+    // it, or the previous, taller layout's rows linger on screen.
+    for (let i = p.rows; i < pool.length; i++) pool[i].visible = false;
   };
 
   update(initial);
@@ -2251,7 +2257,15 @@ export interface SelectScreenView extends View<SelectScreenProps> {
 
 function readEntries(dir: string): Entry[] {
   const out: Entry[] = [];
-  for (const name of readdirSync(dir).sort()) {
+  let names: string[];
+  try {
+    names = readdirSync(dir);
+  } catch {
+    // Directory vanished or is unreadable mid-session; show it as empty
+    // rather than tearing the TUI down.
+    return out;
+  }
+  for (const name of names.sort()) {
     const path = join(dir, name);
     let isDir = false;
     try {
@@ -2263,7 +2277,10 @@ function readEntries(dir: string): Entry[] {
       out.push({ name, path, isDir });
     }
   }
-  return out;
+  // Directories first, then files — matching the Ink browser's ordering.
+  return out.sort((a, b) =>
+    a.isDir === b.isDir ? a.name.localeCompare(b.name) : a.isDir ? -1 : 1,
+  );
 }
 
 export function createSelectScreen(

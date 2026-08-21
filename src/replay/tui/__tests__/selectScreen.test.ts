@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { createSelectScreen } from "../screens/select";
 import { renderView } from "../testHarness";
+import { icon } from "../theme";
 
 function fixture() {
   const dir = mkdtempSync(join(tmpdir(), "vcp-select-"));
@@ -11,6 +12,10 @@ function fixture() {
   writeFileSync(join(dir, "CS_TEST_1.json"), "{}");
   writeFileSync(join(dir, "CS_TEST_2.json"), "{}");
   writeFileSync(join(dir, "notes.txt"), "ignore me");
+  // Non-empty, so the cursor's position after navigating in is observable:
+  // an empty directory renders only the ".." row regardless of where the
+  // cursor actually sits.
+  writeFileSync(join(dir, "nested", "CS_TEST_3.json"), "{}");
   return dir;
 }
 
@@ -105,7 +110,15 @@ describe("select screen", () => {
     h.view.open();
     const frame = await h.frame();
     expect(frame).toContain("nested");
-    expect(frame).toContain(".."); // cursor reset to the parent row
+    // nested/ has its own entry (CS_TEST_3.json), so — unlike an empty
+    // directory — where the cursor lands is actually observable: the
+    // cursor marker must sit on the ".." row, not on that entry. Match an
+    // isolated ".." (not the title bar's "..." path-truncation ellipsis).
+    const parentLine = frame
+      .split("\n")
+      .find((l) => /(?<!\.)\.\.(?!\.)/.test(l));
+    expect(parentLine).toBeDefined();
+    expect(parentLine).toContain(icon.cursor);
     h.destroy();
   });
 

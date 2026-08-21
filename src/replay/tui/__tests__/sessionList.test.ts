@@ -111,6 +111,22 @@ describe("SessionList", () => {
     expect(after).not.toContain("#  5");
     h.destroy();
   });
+
+  it("hides pooled rows when the row budget shrinks", async () => {
+    const sessions = Array.from({ length: 8 }, (_, i) => row(i));
+    sessions[0].status = "running";
+    const h = await renderView(
+      createSessionList,
+      { sessions, rows: 8 },
+      { width: 60, height: 10 },
+    );
+    expect(await h.frame()).toContain("#  7");
+
+    h.view.update({ sessions, rows: 3 });
+    const after = await h.frame();
+    expect(after).not.toContain("#  7");
+    h.destroy();
+  });
 });
 
 describe("windowStart", () => {

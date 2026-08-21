@@ -77,6 +77,9 @@ export function createSessionList(
       r.content = formatSessionRow(s);
       r.fg = sessionColor(s.status);
     }
+    // The row budget shrinks when the terminal does. Hide pooled rows beyond
+    // it, or the previous, taller layout's rows linger on screen.
+    for (let i = props.rows; i < pool.length; i++) pool[i].visible = false;
   };
 
   update(initial);

@@ -108,6 +108,23 @@ describe("FileQueue", () => {
     expect(after).not.toContain("CS_TEST_5");
     h.destroy();
   });
+
+  it("hides pooled rows when the row budget shrinks", async () => {
+    const files = Array.from({ length: 8 }, (_, i) =>
+      f({ path: `./data/CS_TEST_${i}.json`, cpId: `CS_TEST_${i}` }),
+    );
+    const h = await renderView(
+      createFileQueue,
+      { files, currentIndex: 0, rows: 8 },
+      { width: 50, height: 10 },
+    );
+    expect(await h.frame()).toContain("CS_TEST_7");
+
+    h.view.update({ files, currentIndex: 0, rows: 3 });
+    const after = await h.frame();
+    expect(after).not.toContain("CS_TEST_7");
+    h.destroy();
+  });
 });
 
 describe("FileDots", () => {

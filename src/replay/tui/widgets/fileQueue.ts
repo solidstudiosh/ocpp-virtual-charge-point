@@ -103,6 +103,9 @@ export function createFileQueue(
       r.content = formatFileRow(f);
       r.fg = statusColor(f.status, start + i === p.currentIndex);
     }
+    // The row budget shrinks when the terminal does. Hide pooled rows beyond
+    // it, or the previous, taller layout's rows linger on screen.
+    for (let i = p.rows; i < pool.length; i++) pool[i].visible = false;
   };
 
   update(initial);

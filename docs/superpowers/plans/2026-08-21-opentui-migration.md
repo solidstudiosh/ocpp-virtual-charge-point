@@ -84,6 +84,7 @@ Create `src/replay/tui/__tests__/runtime.test.ts`:
 
 ```ts
 import { BoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import { createTestRenderer } from "@opentui/core/testing";
 import { describe, expect, it } from "vitest";
 
@@ -114,9 +115,10 @@ Expected: FAIL — `Cannot find package '@opentui/core'`.
 - [ ] **Step 3: Swap the dependencies**
 
 ```bash
-npm uninstall ink react ink-testing-library @types/react
 npm install --save-exact @opentui/core@0.5.6
 ```
+
+**Do not uninstall `ink`, `react`, `@types/react` or `ink-testing-library` yet** (ruling R1). `App.tsx` and the existing Ink tests depend on them until Task 14, and removing them now breaks typecheck for twelve tasks. Task 16 removes them.
 
 Verify `package.json` shows `"@opentui/core": "0.5.6"` with **no** caret. If npm wrote a caret, edit it to the bare version by hand.
 
@@ -131,11 +133,7 @@ In `package.json`, set these three scripts exactly:
 "test:watch": "NODE_OPTIONS=--experimental-ffi vitest",
 ```
 
-Also update `typecheck` to drop the `.tsx` glob and the `--jsx react-jsx` flag, since no `.tsx` files will remain:
-
-```json
-"typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck --module esnext --moduleResolution bundler src/**/*.ts index_replay_16_tui.ts",
-```
+Leave `typecheck` alone for now — it must keep the `.tsx` glob and `--jsx react-jsx` while Ink files remain. Task 16 simplifies it.
 
 - [ ] **Step 5: Run the test to verify it passes**
 
@@ -169,12 +167,12 @@ The single convention that keeps imperative UI code from rotting.
 Create `src/replay/tui/__tests__/view.test.ts`:
 
 ```ts
-import { TextRenderable } from "@opentui/core";
+import { TextRenderable, type RenderContext } from "@opentui/core";
 import { describe, expect, it } from "vitest";
 import { renderView } from "../testHarness";
 import type { View } from "../view";
 
-function createLabel(ctx: never, initial: { text: string }): View<{
+function createLabel(ctx: RenderContext, initial: { text: string }): View<{
   text: string;
 }> {
   const root = new TextRenderable(ctx, {
@@ -220,7 +218,7 @@ Expected: FAIL — cannot resolve `../testHarness` or `../view`.
 Create `src/replay/tui/view.ts`:
 
 ```ts
-import type { Renderable } from "@opentui/core";
+import type { Renderable, RenderContext } from "@opentui/core";
 
 /**
  * The contract every widget and screen implements.
@@ -238,15 +236,22 @@ export interface View<P> {
 }
 
 /** A widget or screen constructor. `ctx` is the renderer. */
-export type Factory<P> = (ctx: never, initial: P) => View<P>;
+export type Factory<P> = (ctx: RenderContext, initial: P) => View<P>;
+
+/**
+ * A view whose prop type is not known to the holder — for heterogeneous
+ * collections like the ScreenRouter's "currently mounted screen".
+ */
+// biome-ignore lint/suspicious/noExplicitAny: intentionally prop-type-erased
+export type AnyView = View<any>;
 
 /** Attach every view's root to `parent`, in order. */
-export function mountAll(parent: Renderable, views: View<never>[]): void {
+export function mountAll(parent: Renderable, views: AnyView[]): void {
   for (const v of views) parent.add(v.root);
 }
 
 /** Destroy every view, tolerating already-destroyed children. */
-export function destroyAll(views: View<never>[]): void {
+export function destroyAll(views: AnyView[]): void {
   for (const v of views) v.destroy();
 }
 ```
@@ -281,7 +286,7 @@ export async function renderView<P>(
   size: { width: number; height: number },
 ): Promise<ViewHarness<P>> {
   const t = await createTestRenderer(size);
-  const view = factory(t.renderer as never, initial);
+  const view = factory(t.renderer, initial);
   t.renderer.root.add(view.root);
 
   const frame = async () => {
@@ -436,7 +441,6 @@ The design centrepiece. Today four scattered `useInput` blocks implement the key
 **Files:**
 - Create: `src/replay/tui/keymap.ts`
 - Create: `src/replay/tui/__tests__/keymap.test.ts`
-- Delete: `src/replay/tui/HelpBar.tsx` (its `shortKeys` is replaced by `helpLine`)
 
 **Interfaces:**
 - Consumes: nothing.
@@ -637,13 +641,9 @@ export function createKeyRouter(opts: {
 Run: `npm test -- keymap`
 Expected: PASS — all five cases.
 
-- [ ] **Step 5: Delete the Ink help bar**
+- [ ] **Step 5: Leave `HelpBar.tsx` in place**
 
-```bash
-git rm src/replay/tui/HelpBar.tsx
-```
-
-Its `HelpDetails` content now lives in `HELP_DETAILS`; its `shortKeys` is `helpLine`.
+Its `HelpDetails` content now lives in `HELP_DETAILS` and its `shortKeys` in `helpLine`, but `App.tsx` still imports it. Per ruling R1 it is deleted in Task 16.
 
 - [ ] **Step 6: Commit**
 
@@ -661,7 +661,6 @@ The largest capability gain: today the log is an unscrollable last-6-lines windo
 **Files:**
 - Create: `src/replay/tui/widgets/logTail.ts`
 - Create: `src/replay/tui/__tests__/logTail.test.ts`
-- Delete: `src/replay/tui/LogTail.tsx`
 
 **Interfaces:**
 - Consumes: `View` from `../view`; `LogLine` from `../state`; `levelColor` from `../theme`.
@@ -736,6 +735,7 @@ Create `src/replay/tui/widgets/logTail.ts`:
 
 ```ts
 import { ScrollBoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import type { LogLine } from "../state";
 import { color, levelColor } from "../theme";
 import type { View } from "../view";
@@ -755,7 +755,7 @@ export interface LogTailProps {
  * the Ink version could only ever show the last N lines.
  */
 export function createLogTail(
-  ctx: never,
+  ctx: RenderContext,
   initial: LogTailProps,
 ): View<LogTailProps> {
   const root = new ScrollBoxRenderable(ctx, {
@@ -822,11 +822,9 @@ export function createLogTail(
 Run: `npm test -- logTail`
 Expected: PASS — all three cases, including that `entry-0` has scrolled out of view.
 
-- [ ] **Step 5: Delete the Ink component and its test**
+- [ ] **Step 5: Leave the Ink component in place**
 
-```bash
-git rm src/replay/tui/LogTail.tsx src/replay/tui/__tests__/LogTail.test.tsx
-```
+`LogTail.tsx` and its test stay until Task 16 (ruling R1).
 
 - [ ] **Step 6: Commit**
 
@@ -844,7 +842,6 @@ A windowed list that follows the running session. The blank-row padding disappea
 **Files:**
 - Create: `src/replay/tui/widgets/sessionList.ts`
 - Create: `src/replay/tui/__tests__/sessionList.test.ts`
-- Delete: `src/replay/tui/SessionList.tsx`, `src/replay/tui/__tests__/SessionList.test.tsx`
 
 **Interfaces:**
 - Consumes: `View`; `SessionRow` from `../state`; `sessionColor`, `sessionIcon` from `../theme`.
@@ -914,6 +911,7 @@ Create `src/replay/tui/widgets/sessionList.ts`:
 
 ```ts
 import { BoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import type { SessionRow } from "../state";
 import { sessionColor, sessionIcon } from "../theme";
 import type { View } from "../view";
@@ -951,7 +949,7 @@ export function windowStart(
  * invariant to uphold by hand.
  */
 export function createSessionList(
-  ctx: never,
+  ctx: RenderContext,
   initial: SessionListProps,
 ): View<SessionListProps> {
   const root = new BoxRenderable(ctx, {
@@ -1004,11 +1002,9 @@ export function createSessionList(
 Run: `npm test -- sessionList`
 Expected: PASS.
 
-- [ ] **Step 5: Delete the Ink component**
+- [ ] **Step 5: Leave the Ink component in place**
 
-```bash
-git rm src/replay/tui/SessionList.tsx src/replay/tui/__tests__/SessionList.test.tsx
-```
+`SessionList.tsx` and its test stay until Task 16 (ruling R1).
 
 - [ ] **Step 6: Commit**
 
@@ -1025,7 +1021,6 @@ git commit -m "feat(replay): SessionList widget with pooled windowed rows"
 - Create: `src/replay/tui/widgets/progressBar.ts`
 - Create: `src/replay/tui/widgets/progressStrip.ts`
 - Create: `src/replay/tui/__tests__/progressStrip.test.ts`
-- Delete: `src/replay/tui/ProgressBar.tsx`, `src/replay/tui/ProgressStrip.tsx`
 
 **Interfaces:**
 - Consumes: `View`; `TuiState` from `../state`; `color` from `../theme`.
@@ -1082,6 +1077,7 @@ Expected: FAIL — cannot resolve `../widgets/progressStrip`.
 
 ```ts
 import { BoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import { color } from "../theme";
 import type { View } from "../view";
 
@@ -1096,7 +1092,7 @@ export interface ProgressBarProps {
 
 /** Compact single-line indicator: `label ███░░  60% 3/5`. */
 export function createProgressBar(
-  ctx: never,
+  ctx: RenderContext,
   initial: ProgressBarProps,
 ): View<ProgressBarProps> {
   const root = new BoxRenderable(ctx, { id: `bar-${initial.label}` });
@@ -1130,6 +1126,7 @@ export function createProgressBar(
 
 ```ts
 import { BoxRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import type { TuiState } from "../state";
 import { color } from "../theme";
 import type { View } from "../view";
@@ -1153,7 +1150,7 @@ export function barWidthFor(width: number): number {
 
 /** The three batch/session progress bars compacted onto a single row. */
 export function createProgressStrip(
-  ctx: never,
+  ctx: RenderContext,
   initial: ProgressStripProps,
 ): View<ProgressStripProps> {
   const root = new BoxRenderable(ctx, { id: "progressstrip" });
@@ -1232,10 +1229,9 @@ export function createProgressStrip(
 Run: `npm test -- progressStrip`
 Expected: PASS — `25%` comes from the Sess bar (1/4).
 
-- [ ] **Step 6: Delete the Ink components and commit**
+- [ ] **Step 6: Commit** (the Ink components stay until Task 16, ruling R1)
 
 ```bash
-git rm src/replay/tui/ProgressBar.tsx src/replay/tui/ProgressStrip.tsx
 git add src/replay/tui/widgets/progressBar.ts src/replay/tui/widgets/progressStrip.ts src/replay/tui/__tests__/progressStrip.test.ts
 git commit -m "feat(replay): ProgressBar and ProgressStrip widgets"
 ```
@@ -1247,7 +1243,6 @@ git commit -m "feat(replay): ProgressBar and ProgressStrip widgets"
 **Files:**
 - Create: `src/replay/tui/widgets/fileQueue.ts`
 - Create: `src/replay/tui/__tests__/fileQueue.test.ts`
-- Delete: `src/replay/tui/FileQueue.tsx`, `src/replay/tui/__tests__/FileQueue.test.tsx`
 
 **Interfaces:**
 - Consumes: `View`; `AuthSource` from `../../connection`; `color`, `icon` from `../theme`.
@@ -1312,6 +1307,7 @@ Create `src/replay/tui/widgets/fileQueue.ts`. `authBadge`, `statusIcon` and `sta
 
 ```ts
 import { BoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import type { AuthSource } from "../../connection";
 import { color, icon } from "../theme";
 import type { View } from "../view";
@@ -1377,7 +1373,7 @@ export interface FileQueueProps {
 
 /** Vertical batch file list, windowed around the current file. */
 export function createFileQueue(
-  ctx: never,
+  ctx: RenderContext,
   initial: FileQueueProps,
 ): View<FileQueueProps> {
   const root = new BoxRenderable(ctx, {
@@ -1431,7 +1427,7 @@ export interface FileDotsProps {
  * for single-file batches, matching the Ink behaviour.
  */
 export function createFileDots(
-  ctx: never,
+  ctx: RenderContext,
   initial: FileDotsProps,
 ): View<FileDotsProps> {
   const root = new BoxRenderable(ctx, { id: "filedots" });
@@ -1463,10 +1459,9 @@ export function createFileDots(
 Run: `npm test -- fileQueue`
 Expected: PASS — all four cases.
 
-- [ ] **Step 5: Delete the Ink component and commit**
+- [ ] **Step 5: Commit** (the Ink component stays until Task 16, ruling R1)
 
 ```bash
-git rm src/replay/tui/FileQueue.tsx src/replay/tui/__tests__/FileQueue.test.tsx
 git add src/replay/tui/widgets/fileQueue.ts src/replay/tui/__tests__/fileQueue.test.ts
 git commit -m "feat(replay): FileQueue and FileDots widgets"
 ```
@@ -1480,7 +1475,6 @@ Replaces the hand-rolled keystroke accumulator with Core's real `Input` renderab
 **Files:**
 - Create: `src/replay/tui/widgets/idTagField.ts`
 - Create: `src/replay/tui/__tests__/idTagField.test.ts`
-- Delete: `src/replay/tui/IdTagInput.tsx`
 
 **Interfaces:**
 - Consumes: `View`; `color` from `../theme`.
@@ -1546,6 +1540,7 @@ Create `src/replay/tui/widgets/idTagField.ts`:
 
 ```ts
 import { BoxRenderable, InputRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import { color } from "../theme";
 import type { View } from "../view";
 
@@ -1567,7 +1562,7 @@ export interface IdTagFieldView extends View<IdTagFieldProps> {
  * into a string by hand and supported only append and backspace.
  */
 export function createIdTagField(
-  ctx: never,
+  ctx: RenderContext,
   initial: IdTagFieldProps,
 ): IdTagFieldView {
   const root = new BoxRenderable(ctx, { id: "idtag" });
@@ -1627,10 +1622,9 @@ If `InputRenderable`'s option or property names differ from `value`, check the s
 grep -A 20 "interface InputRenderableOptions" node_modules/@opentui/core/renderables/Input.d.ts
 ```
 
-- [ ] **Step 5: Delete the Ink component and commit**
+- [ ] **Step 5: Commit** (the Ink component stays until Task 16, ruling R1)
 
 ```bash
-git rm src/replay/tui/IdTagInput.tsx
 git add src/replay/tui/widgets/idTagField.ts src/replay/tui/__tests__/idTagField.test.ts
 git commit -m "feat(replay): IdTagField widget backed by a real Input renderable"
 ```
@@ -1645,7 +1639,6 @@ The first screen. It also introduces the shared frame that Tasks 11–13 reuse, 
 - Create: `src/replay/tui/widgets/frame.ts`
 - Create: `src/replay/tui/screens/run.ts`
 - Create: `src/replay/tui/__tests__/runScreen.test.ts`
-- Delete: `src/replay/tui/Frame.tsx`, `src/replay/tui/Rule.tsx`
 
 **Interfaces:**
 - Consumes: `createProgressStrip`, `createSessionList`, `createLogTail`, `createFileDots` from Tasks 5–8; `helpLine`, `HELP_DETAILS` from Task 4; `TuiState` from `../state`; `fmtDuration` from `../format`.
@@ -1740,6 +1733,7 @@ Expected: FAIL — cannot resolve `../screens/run`.
 
 ```ts
 import { BoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import { ATTR_BOLD, color } from "../theme";
 import type { View } from "../view";
 
@@ -1763,7 +1757,7 @@ export interface FrameView extends View<FrameProps> {
  * and clips, so the fixed-size arithmetic that upheld Ink's no-flicker
  * invariant is gone.
  */
-export function createFrame(ctx: never, initial: FrameProps): FrameView {
+export function createFrame(ctx: RenderContext, initial: FrameProps): FrameView {
   const root = new BoxRenderable(ctx, {
     id: "frame",
     border: true,
@@ -1811,7 +1805,7 @@ export function createFrame(ctx: never, initial: FrameProps): FrameView {
 }
 
 /** A single-row horizontal divider, dimmed to read as chrome. */
-export function createRule(ctx: never): View<Record<string, never>> {
+export function createRule(ctx: RenderContext): View<Record<string, never>> {
   const root = new TextRenderable(ctx, {
     id: `rule-${ruleCounter++}`,
     content: "─".repeat(200),
@@ -1831,6 +1825,7 @@ The rule is over-long and clipped by `truncate`, which replaces the Ink version'
 
 ```ts
 import { BoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import { basename } from "node:path";
 import { fmtDuration } from "../format";
 import { HELP_DETAILS, helpLine } from "../keymap";
@@ -1868,7 +1863,7 @@ function actionLabel(state: TuiState): string {
 }
 
 export function createRunScreen(
-  ctx: never,
+  ctx: RenderContext,
   initial: RunScreenProps,
 ): View<RunScreenProps> {
   const frame = createFrame(ctx, { title: "", right: "" });
@@ -2031,10 +2026,9 @@ export function createRunScreen(
 Run: `npm test -- runScreen`
 Expected: PASS — all three cases.
 
-- [ ] **Step 6: Delete the Ink chrome and commit**
+- [ ] **Step 6: Commit** (the Ink chrome stays until Task 16, ruling R1)
 
 ```bash
-git rm src/replay/tui/Frame.tsx src/replay/tui/Rule.tsx
 git add src/replay/tui/widgets/frame.ts src/replay/tui/screens/run.ts src/replay/tui/__tests__/runScreen.test.ts
 git commit -m "feat(replay): frame chrome and running dashboard screen"
 ```
@@ -2048,7 +2042,6 @@ Two panes: the directory listing on the left, the current selection on the right
 **Files:**
 - Create: `src/replay/tui/screens/select.ts`
 - Create: `src/replay/tui/__tests__/selectScreen.test.ts`
-- Delete: `src/replay/tui/FileBrowser.tsx`, `src/replay/tui/__tests__/FileBrowser.test.tsx`
 
 **Interfaces:**
 - Consumes: `createFrame`, `createRule`, `createFileQueue`, `createIdTagField`, `helpLine`.
@@ -2164,6 +2157,7 @@ Port the directory-reading and cursor logic from `FileBrowser.tsx`. Key behaviou
 
 ```ts
 import { BoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import { readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { helpLine } from "../keymap";
@@ -2220,7 +2214,7 @@ function readEntries(dir: string): Entry[] {
 }
 
 export function createSelectScreen(
-  ctx: never,
+  ctx: RenderContext,
   initial: SelectScreenProps,
 ): SelectScreenView {
   let cwd = initial.cwd;
@@ -2421,10 +2415,9 @@ export function createSelectScreen(
 Run: `npm test -- selectScreen`
 Expected: PASS — all four cases, including the `auth ✓` badge that makes the `ready` merge legitimate.
 
-- [ ] **Step 5: Delete the Ink browser and commit**
+- [ ] **Step 5: Commit** (the Ink browser stays until Task 16, ruling R1)
 
 ```bash
-git rm src/replay/tui/FileBrowser.tsx src/replay/tui/__tests__/FileBrowser.test.tsx
 git add src/replay/tui/screens/select.ts src/replay/tui/__tests__/selectScreen.test.ts
 git commit -m "feat(replay): select screen with ready merged into the right pane"
 ```
@@ -2438,7 +2431,6 @@ The stationId and password fields become real `Input` renderables. The wizard's 
 **Files:**
 - Create: `src/replay/tui/screens/convert.ts`
 - Create: `src/replay/tui/__tests__/convertScreen.test.ts`
-- Delete: `src/replay/tui/ConvertWizard.tsx`, `src/replay/tui/__tests__/ConvertWizard.test.tsx`
 
 **Interfaces:**
 - Consumes: `createFrame`, `createRule`; `helpLine`.
@@ -2523,6 +2515,7 @@ Expected: FAIL — cannot resolve `../screens/convert`.
 
 ```ts
 import { BoxRenderable, InputRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import { ATTR_BOLD, color } from "../theme";
 import type { View } from "../view";
 import { createFrame, createRule } from "../widgets/frame";
@@ -2566,7 +2559,7 @@ export interface ConvertScreenView extends View<ConvertScreenProps> {
 }
 
 export function createConvertScreen(
-  ctx: never,
+  ctx: RenderContext,
   initial: ConvertScreenProps,
 ): ConvertScreenView {
   let row = 0;
@@ -2713,10 +2706,9 @@ export function createConvertScreen(
 Run: `npm test -- convertScreen`
 Expected: PASS — all four cases.
 
-- [ ] **Step 5: Delete the Ink wizard and commit**
+- [ ] **Step 5: Commit** (the Ink wizard stays until Task 16, ruling R1)
 
 ```bash
-git rm src/replay/tui/ConvertWizard.tsx src/replay/tui/__tests__/ConvertWizard.test.tsx
 git add src/replay/tui/screens/convert.ts src/replay/tui/__tests__/convertScreen.test.ts
 git commit -m "feat(replay): convert wizard screen with real Input fields"
 ```
@@ -2732,7 +2724,6 @@ git commit -m "feat(replay): convert wizard screen with real Input fields"
 - Create: `src/replay/tui/screens/summary.ts`
 - Create: `src/replay/tui/__tests__/summaryLines.test.ts`
 - Create: `src/replay/tui/__tests__/summaryScreen.test.ts`
-- Delete: `src/replay/tui/SummaryScreen.tsx`, `src/replay/tui/__tests__/SummaryScreen.test.tsx`
 
 **Interfaces:**
 - Consumes: `createFrame`, `createRule`, `createFileQueue`, `helpLine`; `FileResult` from `../state`; `fmtDuration` from `../format`.
@@ -2832,6 +2823,7 @@ Expected: FAIL — cannot resolve `../screens/summary`.
 
 ```ts
 import { ScrollBoxRenderable, TextRenderable } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import { fmtDuration } from "../format";
 import { helpLine } from "../keymap";
 import type { FileResult } from "../state";
@@ -2858,7 +2850,7 @@ export interface SummaryScreenView extends View<SummaryScreenProps> {
  * offset, clamping and blank-padding arithmetic in the Ink version are gone.
  */
 export function createSummaryScreen(
-  ctx: never,
+  ctx: RenderContext,
   initial: SummaryScreenProps,
 ): SummaryScreenView {
   const frame = createFrame(ctx, { title: "", right: "" });
@@ -2964,10 +2956,9 @@ export function createSummaryScreen(
 Run: `npm test -- summary`
 Expected: PASS — both `summaryLines` and `summaryScreen` suites.
 
-- [ ] **Step 7: Delete the Ink screen and commit**
+- [ ] **Step 7: Commit** (the Ink screen stays until Task 16, ruling R1)
 
 ```bash
-git rm src/replay/tui/SummaryScreen.tsx src/replay/tui/__tests__/SummaryScreen.test.tsx
 git add src/replay/tui/summaryLines.ts src/replay/tui/screens/summary.ts src/replay/tui/__tests__/summaryLines.test.ts src/replay/tui/__tests__/summaryScreen.test.ts
 git commit -m "feat(replay): summary screen backed by a ScrollBox"
 ```
@@ -3002,7 +2993,7 @@ import { createApp } from "../app";
 
 async function mount(options = {}) {
   const t = await createTestRenderer({ width: 90, height: 22 });
-  const app = createApp(t.renderer as never, {
+  const app = createApp(t.renderer, {
     endpoint: "ws://localhost:3000",
     initialFiles: [{ path: "./data/demo.json", status: "pending" }],
     autoBegin: true,
@@ -3100,7 +3091,8 @@ Port the phase machine, the session-log writer (`writeSessionLog`, `safe`, `form
 The structure:
 
 ```ts
-import { BoxRenderable, type Renderable } from "@opentui/core";
+import { BoxRenderable, type Renderable, type RenderContext } from "@opentui/core";
+import type { RenderContext } from "@opentui/core";
 import type { ReplayEvent } from "../events";
 import { createReplayController, type ReplayController } from "../controller";
 import { createKeyRouter, type KeyLike, type Phase } from "./keymap";
@@ -3143,7 +3135,7 @@ export interface AppHandle {
   destroy(): void;
 }
 
-export function createApp(ctx: never, options: AppOptions): AppHandle {
+export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
   const root = new BoxRenderable(ctx, {
     id: "app",
     flexDirection: "column",
@@ -3164,7 +3156,7 @@ export function createApp(ctx: never, options: AppOptions): AppHandle {
   const replayController = createReplayController();
 
   // Exactly one screen is alive at a time.
-  let current: View<never> | undefined;
+  let current: AnyView | undefined;
   let select: SelectScreenView | undefined;
   let convert: ConvertScreenView | undefined;
   let summary: SummaryScreenView | undefined;
@@ -3223,7 +3215,7 @@ export function createApp(ctx: never, options: AppOptions): AppHandle {
   /** Push current state into whichever screen is mounted. */
   const rerender = () => {
     if (phase === "selecting") select?.update(selectProps());
-    else if (phase === "running") current?.update(runProps() as never);
+    else if (phase === "running") (current as View<RunScreenProps>).update(runProps());
     else if (phase === "complete") summary?.update(summaryProps());
     else if (phase === "converting" && convert !== undefined) {
       convert.update(convertPropsForCurrentTask());
@@ -3241,15 +3233,15 @@ export function createApp(ctx: never, options: AppOptions): AppHandle {
 
     if (next === "selecting") {
       select = createSelectScreen(ctx, selectProps());
-      current = select as unknown as View<never>;
+      current = select as AnyView;
     } else if (next === "running") {
-      current = createRunScreen(ctx, runProps()) as unknown as View<never>;
+      current = createRunScreen(ctx, runProps()) as AnyView;
     } else if (next === "complete") {
       summary = createSummaryScreen(ctx, summaryProps());
-      current = summary as unknown as View<never>;
+      current = summary as AnyView;
     } else {
       convert = createConvertScreen(ctx, convertPropsForCurrentTask());
-      current = convert as unknown as View<never>;
+      current = convert as AnyView;
     }
     root.add(current.root);
   };
@@ -3373,7 +3365,7 @@ const exited = new Promise<void>((r) => {
   resolveExit = r;
 });
 
-const app = createApp(renderer as never, {
+const app = createApp(renderer, {
   endpoint,
   initialFiles,
   autoBegin,
@@ -3479,9 +3471,23 @@ git commit -m "feat(replay): mount the TUI on a CliRenderer and drop altScreen"
 ### Task 16: Teardown and capability-parity sweep
 
 **Files:**
-- Delete: any remaining `.tsx` under `src/replay/tui/`
-- Modify: `README.md`
-- Modify: `CLAUDE.md`
+- Delete: every remaining `.tsx` under `src/replay/tui/` and its tests
+- Modify: `package.json`, `README.md`, `CLAUDE.md`
+
+- [ ] **Step 0: Remove the Ink source, tests and dependencies (ruling R1)**
+
+Tasks 4–13 deliberately left these in place so the tree stayed green. Remove them now, in one commit:
+
+```bash
+git rm src/replay/tui/*.tsx src/replay/tui/__tests__/*.test.tsx
+npm uninstall ink react @types/react ink-testing-library
+```
+
+Then simplify `typecheck` in `package.json`, now that no `.tsx` remains:
+
+```json
+"typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck --module esnext --moduleResolution bundler src/**/*.ts index_replay_16_tui.ts",
+```
 
 - [ ] **Step 1: Prove no Ink or React remains**
 

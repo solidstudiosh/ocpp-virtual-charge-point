@@ -178,6 +178,10 @@ Render tests to rewrite: `App.test.tsx`, `App.batch.test.tsx`,
 ## Operations
 
 - `package.json`: `"replay:16:tui": NODE_OPTIONS="--experimental-ffi" tsx index_replay_16_tui.ts`.
+- **`@opentui/core` is pinned exactly (`"0.5.6"`, no caret).** Every finding in
+  this document was verified against that release, and upstream runs no Node CI
+  lane, so a patch release could silently change FFI loading behaviour. Upgrades
+  are deliberate: bump the pin, re-run the TUI smoke test, then commit.
 - OpenTUI writes a stray line to stderr on startup
   (`"FFI is an experimental feature and might change at any time"`) that
   survives `--disable-warning=ExperimentalWarning`. It must be suppressed or

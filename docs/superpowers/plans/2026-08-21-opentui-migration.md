@@ -2592,6 +2592,7 @@ Expected: FAIL — cannot resolve `../screens/convert`.
 ```ts
 import { BoxRenderable, InputRenderable, TextRenderable } from "@opentui/core";
 import type { RenderContext } from "@opentui/core";
+import { helpLine } from "../keymap";
 import { ATTR_BOLD, color } from "../theme";
 import type { View } from "../view";
 import { createFrame, createRule } from "../widgets/frame";
@@ -2733,9 +2734,12 @@ export function createConvertScreen(
     rebaseValue.fg = row === 2 && !errorMode() ? color.accent : color.text;
     rebaseValue.attributes = row === 2 ? ATTR_BOLD : 0;
 
+    // Normal mode derives from the keymap table, so adding a `converting`
+    // binding updates this line automatically. Error mode cannot: it
+    // re-purposes Enter as "skip", which the table has no way to express.
     help.content = errorMode()
       ? "[Enter] skip  [Esc] cancel"
-      : "[↑↓] field  [Space/←→] toggle  [Enter] accept  [Esc] cancel";
+      : helpLine("converting", { canBegin: false });
   };
 
   const update = (p: ConvertScreenProps) => {

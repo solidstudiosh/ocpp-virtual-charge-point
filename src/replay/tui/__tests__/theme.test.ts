@@ -2,6 +2,7 @@ import { RGBA, TextRenderable } from "@opentui/core";
 import { createTestRenderer } from "@opentui/core/testing";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  LIGHT,
   applyThemeMode,
   color,
   levelColor,
@@ -88,7 +89,6 @@ describe("theme mode", () => {
   // not just that the string constant changed.
   it("reaches rendered output: a widget's fg is the active palette's RGBA", async () => {
     applyThemeMode("light");
-    const lightText = color.text;
     const t = await createTestRenderer({ width: 10, height: 3 });
     const probe = new TextRenderable(t.renderer, {
       id: "theme-probe",
@@ -99,11 +99,14 @@ describe("theme mode", () => {
     await t.waitForVisualIdle();
     await t.renderOnce();
     const span = t.captureSpans().lines[0].spans[0];
+    // Assert the LITERAL light-mode value, not `color.text` read back after
+    // the switch — a self-captured expectation moves with the bug and would
+    // still pass even if `applyThemeMode` were a no-op.
     expect(Array.from(span.fg.buffer)).toEqual(
-      Array.from(RGBA.fromHex(lightText).buffer),
+      Array.from(RGBA.fromHex(LIGHT.text).buffer),
     );
-    // Guards against a vacuous pass: rendered fg must not be Core's
-    // no-inherit-sentinel white the brief calls out as the failure mode.
+    // ...and is not Core's no-fg white sentinel, the failure mode this task
+    // exists to close.
     expect(Array.from(span.fg.buffer)).not.toEqual([255, 255, 255, 255]);
   });
 });

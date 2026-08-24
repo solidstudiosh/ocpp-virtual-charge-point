@@ -22,7 +22,7 @@ export interface ThemePalette {
   text: string;
 }
 
-const DARK: ThemePalette = {
+export const DARK: ThemePalette = {
   /** Active / in-flight / cursor. */
   accent: "#00d7d7",
   success: "#5faf5f",
@@ -40,13 +40,16 @@ const DARK: ThemePalette = {
 };
 
 /** Darkened for light backgrounds; same semantics, same member names. */
-const LIGHT: ThemePalette = {
+export const LIGHT: ThemePalette = {
   accent: "#007070",
   success: "#2f7a2f",
   error: "#a32222",
   warn: "#8a6a00",
   dir: "#2a4fa3",
-  chrome: "#9a9a9a",
+  // ~4.29:1 against white (WCAG non-text 3:1 threshold). #9a9a9a measured
+  // ~2.81:1 — too faint for frame borders, which are structural, not
+  // decorative.
+  chrome: "#7a7a7a",
   dim: "#6c6c6c",
   text: "#2a2a2a",
 };

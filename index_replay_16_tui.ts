@@ -17,6 +17,7 @@ import {
   runBatchLoop,
 } from "./src/replay/tui/batchLoop";
 import { rawLogWarnings } from "./src/replay/tui/convertQueue";
+import { applyThemeMode } from "./src/replay/tui/theme";
 import { UiLogTransport } from "./src/replay/tui/uiLogTransport";
 import type { FileStatus } from "./src/replay/tui/widgets/fileQueue";
 
@@ -178,6 +179,10 @@ async function main() {
     clearOnShutdown: true,
     targetFps: 30,
   });
+
+  // Core cannot inherit the terminal's foreground, so pick a palette that
+  // suits it. Terminals that do not answer the query fall back to dark.
+  applyThemeMode((await renderer.waitForThemeMode(250)) ?? "dark");
 
   let resolveExit!: () => void;
   const exited = new Promise<void>((r) => {

@@ -48,7 +48,7 @@ function convertFixtureDir(): {
         "StopTransaction",
         {
           transactionId: 1,
-          idTag: "TAG1",
+          idTag: "RFID_TEST_1",
           meterStop: 100,
           timestamp: "2026-01-01T10:10:00.000Z",
         },
@@ -71,7 +71,7 @@ function convertFixtureDir(): {
         "StartTransaction",
         {
           connectorId: 1,
-          idTag: "TAG1",
+          idTag: "RFID_TEST_1",
           meterStart: 0,
           timestamp: "2026-01-01T10:00:00.000Z",
         },
@@ -172,7 +172,7 @@ describe("app", () => {
     expect(existsSync(outputPath)).toBe(true);
     const written = JSON.parse(readFileSync(outputPath, "utf8"));
     expect(written.sessions).toHaveLength(1);
-    expect(written.sessions[0].idTag).toBe("TAG1");
+    expect(written.sessions[0].idTag).toBe("RFID_TEST_1");
     // handleConvertAccept swaps the raw source for the output in the
     // pending selection, then (convert-only mode) returns to selecting.
     expect(await frame()).toContain("SELECT FILES");

@@ -8,10 +8,21 @@
  * relies on.
  */
 
+import type { ThemeMode } from "@opentui/core";
 import type { SessionStatus } from "./state";
 
-/** Semantic palette. Hex strings; Core parses them to RGBA. */
-export const color = {
+export interface ThemePalette {
+  accent: string;
+  success: string;
+  error: string;
+  warn: string;
+  dir: string;
+  chrome: string;
+  dim: string;
+  text: string;
+}
+
+const DARK: ThemePalette = {
   /** Active / in-flight / cursor. */
   accent: "#00d7d7",
   success: "#5faf5f",
@@ -26,7 +37,33 @@ export const color = {
   dim: "#8a8a8a",
   /** Default body text. */
   text: "#d0d0d0",
-} as const;
+};
+
+/** Darkened for light backgrounds; same semantics, same member names. */
+const LIGHT: ThemePalette = {
+  accent: "#007070",
+  success: "#2f7a2f",
+  error: "#a32222",
+  warn: "#8a6a00",
+  dir: "#2a4fa3",
+  chrome: "#9a9a9a",
+  dim: "#6c6c6c",
+  text: "#2a2a2a",
+};
+
+/**
+ * Live semantic palette. Mutated in place by `applyThemeMode` at startup,
+ * before any screen mounts, so widgets can keep reading `color.x` directly.
+ *
+ * Core has no "inherit the terminal foreground" colour — an unset `fg`
+ * renders pure white — so the palette must be chosen explicitly rather than
+ * delegated to the terminal the way Ink's `undefined` did.
+ */
+export const color: ThemePalette = { ...DARK };
+
+export function applyThemeMode(mode: ThemeMode): void {
+  Object.assign(color, mode === "light" ? LIGHT : DARK);
+}
 
 /** Core text attribute bitmask for bold. Replaces Ink's `bold` prop. */
 export const ATTR_BOLD = 1;

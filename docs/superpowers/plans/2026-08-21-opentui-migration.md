@@ -138,6 +138,12 @@ In `package.json`, set these three scripts exactly:
 
 Leave `typecheck` alone for now — it must keep the `.tsx` glob and `--jsx react-jsx` while Ink files remain. Task 16 simplifies it.
 
+**Known defect, fixed in Task 14 (ruling R15):** this script's `src/**/*.ts`
+glob runs under `sh`, where `**` is not recursive — it matches 18 files and
+excludes `src/replay/tui/` entirely, so none of the migration's own code is
+typechecked. Passing files on the command line also makes `tsc` ignore
+`tsconfig.json`, silently defaulting `target` to ES5.
+
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `npm test -- runtime`

@@ -196,6 +196,7 @@ async function main() {
     cwd: process.cwd(),
     initialIdTag: idTagOverride,
     interactive,
+    fileStatusFor,
     onBegin: (files, tag) => begins.push({ files, idTagOverride: tag }),
     onRoundChoice: (choice) => choices.push(choice),
     onExit: () => resolveExit(),

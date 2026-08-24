@@ -50,6 +50,16 @@ export interface AppOptions {
   autoBegin?: boolean;
   /** Working directory used as the root of the file browser. */
   cwd?: string;
+  /**
+   * Resolves a selected file's display identity (cpId, masked auth source)
+   * for the SELECTED pane. Defaults to a bare-path stub — pass the real
+   * `resolveFileConnectionForDisplay`-backed resolver (see
+   * `index_replay_16_tui.ts`) or the pane shows raw paths instead of
+   * identity. Results are memoized per path by `createApp`, since the
+   * select screen's `render()` runs on every keystroke and a real resolver
+   * does a `readFileSync` + `JSON.parse` per call.
+   */
+  fileStatusFor?: (path: string) => FileStatus;
   /** Default value of the idTag override field (e.g. from CLI/env). */
   initialIdTag?: string;
   /** Directory to write per-session log files into when file-log is enabled. */
@@ -174,10 +184,31 @@ export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
   let width = 90;
   let height = 24;
 
+  // The select screen owns its browsed directory once mounted (see
+  // SelectScreenView.cwd()); this carries it across a destroy+recreate
+  // (convert flow, "another round") instead of resetting to the launch cwd.
+  let browsedCwd = options.cwd ?? process.cwd();
+
+  // resolveFileConnectionForDisplay (the real resolver) does a readFileSync +
+  // JSON.parse per call; select.render() runs on every keystroke, so results
+  // are cached per path for the lifetime of the app.
+  const fileStatusCache = new Map<string, FileStatus>();
+  const resolveFileStatus =
+    options.fileStatusFor ??
+    ((path: string): FileStatus => ({ path, status: "pending" }));
+  const fileStatusFor = (path: string): FileStatus => {
+    let cached = fileStatusCache.get(path);
+    if (cached === undefined) {
+      cached = resolveFileStatus(path);
+      fileStatusCache.set(path, cached);
+    }
+    return cached;
+  };
+
   const selectProps = (): SelectScreenProps => ({
-    cwd: options.cwd ?? process.cwd(),
+    cwd: browsedCwd,
     selected: files.map((f) => f.path),
-    fileStatusFor: (path: string): FileStatus => ({ path, status: "pending" }),
+    fileStatusFor,
     idTag,
     editingIdTag,
     width,
@@ -277,6 +308,10 @@ export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
 
   /** Destroy the outgoing screen and build the incoming one. */
   const mountScreen = (next: Phase) => {
+    // Capture the browsed directory before the select screen (if any) is
+    // torn down, so a later remount into "selecting" reopens there instead
+    // of resetting to the launch cwd.
+    if (select !== undefined) browsedCwd = select.cwd();
     current?.destroy();
     current = undefined;
     select = undefined;
@@ -545,12 +580,42 @@ export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
         idTag = select?.idTagValue() ?? idTag;
         editingIdTag = false;
         rerender();
+        key.stopPropagation?.();
       } else if (key.name === "escape") {
         editingIdTag = false;
         rerender();
+        key.stopPropagation?.();
       }
       return;
     }
+
+    // The convert wizard's stationId/password rows are real Inputs, and Core
+    // only delivers keypresses to a *focused* Renderable. Once one is
+    // focused it and the phase keymap would otherwise fight over the same
+    // keys (Space types a space AND would toggle rebase; ←/→ move the
+    // cursor AND would toggle). While a text row is focused, only field nav
+    // and accept/cancel may reach the keymap; everything else — typed
+    // characters, Space, cursor movement — belongs to the Input. On the
+    // toggle row (2) the phase bindings apply normally.
+    if (phase === "converting" && convert !== undefined) {
+      const isTextRow = convert.focusedRow() !== 2;
+      if (isTextRow) {
+        if (
+          key.name === "return" ||
+          key.name === "escape" ||
+          key.name === "up" ||
+          key.name === "down"
+        ) {
+          keyRouter.handle(key);
+          // Consumed by the keymap — don't let the focused Input's own
+          // handler (e.g. Enter -> submit, ↑/↓ -> move-up/move-down) also
+          // react to the same keypress.
+          key.stopPropagation?.();
+        }
+        return;
+      }
+    }
+
     keyRouter.handle(key);
   };
 

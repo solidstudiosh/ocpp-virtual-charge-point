@@ -182,6 +182,44 @@ describe("convert screen", () => {
     h.destroy();
   });
 
+  it("real keypress: typing into the focused stationId input updates values()", async () => {
+    // Regression for the dead-text-entry bug: Core only delivers keypresses
+    // to a *focused* Renderable, and nothing used to call `.focus()` on the
+    // wizard's Inputs — so `values().stationId` stayed "" no matter what
+    // was typed. This drives an actual keypress through the renderer
+    // (`press()`/`mockInput`), not a direct call to a screen method, so it
+    // fails without the focus fix even though `values()` itself works.
+    const h = await renderView(
+      createConvertScreen,
+      props({ initialStationId: "" }),
+      { width: 80, height: 16 },
+    );
+    expect(h.view.focusedRow()).toBe(0);
+    expect(h.view.canAccept()).toBe(false);
+
+    for (const ch of "CS_TEST_9") await h.press(ch);
+
+    expect(h.view.values().stationId).toBe("CS_TEST_9");
+    expect(h.view.canAccept()).toBe(true);
+    h.destroy();
+  });
+
+  it("real keypress: field() moves keyboard focus, so typing lands in the password input", async () => {
+    const h = await renderView(createConvertScreen, props(), {
+      width: 80,
+      height: 16,
+    });
+    h.view.field(1);
+    expect(h.view.focusedRow()).toBe(1);
+
+    for (const ch of "PW_TEST_1") await h.press(ch);
+
+    expect(h.view.values().password).toBe("PW_TEST_1");
+    // Typing must have landed in password, not have leaked into stationId.
+    expect(h.view.values().stationId).toBe("CS_TEST_1");
+    h.destroy();
+  });
+
   it("ignores field navigation in error mode", async () => {
     const h = await renderView(
       createConvertScreen,

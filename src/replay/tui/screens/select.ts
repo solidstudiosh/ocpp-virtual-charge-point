@@ -3,6 +3,7 @@ import type { RenderContext } from "@opentui/core";
 import { readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { helpLine } from "../keymap";
+import { fitText } from "../layout";
 import { ATTR_BOLD, color, icon } from "../theme";
 import type { View } from "../view";
 import { createFrame, createRule } from "../widgets/frame";
@@ -36,6 +37,14 @@ export interface SelectScreenView extends View<SelectScreenProps> {
   clear(): void;
   selection(): string[];
   idTagValue(): string;
+  /**
+   * The directory currently browsed. The screen owns this once mounted —
+   * `update()` never resets it from props — so `app.ts` reads it back here
+   * to carry the browsed directory across a destroy+recreate (e.g. the
+   * convert flow, or "another round") instead of resetting to the launch
+   * cwd.
+   */
+  cwd(): string;
 }
 
 function readEntries(dir: string): Entry[] {
@@ -119,7 +128,6 @@ export function createSelectScreen(
     id: "select-help",
     fg: color.dim,
     wrapMode: "none",
-    truncate: true,
   });
 
   frame.body.add(idTag.root);
@@ -175,6 +183,10 @@ export function createSelectScreen(
       r.content = `${marker}${mark} ${e.isDir ? `${e.name}/` : e.name}`;
       r.fg = isCursor ? color.accent : e.isDir ? color.dir : color.text;
     }
+    // The row budget shrinks when the terminal does. Hide pooled rows beyond
+    // it, or the previous, taller layout's rows linger on screen (same fix
+    // as widgets/fileQueue.ts and widgets/sessionList.ts).
+    for (let i = listRows; i < rows.length; i++) rows[i].visible = false;
 
     const list = Array.from(selected).sort();
     queue.update({
@@ -189,16 +201,23 @@ export function createSelectScreen(
       right: `${selected.size} selected`,
     });
     idTag.update({ value: latest.idTag, editing: latest.editingIdTag });
-    help.content = helpLine("selecting", { canBegin: selected.size > 0 });
+    // Core's `truncate` elides the *middle* of overflowing text, which turns
+    // a hint like "[Space] toggle" into an unreadable "[Sp...ar" fragment —
+    // and the help bar is the app's only discovery surface. Pre-truncate the
+    // tail instead (border(2) + padding(2) = 4 columns of frame chrome).
+    help.content = fitText(
+      helpLine("selecting", { canBegin: selected.size > 0 }),
+      Math.max(0, latest.width - 4),
+    );
   };
 
   const update = (p: SelectScreenProps) => {
+    // `p.cwd` is only the *initial* root, honoured at construction. Once
+    // mounted, this screen owns the browsed directory — re-syncing from
+    // props here would reset the user's navigation on every rerender
+    // (resize, the idTag editor, or even a winston log line arriving while
+    // browsing a subdirectory).
     latest = p;
-    if (p.cwd !== cwd) {
-      cwd = p.cwd;
-      entries = readEntries(cwd);
-      cursor = 0;
-    }
     render();
   };
 
@@ -260,6 +279,7 @@ export function createSelectScreen(
     },
     selection: () => Array.from(selected).sort(),
     idTagValue: () => idTag.value(),
+    cwd: () => cwd,
     destroy() {
       idTag.destroy();
       queue.destroy();

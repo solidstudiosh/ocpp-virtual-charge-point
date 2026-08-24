@@ -1,6 +1,7 @@
 import { BoxRenderable, InputRenderable, TextRenderable } from "@opentui/core";
 import type { RenderContext } from "@opentui/core";
 import { helpLine } from "../keymap";
+import { fitText } from "../layout";
 import { ATTR_BOLD, color } from "../theme";
 import type { View } from "../view";
 import { createFrame, createRule } from "../widgets/frame";
@@ -109,7 +110,6 @@ export function createConvertScreen(
     id: "convert-help",
     fg: color.dim,
     wrapMode: "none",
-    truncate: true,
   });
 
   frame.body.add(stats);
@@ -141,6 +141,26 @@ export function createConvertScreen(
     stationInput.visible = !errorMode();
     passwordInput.visible = !errorMode();
 
+    // Core only registers an InputRenderable's keypress handler while it is
+    // focused (see app.ts's keyRouter gating) — so the field row and the
+    // Input that owns the keyboard must move together. Idempotent: focus()
+    // and blur() both no-op when already in the requested state, so calling
+    // this on every render is cheap. Never focus in error mode: the inputs
+    // are hidden there and the only live action is skip.
+    if (errorMode()) {
+      stationInput.blur();
+      passwordInput.blur();
+    } else if (row === 0) {
+      stationInput.focus();
+      passwordInput.blur();
+    } else if (row === 1) {
+      passwordInput.focus();
+      stationInput.blur();
+    } else {
+      stationInput.blur();
+      passwordInput.blur();
+    }
+
     const focus = (i: number) =>
       !errorMode() && row === i ? color.accent : color.dim;
     stationRow.lbl.fg = focus(0);
@@ -153,9 +173,12 @@ export function createConvertScreen(
     // Normal mode derives from the keymap table, so adding a `converting`
     // binding updates this line automatically. Error mode cannot: it
     // re-purposes Enter as "skip", which the table has no way to express.
-    help.content = errorMode()
+    // Pre-truncate the tail (border(2) + padding(2) = 4 columns of frame
+    // chrome) rather than letting Core's `truncate` elide the middle.
+    const helpText = errorMode()
       ? "[Enter] skip  [Esc] cancel"
       : helpLine("converting", { canBegin: false });
+    help.content = fitText(helpText, Math.max(0, latest.width - 4));
   };
 
   const update = (p: ConvertScreenProps) => {

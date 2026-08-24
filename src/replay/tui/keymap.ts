@@ -236,6 +236,13 @@ export const HELP_DETAILS: string[] = [
 /** Minimal shape of a key event; matches Core's ParsedKey. */
 export interface KeyLike {
   name: string;
+  /**
+   * Core's real `KeyEvent` carries this; a focused `InputRenderable`'s own
+   * keypress listener (registered by Core only while focused) is skipped for
+   * any event this was called on. Optional so plain test literals like
+   * `{ name: "return" }` still satisfy the type.
+   */
+  stopPropagation?(): void;
 }
 
 export interface KeyRouter {

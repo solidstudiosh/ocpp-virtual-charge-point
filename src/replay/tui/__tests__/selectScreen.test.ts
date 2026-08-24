@@ -89,8 +89,16 @@ describe("select screen", () => {
 
   it("only offers begin once something is selected", async () => {
     const dir = fixture();
-    const h = await renderView(createSelectScreen, props(dir), {
-      width: 90,
+    // This test is about the keymap's canBegin gating, not about truncation
+    // width budgets: the full help line (move/page/open/toggle/up/all/clear/
+    // convert/idTag/begin/quit) is ~130 columns, so it needs a wide enough
+    // frame that the tail hint this test asserts on — [B] begin, added only
+    // once canBegin is true — survives the fitText tail-truncation applied
+    // to this line (see screens/select.ts), rather than being cut along
+    // with everything past the fit budget.
+    const width = 150;
+    const h = await renderView(createSelectScreen, props(dir, { width }), {
+      width,
       height: 20,
     });
     expect(await h.frame()).not.toContain("[B] begin");
@@ -146,6 +154,29 @@ describe("select screen", () => {
     h.view.page(100);
     const bottom = await h.frame();
     expect(top).not.toBe(bottom); // the cursor genuinely moved
+    h.destroy();
+  });
+
+  it("hides rows beyond the shrunk row budget on resize", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "vcp-select-shrink-"));
+    // Enough files that the tall layout's row budget shows all of them but
+    // the shrunk layout's budget does not.
+    for (let i = 0; i < 10; i++) {
+      writeFileSync(join(dir, `CS_TEST_${i}.json`), "{}");
+    }
+    const h = await renderView(createSelectScreen, props(dir), {
+      width: 90,
+      height: 24,
+    });
+    // border(2) + title(1) + idTag(1) + rule(1) + rule(1) + help(1) = 7, so
+    // height 24 gives a 17-row budget — enough for all 10 files + "..".
+    expect(await h.frame()).toContain("CS_TEST_9.json");
+
+    // height 14 gives a 7-row budget: CS_TEST_9.json falls outside the
+    // window. Without hiding pooled rows beyond the new (smaller) budget,
+    // its row would linger on screen with stale content instead.
+    h.view.update(props(dir, { height: 14 }));
+    expect(await h.frame()).not.toContain("CS_TEST_9.json");
     h.destroy();
   });
 

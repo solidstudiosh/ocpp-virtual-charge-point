@@ -3,6 +3,7 @@ import type { RenderContext } from "@opentui/core";
 import { basename } from "node:path";
 import { fmtDuration } from "../format";
 import { HELP_DETAILS, helpLine } from "../keymap";
+import { fitText } from "../layout";
 import type { TuiState } from "../state";
 import { ATTR_BOLD, color, icon } from "../theme";
 import type { View } from "../view";
@@ -108,13 +109,11 @@ export function createRunScreen(
     id: "run-action",
     fg: color.accent,
     wrapMode: "none",
-    truncate: true,
   });
   const keys = new TextRenderable(ctx, {
     id: "run-keys",
     fg: color.dim,
     wrapMode: "none",
-    truncate: true,
   });
   const statusSpacer = new BoxRenderable(ctx, {
     id: "run-status-spacer",
@@ -186,8 +185,17 @@ export function createRunScreen(
     });
 
     helpBlock.visible = p.showHelp;
-    action.content = actionLabel(p.state);
-    keys.content = `   ${helpLine("running", { canBegin: false })}`;
+    // Pre-truncate the tail rather than letting Core's `truncate` elide the
+    // middle of an overflowing hint line. Budget: frame chrome (border(2) +
+    // padding(2) = 4), minus the action label sharing this row, minus a
+    // small reserve for the gap before it.
+    const bodyWidth = Math.max(0, p.width - 4);
+    const actionText = actionLabel(p.state);
+    action.content = fitText(actionText, bodyWidth);
+    keys.content = fitText(
+      `   ${helpLine("running", { canBegin: false })}`,
+      Math.max(0, bodyWidth - actionText.length - 3),
+    );
     pausedTag.visible = p.paused;
     recTag.visible = p.fileLogEnabled;
   };

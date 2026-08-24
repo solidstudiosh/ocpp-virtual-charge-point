@@ -1,11 +1,20 @@
 import { createTestRenderer } from "@opentui/core/testing";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "../app";
 import { scenarioOutputPath } from "../convertQueue";
 import type { ConvertScreenView } from "../screens/convert";
+import type { SelectScreenView } from "../screens/select";
+import type { FileStatus } from "../widgets/fileQueue";
 
 async function mount(options = {}) {
   const t = await createTestRenderer({ width: 90, height: 22 });
@@ -216,6 +225,14 @@ describe("app", () => {
   it("converting: space toggles the rebase-timestamps option", async () => {
     const { dir } = convertFixtureDir();
     const { app, frame } = await mountInConvertingPhase(dir);
+    // Space only reaches the keymap's toggleRebase action on the toggle row
+    // (2). On the stationId/password rows (0/1) a real InputRenderable owns
+    // the keyboard once focused, and Space belongs to it (typing a space) —
+    // not the keymap. Navigate to the toggle row first.
+    const screen = app.currentScreen() as ConvertScreenView;
+    app.handleKey({ name: "down" });
+    app.handleKey({ name: "down" });
+    expect(screen.focusedRow()).toBe(2);
     expect(await frame()).toContain("rebase to now");
 
     app.handleKey({ name: "space" });
@@ -224,5 +241,71 @@ describe("app", () => {
     app.handleKey({ name: "space" });
     expect(await frame()).toContain("rebase to now");
     app.destroy();
+  });
+
+  it("SELECTED pane shows the resolved cpId and auth badge, not the raw path", async () => {
+    // Regression: AppOptions had no way to inject the real
+    // resolveFileConnectionForDisplay-backed resolver, so the select screen
+    // always fell back to app.ts's hardcoded `{ path, status: "pending" }`
+    // stub — the pane rendered a raw temp-file path instead of identity.
+    const dir = mkdtempSync(join(tmpdir(), "app-identity-test-"));
+    writeFileSync(join(dir, "CS_TEST_9.json"), "{}");
+
+    const fileStatusFor = (path: string): FileStatus => ({
+      path,
+      status: "pending",
+      cpId: "CS_TEST_9",
+      authSource: "file",
+    });
+
+    const { app, frame } = await mount({
+      autoBegin: false,
+      initialFiles: [],
+      cwd: dir,
+      fileStatusFor,
+    });
+    app.handleKey({ name: "a" }); // select-all json files in dir
+
+    // Assert the exact rendered row (icon + resolved cpId + auth badge, with
+    // formatFileRow's two-space separator before the badge): the hardcoded
+    // stub renders "○ <fullpath>" instead, with no "auth ✓" badge at all
+    // (authSource is undefined), so this cannot pass against it. A plain
+    // substring check on the whole line would be unreliable here: the two-
+    // pane layout can place the SELECTED pane's row on the same terminal
+    // line as an unrelated left-column browser entry.
+    expect(await frame()).toContain("CS_TEST_9  auth ✓");
+    app.destroy();
+  });
+
+  it("keeps the browsed directory across a rerender instead of resetting to the launch cwd", async () => {
+    const root = mkdtempSync(join(tmpdir(), "app-cwd-test-"));
+    const subdir = join(root, "scenarios");
+    mkdirSync(subdir);
+    writeFileSync(join(subdir, "run1.json"), "{}");
+
+    const { app, frame } = await mount({
+      autoBegin: false,
+      initialFiles: [],
+      cwd: root,
+    });
+    // Sanity: the launch cwd lists the subdirectory, not the file inside it.
+    expect(await frame()).toContain("scenarios");
+
+    // Move onto "scenarios/" (index 0 is "..") and enter it.
+    app.handleKey({ name: "down" });
+    app.handleKey({ name: "return" });
+    expect(await frame()).toContain("run1.json");
+
+    // A rerender unrelated to navigation (resize) must not reset the
+    // browsed directory back to the launch cwd — this used to happen on
+    // *every* rerender, including a winston log line arriving mid-browse.
+    app.resize(90, 22);
+    expect(await frame()).toContain("run1.json");
+
+    const screen = app.currentScreen() as SelectScreenView;
+    expect(screen.cwd()).toBe(subdir);
+
+    app.destroy();
+    rmSync(root, { recursive: true, force: true });
   });
 });

@@ -48,12 +48,17 @@ export function createIdTagField(
     readout.visible = !p.editing;
     if (p.editing) {
       hint.content = " (Enter confirm · Esc cancel)";
+      // Core only delivers keypresses to a focused Renderable — without this
+      // the editor opens but swallows every keystroke. focus() is a no-op
+      // when already focused, so calling it on every update is harmless.
+      input.focus();
     } else {
       readout.content = p.value === "" ? "(none)" : p.value;
       readout.fg = p.value === "" ? color.dim : color.success;
       hint.content = " [t] edit";
       // Re-seed the editor so opening it starts from the committed value.
       input.value = p.value;
+      input.blur();
     }
   };
 

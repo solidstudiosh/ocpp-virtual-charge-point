@@ -60,6 +60,13 @@ export interface AppOptions {
   onRoundChoice?: (choice: "again" | "quit") => void;
   /** Called when the user quits; the host tears the renderer down. */
   onExit?: () => void;
+  /**
+   * Whether stdin is an interactive TTY. Non-interactive runs (piped
+   * output, CI) take no input, so the app auto-exits shortly after the
+   * summary screen paints instead of waiting on a keypress that will never
+   * come. Defaults to true.
+   */
+  interactive?: boolean;
 }
 
 export interface AppHandle {
@@ -608,6 +615,12 @@ export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
       },
       showSummary() {
         mountScreen("complete");
+        // Non-TTY runs take no input, so nothing would ever quit the app.
+        // Exit shortly after the final frame paints, matching the Ink
+        // behaviour.
+        if (options.interactive === false) {
+          setTimeout(() => options.onExit?.(), 100);
+        }
       },
       controller: replayController,
     },

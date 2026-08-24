@@ -1,8 +1,7 @@
 import "dotenv/config";
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { render } from "ink";
-import { createElement } from "react";
+import { createCliRenderer } from "@opentui/core";
 import { logger } from "./src/logger";
 import {
   type ConnectionInputs,
@@ -10,12 +9,7 @@ import {
 } from "./src/replay/connection";
 import { precomputeBatchTotals } from "./src/replay/plan";
 import { runReplay } from "./src/replay/replayRunner";
-import { App, type AppController } from "./src/replay/tui/App";
-import type { FileStatus } from "./src/replay/tui/FileQueue";
-import {
-  enterAlternateScreen,
-  exitAlternateScreen,
-} from "./src/replay/tui/altScreen";
+import { createApp } from "./src/replay/tui/app";
 import {
   type BeginPayload,
   type RoundChoice,
@@ -24,6 +18,7 @@ import {
 } from "./src/replay/tui/batchLoop";
 import { rawLogWarnings } from "./src/replay/tui/convertQueue";
 import { UiLogTransport } from "./src/replay/tui/uiLogTransport";
+import type { FileStatus } from "./src/replay/tui/widgets/fileQueue";
 
 interface CliArgs {
   files: string[];
@@ -100,16 +95,23 @@ function expandInputs(inputs: string[]): string[] {
   return out;
 }
 
-function deferred<T>(): { promise: Promise<T>; resolve: (v: T) => void } {
-  let resolve!: (v: T) => void;
-  const promise = new Promise<T>((r) => {
-    resolve = r;
-  });
-  return { promise, resolve };
-}
-
 async function main() {
-  enterAlternateScreen();
+  // OpenTUI writes "FFI is an experimental feature and might change at any
+  // time" to stderr at startup, surviving --disable-warning=ExperimentalWarning.
+  // Unsuppressed it corrupts the alternate screen, so this shim must land
+  // before anything else touches the renderer.
+  const realStderrWrite = process.stderr.write.bind(process.stderr);
+  process.stderr.write = ((chunk: string | Uint8Array, ...rest: unknown[]) => {
+    const text =
+      typeof chunk === "string" ? chunk : Buffer.from(chunk).toString();
+    if (text.includes("FFI is an experimental feature")) return true;
+    return (realStderrWrite as (...a: unknown[]) => boolean)(chunk, ...rest);
+  }) as typeof process.stderr.write;
+
+  // Non-TTY runs (piped output, CI) take no input, so nothing would ever
+  // quit the app on its own — the app auto-exits shortly after showing the
+  // summary instead.
+  const interactive = process.stdin.isTTY === true;
 
   const {
     files: cliFiles,
@@ -161,32 +163,66 @@ async function main() {
 
   const begins = asyncQueue<BeginPayload>();
   const choices = asyncQueue<RoundChoice>();
-  const { promise: ctrlReady, resolve: resolveCtrl } =
-    deferred<AppController>();
 
-  const inkApp = render(
-    createElement(App, {
-      endpoint,
-      initialFiles,
-      autoBegin,
-      cwd: process.cwd(),
-      initialIdTag: idTagOverride,
-      onReady: (c) => resolveCtrl(c),
-      onBegin: (files, idTagOverride) => begins.push({ files, idTagOverride }),
-      onRoundChoice: (choice) => choices.push(choice),
-    }),
-    { exitOnCtrlC: true },
-  );
+  const renderer = await createCliRenderer({
+    screenMode: "alternate-screen",
+    exitOnCtrlC: true,
+    exitSignals: ["SIGINT", "SIGTERM"],
+    clearOnShutdown: true,
+    targetFps: 30,
+  });
 
-  // Resolves when Ink unmounts for any reason (q, Ctrl-C, non-TTY auto-exit,
-  // quit from the file browser). Raced against the queues so the loop can't
-  // hang on input that will never come.
-  const exited = inkApp.waitUntilExit().then(
-    () => undefined,
-    () => undefined,
-  );
+  let resolveExit!: () => void;
+  const exited = new Promise<void>((r) => {
+    resolveExit = r;
+  });
 
-  const ctrl = await ctrlReady;
+  const app = createApp(renderer, {
+    endpoint,
+    initialFiles,
+    autoBegin,
+    cwd: process.cwd(),
+    initialIdTag: idTagOverride,
+    interactive,
+    onBegin: (files, tag) => begins.push({ files, idTagOverride: tag }),
+    onRoundChoice: (choice) => choices.push(choice),
+    onExit: () => resolveExit(),
+  });
+  renderer.root.add(app.root);
+  // `KeyHandler` extends a generically-typed `EventEmitter`, which the
+  // project's pinned `@types/node` (18.15.10) predates — its `EventEmitter`
+  // isn't generic, so `.on` drops off `KeyHandler`'s inferred instance type.
+  // Narrow to just the shape we call.
+  (
+    renderer.keyInput as unknown as {
+      on(event: "keypress", listener: (key: { name: string }) => void): void;
+    }
+  ).on("keypress", (e) => app.handleKey(e));
+  // Spec lifecycle item 7: reflow instead of corrupting on resize.
+  app.resize(renderer.width, renderer.height);
+  renderer.on("resize", (cols: number, rows: number) => app.resize(cols, rows));
+
+  const ctrl = app.controller;
+
+  // `createCliRenderer`'s `exitSignals` only tears the renderer down
+  // (`destroy()`); it never calls `process.exit()`. altScreen.ts used to own
+  // SIGINT/SIGTERM, restoring the terminal and forcing the conventional
+  // shell exit codes — reproduce that here, or the process would hang (or
+  // exit 0) instead of exiting 130/143.
+  const exitOnFatalSignal = (code: number) => {
+    app.destroy();
+    renderer.destroy();
+    // Belt-and-suspenders, matching altScreen.ts's original SIGINT/SIGTERM
+    // handling: write the raw alternate-screen-exit sequence directly too,
+    // so a forced kill never leaves the terminal stuck showing the TUI
+    // buffer even if `renderer.destroy()`'s own restore didn't land in
+    // time. Harmless no-op when already out of the alternate screen.
+    if (process.stdout.isTTY === true) process.stdout.write("\x1b[?1049l");
+    process.exit(code);
+  };
+  process.on("SIGINT", () => exitOnFatalSignal(130));
+  process.on("SIGTERM", () => exitOnFatalSignal(143));
+
   const transport = new UiLogTransport(ctrl.dispatch);
   logger.add(transport);
 
@@ -201,7 +237,8 @@ async function main() {
   let exitCode = 0;
   try {
     exitCode = await runBatchLoop({
-      nextBegin: () => Promise.race([begins.next(), exited]),
+      nextBegin: () =>
+        Promise.race([begins.next(), exited.then(() => undefined)]),
       nextChoice: () =>
         Promise.race([choices.next(), exited.then(() => "quit" as const)]),
       showSummary: () => ctrl.showSummary(),
@@ -281,17 +318,11 @@ async function main() {
     });
   } finally {
     logger.remove(transport);
-    // Wait for Ink to paint the final frame and unmount before tearing down.
-    try {
-      await inkApp.waitUntilExit();
-    } catch (err) {
-      process.stderr.write(
-        `ink fatal: ${err instanceof Error ? err.message : String(err)}\n`,
-      );
-    }
-    // Leave the alt-screen explicitly so the one-line summary lands in normal
-    // scrollback rather than the buffer we're about to tear down.
-    exitAlternateScreen();
+    await Promise.race([exited, Promise.resolve()]);
+    app.destroy();
+    renderer.destroy();
+    // Land the one-line summary in normal scrollback, after the alternate
+    // screen has been torn down by `renderer.destroy()`.
     process.stdout.write(`${lastLine}\n`);
     process.exit(exitCode);
   }

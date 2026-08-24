@@ -42,9 +42,31 @@ describe("summary screen", () => {
       height: 14,
     });
     const frame = await h.frame();
+    expect(frame).toContain("PASS");
     expect(frame).toContain("demo.json");
     expect(frame).toContain("s000");
     expect(frame).toContain("Blocked");
+    h.destroy();
+  });
+
+  it("shows the pass/fail banner with batch totals", async () => {
+    const h = await renderView(createSummaryScreen, props(), {
+      width: 80,
+      height: 14,
+    });
+    const frame = await h.frame();
+    expect(frame).toContain("PASS");
+    expect(frame).toContain("1 done");
+    expect(frame).toContain("1 rejected");
+    h.destroy();
+  });
+
+  it("renders dividers without a truncation ellipsis", async () => {
+    const h = await renderView(createSummaryScreen, props(), {
+      width: 80,
+      height: 14,
+    });
+    expect(await h.frame()).not.toContain("...");
     h.destroy();
   });
 

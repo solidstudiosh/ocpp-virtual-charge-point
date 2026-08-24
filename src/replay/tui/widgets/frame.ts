@@ -105,8 +105,10 @@ export function createRule(ctx: RenderContext): View<Record<string, never>> {
     id: `rule-${ruleCounter++}`,
     content: "─".repeat(200),
     fg: color.chrome,
+    // No `truncate`: Core's truncation inserts a literal "..." into the
+    // middle of the run, e.g. `────...────`. Overflow is clipped by the
+    // parent box instead, giving a solid divider.
     wrapMode: "none",
-    truncate: true,
   });
   return { root, update: () => {}, destroy: () => root.destroyRecursively() };
 }

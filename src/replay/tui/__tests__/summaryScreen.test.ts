@@ -20,7 +20,7 @@ const results: FileResult[] = [
         status: "rejected",
         connectorId: "1",
         idTag: "RFID_TEST_1",
-        reason: "Blocked",
+        reason: "id_tag_not_accepted",
       },
     ],
     summary: undefined,
@@ -45,7 +45,7 @@ describe("summary screen", () => {
     expect(frame).toContain("PASS");
     expect(frame).toContain("demo.json");
     expect(frame).toContain("s000");
-    expect(frame).toContain("Blocked");
+    expect(frame).toContain("id_tag_not_accepted");
     h.destroy();
   });
 

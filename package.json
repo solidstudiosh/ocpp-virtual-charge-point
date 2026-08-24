@@ -15,7 +15,7 @@
     "lint": "biome lint src",
     "format": "biome format src",
     "format:check": "biome ci --linter-enabled=false --organize-imports-enabled=false src",
-    "typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck --jsx react-jsx --module esnext --moduleResolution bundler src/**/*.ts $(find src -name '*.tsx' 2>/dev/null | tr '\\n' ' ') index_replay_16_tui.ts",
+    "typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck --jsx react-jsx --module esnext --moduleResolution bundler --target es2022 $(find src -name '*.ts' -o -name '*.tsx') index_replay_16_tui.ts",
     "test": "NODE_OPTIONS=--experimental-ffi vitest run",
     "test:watch": "NODE_OPTIONS=--experimental-ffi vitest",
     "check": "npm run lint && npm run format:check && npm run typecheck"

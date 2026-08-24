@@ -26,9 +26,9 @@ describe("SessionList", () => {
 
   it("appends the rejection reason only when rejected", () => {
     const rejected = formatSessionRow(
-      row(1, { status: "rejected", reason: "Blocked" }),
+      row(1, { status: "rejected", reason: "id_tag_not_accepted" }),
     );
-    expect(rejected).toContain("reason=Blocked");
+    expect(rejected).toContain("reason=id_tag_not_accepted");
     expect(formatSessionRow(row(1, { status: "done" }))).not.toContain(
       "reason=",
     );

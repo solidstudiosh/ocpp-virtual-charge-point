@@ -76,6 +76,15 @@ export interface AppHandle {
   /** Reflow when the terminal is resized. */
   resize(cols: number, rows: number): void;
   destroy(): void;
+  /**
+   * The currently mounted screen. `app.ts` itself never needs this — every
+   * screen is driven purely through `handleKey`/`controller` — but some
+   * screen-local state (e.g. the convert wizard's focused field row) is
+   * signalled only via colour/bold attributes that `captureCharFrame()`
+   * strips, so app-level tests need direct access to assert it. Same
+   * category of exposure as `AppController.controller` above.
+   */
+  currentScreen(): AnyView | undefined;
 }
 
 interface SessionMeta {
@@ -630,6 +639,7 @@ export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
       height = rows;
       rerender();
     },
+    currentScreen: () => current,
     destroy() {
       current?.destroy();
       root.destroyRecursively();

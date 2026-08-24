@@ -67,7 +67,7 @@ describe("runBatchLoop", () => {
     expect(exitCode).toBe(2);
   });
 
-  it("undefined begin (ink exited) ends the loop with the prior exit code", async () => {
+  it("undefined begin (app exited) ends the loop with the prior exit code", async () => {
     const exitCode = await runBatchLoop({
       nextBegin: () => Promise.resolve(undefined),
       nextChoice: () => Promise.resolve(undefined),
@@ -77,7 +77,7 @@ describe("runBatchLoop", () => {
     expect(exitCode).toBe(0);
   });
 
-  it("undefined choice (ink exited mid-summary) is treated as quit", async () => {
+  it("undefined choice (app exited mid-summary) is treated as quit", async () => {
     const begins = asyncQueue<BeginPayload>();
     begins.push({ files: ["a.json"] });
     let rounds = 0;

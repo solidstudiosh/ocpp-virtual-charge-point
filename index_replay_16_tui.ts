@@ -166,7 +166,14 @@ async function main() {
 
   const renderer = await createCliRenderer({
     screenMode: "alternate-screen",
-    exitOnCtrlC: true,
+    // NOT `exitOnCtrlC: true`. Core handles Ctrl-C as a KEYPRESS (raw mode
+    // clears ISIG, so `\x03` never becomes a SIGINT) and responds with a
+    // bare `destroy()` — no `process.exit()`, no way to resolve our exit
+    // promise. The batch loop's pending awaits would stall forever and the
+    // process would hang. We handle Ctrl-C ourselves below instead.
+    exitOnCtrlC: false,
+    // `exitSignals` likewise only calls `destroy()`; the real exit codes
+    // are produced by our own handlers below.
     exitSignals: ["SIGINT", "SIGTERM"],
     clearOnShutdown: true,
     targetFps: 30,
@@ -189,26 +196,13 @@ async function main() {
     onExit: () => resolveExit(),
   });
   renderer.root.add(app.root);
-  // `KeyHandler` extends a generically-typed `EventEmitter`, which the
-  // project's pinned `@types/node` (18.15.10) predates — its `EventEmitter`
-  // isn't generic, so `.on` drops off `KeyHandler`'s inferred instance type.
-  // Narrow to just the shape we call.
-  (
-    renderer.keyInput as unknown as {
-      on(event: "keypress", listener: (key: { name: string }) => void): void;
-    }
-  ).on("keypress", (e) => app.handleKey(e));
-  // Spec lifecycle item 7: reflow instead of corrupting on resize.
-  app.resize(renderer.width, renderer.height);
-  renderer.on("resize", (cols: number, rows: number) => app.resize(cols, rows));
-
-  const ctrl = app.controller;
 
   // `createCliRenderer`'s `exitSignals` only tears the renderer down
   // (`destroy()`); it never calls `process.exit()`. altScreen.ts used to own
   // SIGINT/SIGTERM, restoring the terminal and forcing the conventional
   // shell exit codes — reproduce that here, or the process would hang (or
-  // exit 0) instead of exiting 130/143.
+  // exit 0) instead of exiting 130/143. Declared before the keypress
+  // listener below since Ctrl-C is routed through it too.
   const exitOnFatalSignal = (code: number) => {
     app.destroy();
     renderer.destroy();
@@ -220,6 +214,37 @@ async function main() {
     if (process.stdout.isTTY === true) process.stdout.write("\x1b[?1049l");
     process.exit(code);
   };
+
+  // `KeyHandler` extends a generically-typed `EventEmitter`, which the
+  // project's pinned `@types/node` (18.15.10) predates — its `EventEmitter`
+  // isn't generic, so `.on` drops off `KeyHandler`'s inferred instance type.
+  // Narrow to just the shape we call (including `ctrl`, needed below).
+  (
+    renderer.keyInput as unknown as {
+      on(
+        event: "keypress",
+        listener: (key: { name: string; ctrl: boolean }) => void,
+      ): void;
+    }
+  ).on("keypress", (e) => {
+    // Ctrl-C arrives here as a keypress, never as a signal, while raw mode
+    // is on (see the `exitOnCtrlC: false` comment above). Treat it exactly
+    // like SIGINT.
+    if (e.ctrl === true && e.name === "c") {
+      exitOnFatalSignal(130);
+      return;
+    }
+    app.handleKey(e);
+  });
+  // Spec lifecycle item 7: reflow instead of corrupting on resize.
+  app.resize(renderer.width, renderer.height);
+  renderer.on("resize", (cols: number, rows: number) => app.resize(cols, rows));
+  // Belt and braces: any other path that tears the renderer down must still
+  // release the batch loop, or it waits on input that can never arrive.
+  renderer.on("destroy", () => resolveExit());
+
+  const ctrl = app.controller;
+
   process.on("SIGINT", () => exitOnFatalSignal(130));
   process.on("SIGTERM", () => exitOnFatalSignal(143));
 

@@ -3493,7 +3493,14 @@ import { createApp } from "./src/replay/tui/app";
 
 const renderer = await createCliRenderer({
   screenMode: "alternate-screen",
-  exitOnCtrlC: true,
+  // NOT `exitOnCtrlC: true`. Core handles Ctrl-C as a KEYPRESS (raw mode
+  // clears ISIG, so `\x03` never becomes a SIGINT) and responds with a bare
+  // `destroy()` — no `process.exit`, no way to resolve our exit promise. The
+  // batch loop's pending awaits would stall forever and the process would
+  // hang. We handle Ctrl-C ourselves below instead.
+  exitOnCtrlC: false,
+  // `exitSignals` likewise only calls `destroy()`; the real exit codes are
+  // produced by our own handlers.
   exitSignals: ["SIGINT", "SIGTERM"],
   clearOnShutdown: true,
   targetFps: 30,
@@ -3515,7 +3522,18 @@ const app = createApp(renderer, {
   onExit: () => resolveExit(),
 });
 renderer.root.add(app.root);
-renderer.keyInput.on("keypress", (e) => app.handleKey(e));
+renderer.keyInput.on("keypress", (e) => {
+  // Ctrl-C arrives here as a keypress, never as a signal, while raw mode is
+  // on. Treat it exactly like SIGINT.
+  if (e.ctrl === true && e.name === "c") {
+    exitOnFatalSignal(130);
+    return;
+  }
+  app.handleKey(e);
+});
+// Belt and braces: any other path that tears the renderer down must still
+// release the batch loop, or it waits on input that can never arrive.
+renderer.on("destroy", () => resolveExit());
 // Spec lifecycle item 7: reflow instead of corrupting on resize.
 app.resize(renderer.width, renderer.height);
 renderer.on("resize", (cols: number, rows: number) => app.resize(cols, rows));

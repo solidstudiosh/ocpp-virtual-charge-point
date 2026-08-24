@@ -3077,7 +3077,7 @@ The integration hub. Everything built so far is inert until this task connects s
 
 **Interfaces:**
 - Consumes: every screen from Tasks 10–13; `createKeyRouter`, `Phase` from Task 4; `reduce`, `initialState` from `../state`; `createReplayController` from `../controller`; `buildConvertQueue`, `readRawLogEntries`, `ConvertTask` from `./convertQueue`; `parseRawLog`, `buildReplayFile` from `../logConvert`; `basename` from `node:path`.
-  Note `ConvertTask` may need `stats` and `error` fields added if `buildConvertQueue` does not already surface them; check `convertQueue.ts` before writing `convertPropsForCurrentTask`.
+  **Verified:** `ConvertTask` is `{ sourcePath, outputPath, defaultStationId }` — it has no `stats` and no `error`, and the id field is `defaultStationId`. Parse stats and the error string are derived by `loadConvertTask` (see below) and held as separate state, mirroring `App.tsx`. Also consumes `ParsedRawLog` from `../logConvert`.
 - Produces: `createApp(ctx, options): AppHandle`.
   **`AppController` keeps its exact existing shape** — `{ dispatch, setFileStatuses, setCurrentFileIndex, showSummary, controller }` — because `index_replay_16_tui.ts` and `batchLoop.ts` depend on it.
   `AppOptions = { endpoint: string; initialFiles: FileStatus[]; autoBegin?: boolean; cwd?: string; initialIdTag?: string; sessionLogDir?: string; onBegin?: (files: string[], idTagOverride?: string) => void; onRoundChoice?: (choice: "again" | "quit") => void; onExit?: () => void }`.
@@ -3296,8 +3296,31 @@ export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
   });
 
   // The convert queue, built when the user presses `v` in the select screen.
+  // NOTE: `ConvertTask` carries only { sourcePath, outputPath,
+  // defaultStationId }. The parse stats and the error string are NOT on the
+  // task — they come from parsing the file, and are held alongside it, exactly
+  // as App.tsx does.
   let convertTasks: ConvertTask[] = [];
   let convertIndex = 0;
+  let convertParsed: ParsedRawLog | undefined;
+  let convertError: string | undefined;
+  let pendingPaths: string[] = [];
+  let convertMode: "run" | "select" = "run";
+
+  /** Read and parse a task's raw log. Ported from App.tsx's loadConvertTask. */
+  const loadConvertTask = (task: ConvertTask) => {
+    const entries = readRawLogEntries(task.sourcePath);
+    if (entries === undefined) {
+      convertParsed = undefined;
+      convertError = "could not parse raw log";
+      return;
+    }
+    convertParsed = parseRawLog(entries);
+    convertError =
+      convertParsed.sessionCount === 0
+        ? "no replayable sessions found"
+        : undefined;
+  };
 
   const convertPropsForCurrentTask = (): ConvertScreenProps => {
     const task = convertTasks[convertIndex];
@@ -3305,9 +3328,17 @@ export function createApp(ctx: RenderContext, options: AppOptions): AppHandle {
       fileLabel: task === undefined ? "" : basename(task.sourcePath),
       index: convertIndex,
       total: convertTasks.length,
-      initialStationId: task?.stationId ?? "",
-      stats: task?.stats,
-      error: task?.error,
+      initialStationId: task?.defaultStationId ?? "",
+      stats:
+        convertParsed === undefined
+          ? undefined
+          : {
+              calls: convertParsed.stats.keptCalls,
+              sessions: convertParsed.sessionCount,
+              dropped: convertParsed.stats.droppedFrames,
+              corrupt: convertParsed.stats.corruptEntries,
+            },
+      error: convertError,
       width,
       height,
     };

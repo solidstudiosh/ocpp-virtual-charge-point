@@ -175,11 +175,24 @@ WS_URL=wss://cpms.example.com/ocpp \
 PASSWORD=secret \
 bun run replay:16 path/to/CS_TEST_1.json
 
-# interactive Ink dashboard (same args)
+# interactive OpenTUI Core dashboard (same args)
 WS_URL=wss://cpms.example.com/ocpp \
 PASSWORD=secret \
 npm run replay:16:tui -- path/to/CS_TEST_1.json
 ```
+
+The TUI is built on `@opentui/core`, which requires Node's `--experimental-ffi`
+flag — the `replay:16:tui`/`replay:16:tui:pick`/`test` npm scripts already set
+it via `NODE_OPTIONS`, so no manual flag is needed when invoking them through
+`npm run`. Piped/non-TTY input (e.g. `npm run replay:16:tui -- file.json <
+/dev/null`) still renders, takes no interactive input, and exits with the
+run's own exit code once the batch finishes.
+
+Verified runtime pairing: `@opentui/core@0.5.6` on Node `26.1.0` — the version
+pinned via this repo's Volta config (`volta.node` in `package.json`).
+Upstream documents Node `26.4.0` as its exact target and runs no Node CI lane
+for the native bindings, so treat any Node upgrade as requiring a TUI smoke
+test before trusting it.
 
 ### Behavior
 

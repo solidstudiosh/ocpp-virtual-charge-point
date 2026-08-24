@@ -215,18 +215,7 @@ async function main() {
     process.exit(code);
   };
 
-  // `KeyHandler` extends a generically-typed `EventEmitter`, which the
-  // project's pinned `@types/node` (18.15.10) predates — its `EventEmitter`
-  // isn't generic, so `.on` drops off `KeyHandler`'s inferred instance type.
-  // Narrow to just the shape we call (including `ctrl`, needed below).
-  (
-    renderer.keyInput as unknown as {
-      on(
-        event: "keypress",
-        listener: (key: { name: string; ctrl: boolean }) => void,
-      ): void;
-    }
-  ).on("keypress", (e) => {
+  renderer.keyInput.on("keypress", (e) => {
     // Ctrl-C arrives here as a keypress, never as a signal, while raw mode
     // is on (see the `exitOnCtrlC: false` comment above). Treat it exactly
     // like SIGINT.

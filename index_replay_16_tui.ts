@@ -238,6 +238,21 @@ async function main() {
   // release the batch loop, or it waits on input that can never arrive.
   renderer.on("destroy", () => resolveExit());
 
+  // Run the render loop instead of leaving Core in its default on-demand
+  // mode, where frames are only drawn for individual `requestRender()`
+  // calls. On-demand drops requests: `activateFrame()` clears
+  // `updateScheduled` one microtask AFTER the frame it rendered, so every
+  // request landing in that gap is swallowed. Startup lands there whenever
+  // the terminal answers the theme-mode query promptly (a real terminal
+  // always does) — the query reply resolves `waitForThemeMode` in the same
+  // tick as Core's own first, still-empty frame, so the `requestRender()`
+  // calls from `createApp`/`root.add`/`resize` are all discarded and the
+  // blank frame stays on screen until the next keypress forces a repaint.
+  // A live loop is also the right mode for a streaming dashboard, and it is
+  // nearly free when idle: the native diff emits no bytes for an unchanged
+  // frame.
+  renderer.start();
+
   const ctrl = app.controller;
 
   process.on("SIGINT", () => exitOnFatalSignal(130));

@@ -36,7 +36,7 @@ class ChangeAvailabilityOcppMessage extends OcppIncoming<
       } else {
         connectorIds.push(1);
       }
-      for (let connectorId of connectorIds) {
+      for (const connectorId of connectorIds) {
         vcp.send(
           statusNotificationOcppMessage.request({
             connectorId,

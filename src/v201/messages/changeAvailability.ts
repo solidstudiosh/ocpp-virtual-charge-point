@@ -16,6 +16,9 @@ const ChangeAvailabilityResSchema = z.object({
 });
 type ChangeAvailabilityResType = typeof ChangeAvailabilityResSchema;
 
+const range = (count: number): number[] =>
+  Array.from({ length: Number.isNaN(count) ? 1 : count }, (_, i) => i + 1);
+
 class ChangeAvailabilityOcppIncoming extends OcppIncoming<
   ChangeAvailabilityReqType,
   ChangeAvailabilityResType
@@ -26,14 +29,26 @@ class ChangeAvailabilityOcppIncoming extends OcppIncoming<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
     if (call.payload.operationalStatus === "Inoperative") {
-      vcp.send(
-        statusNotificationOcppOutgoing.request({
-          timestamp: new Date().toISOString(),
-          connectorStatus: "Unavailable",
-          evseId: call.payload.evse?.id ?? 1,
-          connectorId: call.payload.evse?.connectorId ?? 1,
-        }),
-      );
+      const evses = Number.parseInt(process.env.EVSES ?? "1");
+      const connectors = Number.parseInt(process.env.CONNECTORS ?? "1");
+      // No evse addresses the whole charging station, an evse without a
+      // connectorId addresses every connector of that evse.
+      const evseIds = call.payload.evse ? [call.payload.evse.id] : range(evses);
+      const connectorIds = call.payload.evse?.connectorId
+        ? [call.payload.evse.connectorId]
+        : range(connectors);
+      for (const evseId of evseIds) {
+        for (const connectorId of connectorIds) {
+          vcp.send(
+            statusNotificationOcppOutgoing.request({
+              timestamp: new Date().toISOString(),
+              connectorStatus: "Unavailable",
+              evseId,
+              connectorId,
+            }),
+          );
+        }
+      }
     }
   };
 }

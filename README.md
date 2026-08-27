@@ -33,15 +33,34 @@ TOKEN - token this station authorizes with, substituted into admin commands (see
 DISABLE_METER_VALUES - set to "true" to stop sending periodic MeterValues for ongoing transactions
 CONNECTORLESS_FLOW_CONNECTOR_ID - connector to use when a RemoteStartTransaction arrives without a connectorId
 CONNECTORS - number of connectors this VCP reports (defaults to 1)
+EVSES - number of EVSEs this VCP reports, 2.0.1 and 2.1 only (defaults to 1)
 ```
 
 By default a `RemoteStartTransaction` without a `connectorId` is rejected.
 Setting `CONNECTORLESS_FLOW_CONNECTOR_ID` makes the VCP accept it on that fixed connector instead.
 
-`CONNECTORS` makes the VCP behave as a multi-connector station: on boot it sends an
-`Available` `StatusNotification` for connectors `1..CONNECTORS`, and a `ChangeAvailability`
-addressed to connector `0` (the whole charge point) reports `Unavailable` for each of them
-instead of only connector 1.
+### Multiple connectors and EVSEs
+
+`CONNECTORS` and `EVSES` make the VCP behave as a multi-connector station. On boot it sends an
+`Available` `StatusNotification` for every connector, and a `ChangeAvailability` with
+`Inoperative` reports `Unavailable` for every connector the request addresses.
+
+In OCPP 1.6 there are no EVSEs, so only `CONNECTORS` applies: connectors are numbered
+`1..CONNECTORS`, and a `ChangeAvailability` for connector `0` (the whole charge point) covers
+all of them rather than only connector 1.
+
+In 2.0.1 and 2.1 the two combine into `EVSES` x `CONNECTORS` connectors - `CONNECTORS` is the
+number of connectors *per EVSE*, so `EVSES=2 CONNECTORS=2` reports `(1,1) (1,2) (2,1) (2,2)`.
+How wide a `ChangeAvailability` fans out depends on how precisely it is addressed:
+
+| Request | Reports `Unavailable` for |
+| --- | --- |
+| no `evse` | every connector of every EVSE |
+| `evse.id` only | every connector of that EVSE |
+| `evse.id` + `evse.connectorId` | that one connector |
+
+Note that `Operative` still sends no `StatusNotification` in any version, so a connector taken
+down this way does not report itself back as `Available`.
 
 Run OCPP 1.6:
 

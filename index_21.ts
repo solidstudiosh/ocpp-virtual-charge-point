@@ -4,11 +4,12 @@ import { OcppVersion } from "./src/ocppVersion";
 import { registerVcp } from "./src/close";
 import { bootNotificationOcppOutgoing } from "./src/v21/messages/bootNotification";
 import { statusNotificationOcppOutgoing } from "./src/v21/messages/statusNotification";
+import { countFromEnv } from "./src/utils";
 import { VCP } from "./src/vcp";
 
 async function main(): Promise<VCP> {
-  const evses = Number.parseInt(process.env.EVSES ?? "1");
-  const connectors = Number.parseInt(process.env.CONNECTORS ?? "1");
+  const evses = countFromEnv("EVSES");
+  const connectors = countFromEnv("CONNECTORS");
   const vcp = new VCP({
     endpoint: process.env.WS_URL ?? "ws://localhost:3000",
     chargePointId: process.env.CP_ID ?? "123456",

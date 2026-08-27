@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import { countFromEnv, range } from "../../utils";
 import type { VCP } from "../../vcp";
 import { ConnectorIdSchema } from "./_common";
 import { statusNotificationOcppMessage } from "./statusNotification";
@@ -15,9 +16,6 @@ const ChangeAvailabilityResSchema = z.object({
 });
 type ChangeAvailabilityResType = typeof ChangeAvailabilityResSchema;
 
-const range = (count: number): number[] =>
-  Array.from({ length: Number.isNaN(count) ? 1 : count }, (_, i) => i + 1);
-
 class ChangeAvailabilityOcppMessage extends OcppIncoming<
   ChangeAvailabilityReqType,
   ChangeAvailabilityResType
@@ -28,7 +26,7 @@ class ChangeAvailabilityOcppMessage extends OcppIncoming<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
     if (call.payload.type === "Inoperative") {
-      const connectors = Number.parseInt(process.env.CONNECTORS ?? "1");
+      const connectors = countFromEnv("CONNECTORS");
       // connectorId 0 addresses the whole charge point.
       const connectorIds =
         call.payload.connectorId !== 0

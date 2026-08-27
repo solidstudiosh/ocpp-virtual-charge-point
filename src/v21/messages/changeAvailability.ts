@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
+import { countFromEnv, range } from "../../utils";
 import type { VCP } from "../../vcp";
 import { EVSETypeSchema, StatusInfoTypeSchema } from "./_common";
 import { statusNotificationOcppOutgoing } from "./statusNotification";
@@ -16,9 +17,6 @@ const ChangeAvailabilityResSchema = z.object({
 });
 type ChangeAvailabilityResType = typeof ChangeAvailabilityResSchema;
 
-const range = (count: number): number[] =>
-  Array.from({ length: Number.isNaN(count) ? 1 : count }, (_, i) => i + 1);
-
 class ChangeAvailabilityOcppIncoming extends OcppIncoming<
   ChangeAvailabilityReqType,
   ChangeAvailabilityResType
@@ -29,8 +27,8 @@ class ChangeAvailabilityOcppIncoming extends OcppIncoming<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
     if (call.payload.operationalStatus === "Inoperative") {
-      const evses = Number.parseInt(process.env.EVSES ?? "1");
-      const connectors = Number.parseInt(process.env.CONNECTORS ?? "1");
+      const evses = countFromEnv("EVSES");
+      const connectors = countFromEnv("CONNECTORS");
       // No evse addresses the whole charging station, an evse without a
       // connectorId addresses every connector of that evse.
       const evseIds = call.payload.evse ? [call.payload.evse.id] : range(evses);

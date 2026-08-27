@@ -59,9 +59,6 @@ How wide a `ChangeAvailability` fans out depends on how precisely it is addresse
 | `evse.id` only | every connector of that EVSE |
 | `evse.id` + `evse.connectorId` | that one connector |
 
-Note that `Operative` still sends no `StatusNotification` in any version, so a connector taken
-down this way does not report itself back as `Available`.
-
 Run OCPP 1.6:
 
 ```bash

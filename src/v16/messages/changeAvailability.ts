@@ -25,13 +25,26 @@ class ChangeAvailabilityOcppMessage extends OcppIncoming<
   ): Promise<void> => {
     vcp.respond(this.response(call, { status: "Accepted" }));
     if (call.payload.type === "Inoperative") {
-      vcp.send(
-        statusNotificationOcppMessage.request({
-          connectorId: call.payload.connectorId,
-          errorCode: "NoError",
-          status: "Unavailable",
-        }),
-      );
+      const connectorIds = [];
+      if (call.payload.connectorId !== 0) {
+        connectorIds.push(call.payload.connectorId);
+      } else if (process.env.CONNECTORS) {
+        const connectors = Number.parseInt(process.env.CONNECTORS);
+        for (let connectorId = 1; connectorId <= connectors; connectorId++) {
+          connectorIds.push(connectorId);
+        }
+      } else {
+        connectorIds.push(1);
+      }
+      for (let connectorId of connectorIds) {
+        vcp.send(
+          statusNotificationOcppMessage.request({
+            connectorId,
+            errorCode: "NoError",
+            status: "Unavailable",
+          }),
+        );
+      }
     }
   };
 }

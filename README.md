@@ -32,10 +32,16 @@ Optional:
 TOKEN - token this station authorizes with, substituted into admin commands (see below)
 DISABLE_METER_VALUES - set to "true" to stop sending periodic MeterValues for ongoing transactions
 CONNECTORLESS_FLOW_CONNECTOR_ID - connector to use when a RemoteStartTransaction arrives without a connectorId
+CONNECTORS - number of connectors this VCP reports (defaults to 1)
 ```
 
 By default a `RemoteStartTransaction` without a `connectorId` is rejected.
 Setting `CONNECTORLESS_FLOW_CONNECTOR_ID` makes the VCP accept it on that fixed connector instead.
+
+`CONNECTORS` makes the VCP behave as a multi-connector station: on boot it sends an
+`Available` `StatusNotification` for connectors `1..CONNECTORS`, and a `ChangeAvailability`
+addressed to connector `0` (the whole charge point) reports `Unavailable` for each of them
+instead of only connector 1.
 
 Run OCPP 1.6:
 

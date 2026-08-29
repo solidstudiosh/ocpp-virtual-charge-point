@@ -16,6 +16,14 @@ Run:
 npm install
 ```
 
+## Install dependencies
+
+Run:
+
+```bash
+npm install zod
+```
+
 ## Running VCP
 
 Configure env variables:

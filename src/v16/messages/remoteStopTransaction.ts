@@ -71,6 +71,7 @@ class RemoteStopTransactionOcppMessage extends OcppIncoming<
         status: "Available",
       }),
     );
+    vcp.transactionManager.stopTransaction(transactionId);
   };
 }
 

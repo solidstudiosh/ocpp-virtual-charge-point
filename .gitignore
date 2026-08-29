@@ -129,6 +129,12 @@ dist
 
 .vscode
 .history
+# Cockpit local config (machine-specific paths)
+cockpit/config.json
+
+# Vendored copies of sibling repos kept locally for reference (managed elsewhere)
+/platform/
+/websocket/
 
 # Claude Code
 CLAUDE.md

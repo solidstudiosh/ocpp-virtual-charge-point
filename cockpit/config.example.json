@@ -1,0 +1,18 @@
+{
+  "websocketPath": "/chemin/absolu/vers/websocket",
+  "platformPath": "/chemin/absolu/vers/platform",
+  "identity": "jasonborne",
+  "ocppVersion": "OCPP_1.6",
+  "wsUrl": "ws://localhost:3334",
+  "adminPort": 9999,
+  "idTag": "SIMTAG",
+  "redisUrl": "redis://localhost:6379",
+  "ports": { "websocket": 3334, "rails": 3000, "vite": 3036, "redis": 6379 },
+  "voltage": 230,
+  "current": 32,
+  "phases": 3,
+  "connectors": 2,
+  "sessionFullSeconds": 120,
+  "mode": "local",
+  "staging": { "wsUrl": "", "identity": "", "password": "" }
+}

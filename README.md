@@ -117,6 +117,39 @@ npx tsx admin/v16/Authorize/authorize.ts
 
 ---
 
+## Transaction message queue (station-like delivery)
+
+Real charge points treat `StartTransaction`, `StopTransaction` and transaction
+`MeterValues` as *transaction-related* messages: they are delivered in order,
+one at a time, and a `CALLERROR` (or no reply) is a delivery failure that is
+retried after `TransactionMessageRetryInterval`, up to `TransactionMessageAttempts`
+times, while every later transaction message waits behind it. Heartbeat and
+StatusNotification are not affected.
+
+The VCP can behave the same way. It is opt-in, so replay and stress runs are
+unchanged unless you ask for it:
+
+```bash
+TX_QUEUE_ENABLED=true \
+TX_QUEUE_SCOPE=connector \
+TX_MSG_RETRY_INTERVAL_SEC=5 \
+TX_MSG_ATTEMPTS=0 \
+WS_URL=ws://localhost:3000 CP_ID=CS_TEST_1 npm start index_16.ts
+```
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `TX_QUEUE_ENABLED` | unset | `true` turns the queue on |
+| `TX_QUEUE_SCOPE` | `connector` | `connector`: a stuck message blocks only its connector (what some firmware does); `station`: one queue for the whole station (what the OCPP 1.6 errata describe) |
+| `TX_MSG_RETRY_INTERVAL_SEC` | `10` | wait before retransmitting a failed transaction message (same messageId, same payload) |
+| `TX_MSG_ATTEMPTS` | `0` | attempts before the message is dropped and the queue moves on; `0` retries forever |
+| `TX_MSG_RESPONSE_TIMEOUT_SEC` | `30` | a reply that does not arrive in time counts as a failure |
+
+`GET http://localhost:9999/tx-queue` on the admin API returns the queue state
+(in-flight message, attempts, held count, delivered and dropped counters per
+queue), and every transition is logged as `tx-queue <event>`. For OCPP 2.0.1
+and 2.1 the queue applies to `TransactionEvent`, keyed by `evse.id`.
+
 ## Contributing
 
 ### Bug Reports & Feature Requests

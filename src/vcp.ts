@@ -13,7 +13,7 @@ import {
   resolveMessageHandler,
 } from "./ocppMessageHandler";
 import { ocppOutbox } from "./ocppOutbox";
-import { type OcppVersion, toProtocolVersion } from "./ocppVersion";
+import { OcppVersion, toProtocolVersion } from "./ocppVersion";
 import {
   validateOcppIncomingRequest,
   validateOcppIncomingResponse,
@@ -21,8 +21,27 @@ import {
   validateOcppOutgoingResponse,
 } from "./schemaValidator";
 import { TransactionManager } from "./transactionManager";
+import {
+  TransactionMessageQueue,
+  type TxQueueScope,
+  type TxQueueSnapshot,
+} from "./transactionMessageQueue";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
 import { close } from "./close";
+
+/**
+ * Station-like delivery of transaction-related messages (see
+ * transactionMessageQueue.ts). When absent, the VCP falls back to the
+ * TX_QUEUE_* environment variables; when those are absent too, messages are
+ * sent immediately and a CALLERROR is only logged, as before.
+ */
+export interface TransactionQueueConfig {
+  scope?: TxQueueScope;
+  retryIntervalMs?: number;
+  /** 0 means retry forever. */
+  maxAttempts?: number;
+  responseTimeoutMs?: number;
+}
 
 interface VCPOptions {
   ocppVersion: OcppVersion;
@@ -31,7 +50,38 @@ interface VCPOptions {
   basicAuthPassword?: string;
   adminPort?: number;
   messageHandlerOverride?: OcppMessageHandler;
+  transactionQueue?: TransactionQueueConfig;
 }
+
+const TRANSACTION_RELATED_ACTIONS: Record<OcppVersion, ReadonlySet<string>> = {
+  [OcppVersion.OCPP_1_6]: new Set([
+    "StartTransaction",
+    "StopTransaction",
+    "MeterValues",
+  ]),
+  [OcppVersion.OCPP_2_0_1]: new Set(["TransactionEvent"]),
+  [OcppVersion.OCPP_2_1]: new Set(["TransactionEvent"]),
+};
+
+const envInt = (name: string, fallback: number): number => {
+  const raw = process.env[name];
+  const parsed = raw === undefined ? Number.NaN : Number.parseInt(raw, 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+export const transactionQueueConfigFromEnv = ():
+  | TransactionQueueConfig
+  | undefined => {
+  if (process.env.TX_QUEUE_ENABLED !== "true") {
+    return undefined;
+  }
+  return {
+    scope: process.env.TX_QUEUE_SCOPE === "station" ? "station" : "connector",
+    retryIntervalMs: envInt("TX_MSG_RETRY_INTERVAL_SEC", 10) * 1000,
+    maxAttempts: envInt("TX_MSG_ATTEMPTS", 0),
+    responseTimeoutMs: envInt("TX_MSG_RESPONSE_TIMEOUT_SEC", 30) * 1000,
+  };
+};
 
 interface LogEntry {
   type: "Application";
@@ -69,15 +119,25 @@ export class VCP {
 
   private postMessageActions: Record<string, () => void | Promise<void>> = {};
 
+  private txQueue?: TransactionMessageQueue;
+
   transactionManager = new TransactionManager();
 
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler =
       vcpOptions.messageHandlerOverride ??
       resolveMessageHandler(vcpOptions.ocppVersion);
+    const txQueueConfig =
+      vcpOptions.transactionQueue ?? transactionQueueConfigFromEnv();
+    if (txQueueConfig) {
+      this.txQueue = this.createTransactionQueue(txQueueConfig);
+    }
     if (vcpOptions.adminPort) {
       const adminApi = new Hono();
       adminApi.get("/health", (c) => c.text("OK"));
+      adminApi.get("/tx-queue", (c) =>
+        c.json(this.transactionQueueSnapshot() ?? { enabled: false }),
+      );
       adminApi.post(
         "/execute",
         zValidator(
@@ -139,6 +199,23 @@ export class VCP {
 
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   send(ocppCall: OcppCall<any>) {
+    if (!this.ws) {
+      throw new Error("Websocket not initialized. Call connect() first");
+    }
+    if (this.txQueue) {
+      this.txQueue.send(ocppCall);
+      return;
+    }
+    this.transmit(ocppCall);
+  }
+
+  /** Current state of the transaction message queue, or null when disabled. */
+  transactionQueueSnapshot(): TxQueueSnapshot | null {
+    return this.txQueue?.snapshot() ?? null;
+  }
+
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  private transmit(ocppCall: OcppCall<any>) {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");
     }
@@ -244,6 +321,7 @@ export class VCP {
       entry.reject({ kind: "Timeout" });
     }
     this.pendingResponses.clear();
+    this.txQueue?.reset();
     this.ws.close();
     this.ws = undefined;
     if (this.adminServer) {
@@ -348,6 +426,7 @@ export class VCP {
         this.pendingResponses.delete(messageId);
         pending.resolve(payload);
       }
+      this.txQueue?.onCallResult(messageId);
     } else if (type === 4) {
       const [messageId, errorCode, errorDescription, errorDetails] = rest;
       // Consume outbox so callers can correlate (fixes prior leak).
@@ -369,9 +448,50 @@ export class VCP {
           details: errorDetails,
         });
       }
+      this.txQueue?.onCallError(messageId, errorCode);
     } else {
       throw new Error(`Unrecognized message type ${type}`);
     }
+  }
+
+  private createTransactionQueue(
+    config: TransactionQueueConfig,
+  ): TransactionMessageQueue {
+    const actions = TRANSACTION_RELATED_ACTIONS[this.vcpOptions.ocppVersion];
+    return new TransactionMessageQueue({
+      scope: config.scope ?? "connector",
+      retryIntervalMs: config.retryIntervalMs ?? 10_000,
+      maxAttempts: config.maxAttempts ?? 0,
+      responseTimeoutMs: config.responseTimeoutMs ?? 30_000,
+      isTransactionRelated: (action) => actions.has(action),
+      connectorOf: (ocppCall) => this.connectorOf(ocppCall),
+      transmit: (ocppCall) => this.transmit(ocppCall),
+      onEvent: (event) => {
+        const { kind, key, call, ...rest } = event;
+        logger.info(`tx-queue ${kind}`, {
+          key,
+          action: call.action,
+          messageId: call.messageId,
+          ...rest,
+        });
+      },
+    });
+  }
+
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  private connectorOf(ocppCall: OcppCall<any>): number | undefined {
+    const payload = ocppCall.payload ?? {};
+    if (typeof payload.connectorId === "number") {
+      return payload.connectorId;
+    }
+    if (ocppCall.action === "StopTransaction") {
+      return this.transactionManager.transactions.get(payload.transactionId)
+        ?.connectorId;
+    }
+    if (typeof payload.evse?.id === "number") {
+      return payload.evse.id;
+    }
+    return undefined;
   }
 
   private _onClose(code: number, reason: string) {

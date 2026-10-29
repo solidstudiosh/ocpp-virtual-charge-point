@@ -77,7 +77,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
                     value: transactionStatus.meterValue / 1000,
                     measurand: "Energy.Active.Import.Register",
                     unitOfMeasure: {
-                      unit: "kWh",
+                      unit: "Wh",
                     },
                   },
                 ],
@@ -123,7 +123,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
                 value: 0,
                 measurand: "Energy.Active.Import.Register",
                 unitOfMeasure: {
-                  unit: "kWh",
+                  unit: "Wh",
                 },
               },
             ],

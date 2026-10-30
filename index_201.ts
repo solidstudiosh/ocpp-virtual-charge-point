@@ -2,7 +2,10 @@ require("dotenv").config();
 
 import { OcppVersion } from "./src/ocppVersion";
 import { registerVcp } from "./src/close";
-import { bootNotificationOcppOutgoing } from "./src/v201/messages/bootNotification";
+import {
+  bootNotificationOcppOutgoing,
+  VCP_CHARGING_STATION,
+} from "./src/v201/messages/bootNotification";
 import { statusNotificationOcppOutgoing } from "./src/v201/messages/statusNotification";
 import { countFromEnv } from "./src/utils";
 import { VCP } from "./src/vcp";
@@ -21,10 +24,7 @@ async function main(): Promise<VCP> {
   vcp.send(
     bootNotificationOcppOutgoing.request({
       reason: "PowerUp",
-      chargingStation: {
-        model: "VirtualChargePoint",
-        vendorName: "Solidstudio",
-      },
+      chargingStation: VCP_CHARGING_STATION,
     }),
   );
   for (let evseId = 1; evseId <= evses; evseId++) {

@@ -33,6 +33,13 @@ const BootNotificationReqSchema = z.object({
 });
 type BootNotificationReqType = typeof BootNotificationReqSchema;
 
+export const VCP_CHARGING_STATION: z.infer<
+  typeof BootNotificationReqSchema
+>["chargingStation"] = {
+  model: "VirtualChargePoint",
+  vendorName: "Solidstudio",
+};
+
 const BootNotificationResSchema = z.object({
   currentTime: z.string().datetime(),
   interval: z.number().int(),

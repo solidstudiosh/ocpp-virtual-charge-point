@@ -39,6 +39,38 @@ EVSES - number of EVSEs this VCP reports, 2.0.1 and 2.1 only (defaults to 1)
 By default a `RemoteStartTransaction` without a `connectorId` is rejected.
 Setting `CONNECTORLESS_FLOW_CONNECTOR_ID` makes the VCP accept it on that fixed connector instead.
 
+### OCPP 1.2 (SOAP)
+
+`index_12.ts` runs an OCPP 1.2 charge box: SOAP 1.2 over HTTP with WS-Addressing, WSDL generations
+2010/08 and 2010/10. Each message the box sends is one HTTP POST to the CentralSystemService and is
+answered in its HTTP response; messages go out one at a time, in order. Commands from the central
+system arrive on the box's own ChargePointService and are answered in the HTTP response.
+
+```
+SOAP_CS_URL         - CentralSystemService URL (default http://localhost:8080/ocpp/CentralSystemService)
+CP_ID               - chargeBoxIdentity
+OCPP12_NS           - 2010_08 (default) or 2010_10
+SOAP_SERVER_PORT    - port of the box's ChargePointService (default 9100)
+SOAP_ADVERTISED_URL - ChargePointService URL the central system can reach, sent as wsa:From
+                      (default http://localhost:<SOAP_SERVER_PORT>/ocpp/ChargePointService/<CP_ID>)
+```
+
+```bash
+SOAP_CS_URL=http://gateway:8080/ocpp/CentralSystemService CP_ID=BOX-1 OCPP12_NS=2010_10 \
+SOAP_ADVERTISED_URL=http://vcp:9100/ocpp/ChargePointService/BOX-1 npx tsx index_12.ts
+```
+
+Sends: BootNotification, Heartbeat, Authorize, StatusNotification (Available, Occupied, Faulted,
+Unavailable - 1.2 has no Charging), StartTransaction, MeterValues (Wh, no transactionId),
+StopTransaction, Firmware/DiagnosticsStatusNotification. Answers: RemoteStartTransaction
+(`connectorId` only in 2010/10; otherwise `CONNECTORLESS_FLOW_CONNECTOR_ID`), RemoteStopTransaction,
+UnlockConnector, Reset, ChangeAvailability, ChangeConfiguration (`HeartBeatInterval` changes the
+heartbeat), ClearCache. Commands from another `chargeBoxIdentity` get an `IdentityMismatch` fault.
+No Basic auth and no TLS client certificates. The admin API works as for the other versions.
+
+`npm test` runs the codec and transport tests; set `OCPP12_WSDL_DIR` to a directory with the four
+OCPP 1.2 WSDLs (`CentralSystemService-2010-08.wsdl`, ...) to also check the codec against them.
+
 ### Multiple connectors and EVSEs
 
 `CONNECTORS` and `EVSES` make the VCP behave as a multi-connector station. On boot it sends an

@@ -12,7 +12,9 @@ import {
   resolveMessageHandler,
 } from "./ocppMessageHandler";
 import { ocppOutbox } from "./ocppOutbox";
-import { type OcppVersion, toProtocolVersion } from "./ocppVersion";
+import { OcppVersion, toProtocolVersion } from "./ocppVersion";
+import type { Ocpp12Namespace } from "./soap/ocpp12Schema";
+import { SoapTransport } from "./soap/soapTransport";
 import {
   getOcppOutgoingMessages,
   validateOcppIncomingRequest,
@@ -32,6 +34,14 @@ interface VCPOptions {
   chargePointId: string;
   basicAuthPassword?: string;
   adminPort?: number;
+  /** OCPP 1.2 only: `endpoint` is then the CentralSystemService URL. */
+  soap?: {
+    namespace: Ocpp12Namespace;
+    /** Port of the VCP's own ChargePointService. */
+    serverPort: number;
+    /** ChargePointService URL the central system can reach (wsa:From). */
+    advertisedUrl: string;
+  };
 }
 
 interface LogEntry {
@@ -91,12 +101,7 @@ export class VCP {
   async connect(): Promise<void> {
     logger.info(`Connecting... | ${util.inspect(this.vcpOptions)}`);
     this.isFinishing = false;
-    this.transport = new WsJsonTransport({
-      endpoint: this.vcpOptions.endpoint,
-      chargePointId: this.vcpOptions.chargePointId,
-      protocol: toProtocolVersion(this.vcpOptions.ocppVersion),
-      basicAuthPassword: this.vcpOptions.basicAuthPassword,
-    });
+    this.transport = this.createTransport();
     return this.transport.connect({
       onCall: (ocppCall) => this._onCall(ocppCall),
       onCallResult: (messageId, payload) =>
@@ -104,6 +109,26 @@ export class VCP {
       onCallError: (error) => this.messageHandler.handleCallError(this, error),
       onClose: (code, reason) => this._onClose(code, reason),
       onError: () => close(this),
+    });
+  }
+
+  private createTransport(): OcppTransport {
+    const { ocppVersion, endpoint, chargePointId, soap } = this.vcpOptions;
+    if (ocppVersion === OcppVersion.OCPP_1_2) {
+      if (!soap) {
+        throw new Error("OCPP 1.2 needs the soap options");
+      }
+      return new SoapTransport({
+        centralSystemUrl: endpoint,
+        chargePointId,
+        ...soap,
+      });
+    }
+    return new WsJsonTransport({
+      endpoint,
+      chargePointId,
+      protocol: toProtocolVersion(ocppVersion),
+      basicAuthPassword: this.vcpOptions.basicAuthPassword,
     });
   }
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// OCPP 1.2 types (spec §7). The WSDL has no length facets (VERSION-DIFF D2),
+// OCPP 1.2 types (spec §7). The WSDL has no length facets (only the spec tables do),
 // so string lengths are the spec's.
 
 export const ConnectorIdSchema = z.number().int().nonnegative();

@@ -14,7 +14,8 @@ import {
 
 // The OCPP 1.2 WSDLs are not redistributed here. Point OCPP12_WSDL_DIR at a
 // directory with CentralSystemService-2010-08.wsdl, ChargePointService-2010-08.wsdl
-// and their 2010-10 counterparts (e.g. the SOAP gateway's docs/ocpp12).
+// and their 2010-10 counterparts (the 2010/10 ones are the
+// 2010/08 WSDLs in the 2010/10 namespace plus RemoteStartTransaction.connectorId).
 const WSDL_DIR = process.env.OCPP12_WSDL_DIR;
 const XS = "http://www.w3.org/2001/XMLSchema";
 const WSDL = "http://schemas.xmlsoap.org/wsdl/";

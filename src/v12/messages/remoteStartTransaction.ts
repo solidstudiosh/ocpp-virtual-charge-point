@@ -6,7 +6,8 @@ import { ConnectorIdSchema, IdTagSchema } from "./_common";
 import { startTransactionOcppMessage } from "./startTransaction";
 import { statusNotificationOcppMessage } from "./statusNotification";
 
-// connectorId exists only in the 2010/10 WSDL (VERSION-DIFF D1); a 2010/08
+// connectorId exists only in the 2010/10 WSDL (spec §6.22; the 2010/08
+// WSDL lacks it); a 2010/08
 // box always gets the request without it.
 const RemoteStartTransactionReqSchema = z.object({
   idTag: IdTagSchema,

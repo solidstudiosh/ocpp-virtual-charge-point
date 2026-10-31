@@ -42,6 +42,7 @@ const parser = new XMLParser({
   parseAttributeValue: false,
   trimValues: true,
   processEntities: true,
+  htmlEntities: true,
   ignoreDeclaration: true,
   ignorePiTags: true,
 });
@@ -182,8 +183,9 @@ export const parseEnvelope = (xml: string): SoapEnvelope => {
       fault: {
         code: withoutPrefix(child(code, SOAP12_NS, "Value")?.text ?? ""),
         subcode: subcode ? withoutPrefix(subcode.text) : undefined,
-        reason: child(child(body, SOAP12_NS, "Reason"), SOAP12_NS, "Text")
-          ?.text as string,
+        reason:
+          child(child(body, SOAP12_NS, "Reason"), SOAP12_NS, "Text")?.text ??
+          "",
       },
     };
   }

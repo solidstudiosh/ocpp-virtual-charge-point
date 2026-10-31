@@ -202,7 +202,7 @@ describe("OCPP 1.2 codec", () => {
     );
   });
 
-  it("has RemoteStartTransaction connectorId only in 2010/10, after idTag (VERSION-DIFF D1)", () => {
+  it("has RemoteStartTransaction connectorId only in 2010/10, after idTag (spec §6.22)", () => {
     const remoteStart = operation("RemoteStartTransaction");
     const write = (namespace: "2010_08" | "2010_10") =>
       encodeResponseEnvelope({
@@ -267,6 +267,20 @@ describe("OCPP 1.2 codec", () => {
       }),
     );
     assert.deepEqual(decoded.payload, { key: "a<b&c", value: `"x" 'y' >` });
+  });
+
+  it("decodes character references", () => {
+    const { decoded } = roundTrip(
+      encodeRequestEnvelope({
+        operation: operation("Authorize"),
+        namespace: "2010_08",
+        payload: { idTag: "X" },
+        chargeBoxIdentity: "CB-1",
+        messageId: "urn:uuid:1",
+        to: "http://cs",
+      }).replace("<idTag>X</idTag>", "<idTag>&#65;&#x42;</idTag>"),
+    );
+    assert.deepEqual(decoded.payload, { idTag: "AB" });
   });
 
   it("reads a SOAP fault with its OCPP subcode", () => {

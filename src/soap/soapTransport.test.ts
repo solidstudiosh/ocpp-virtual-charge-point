@@ -184,22 +184,21 @@ describe("SoapTransport", () => {
       to: `http://box:${boxPort}/ocpp/ChargePointService/CB-1`,
     });
 
-  it("answers a command in the HTTP response, in the request's namespace", async () => {
-    const pending = post(
-      commandEnvelope(
-        "RemoteStartTransaction",
-        { idTag: "T", connectorId: 2 },
-        "2010_08",
-      ),
-      true,
-    );
-    while (calls.length === 0) {
+  const nextCall = async (count: number) => {
+    while (calls.length < count) {
       await new Promise((resolve) => setTimeout(resolve, 5));
     }
-    const call = calls[0];
+    return calls[count - 1];
+  };
+
+  it("answers a command in the HTTP response", async () => {
+    const pending = post(
+      commandEnvelope("RemoteStartTransaction", { idTag: "T", connectorId: 2 }),
+      true,
+    );
+    const call = await nextCall(1);
     assert.equal(call.action, "RemoteStartTransaction");
-    // 2010/08 has no connectorId, so it is not even written.
-    assert.deepEqual(call.payload, { idTag: "T" });
+    assert.deepEqual(call.payload, { idTag: "T", connectorId: 2 });
     transport.sendCallResult(call.messageId, call.action, {
       status: "Accepted",
     });
@@ -210,16 +209,33 @@ describe("SoapTransport", () => {
     const decoded = decodeBody(
       envelope.body as NonNullable<typeof envelope.body>,
     );
-    assert.equal(decoded.namespace, "2010_08");
+    assert.equal(decoded.namespace, "2010_10");
     assert.deepEqual(decoded.payload, { status: "Accepted" });
   });
 
-  it("faults a command for another box, an unknown element and a missing answer", async () => {
+  it("faults an answer that cannot be encoded instead of leaving the command hanging", async () => {
+    const pending = post(
+      commandEnvelope("UnlockConnector", { connectorId: 1 }),
+    );
+    const call = await nextCall(2);
+    transport.sendCallResult(call.messageId, call.action, { status: 7 });
+    const { status, envelope } = await pending;
+    assert.equal(status, 500);
+    assert.equal(envelope.fault?.subcode, "InternalError");
+  });
+
+  it("faults a command for another box or version, an unknown element and a missing answer", async () => {
     const wrongBox = await post(
       commandEnvelope("Reset", { type: "Soft" }, "2010_10", "OTHER"),
     );
     assert.equal(wrongBox.status, 400);
     assert.equal(wrongBox.envelope.fault?.subcode, "IdentityMismatch");
+
+    const wrongVersion = await post(
+      commandEnvelope("Reset", { type: "Soft" }, "2010_08"),
+    );
+    assert.equal(wrongVersion.status, 400);
+    assert.equal(wrongVersion.envelope.fault?.subcode, "ProtocolError");
 
     const garbage = await post("<nope/>");
     assert.equal(garbage.status, 400);

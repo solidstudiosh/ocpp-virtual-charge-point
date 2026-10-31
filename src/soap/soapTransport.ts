@@ -120,24 +120,37 @@ export class SoapTransport implements OcppTransport {
     payload: any,
     beforeWrite?: () => void,
   ) {
-    const operation = findOperation(action);
-    if (!operation || operation.service !== "Cp") {
-      throw new Error(`OCPP 1.2 has no ChargePointService ${action}`);
-    }
-    const pending = this.takePending(messageId);
-    if (!pending) {
+    const pending = this.pending.get(messageId);
+    let xml: string;
+    try {
+      const operation = findOperation(action);
+      if (!operation || operation.service !== "Cp") {
+        throw new Error(`OCPP 1.2 has no ChargePointService ${action}`);
+      }
+      xml = encodeResponseEnvelope({
+        operation,
+        namespace: pending?.namespace ?? this.options.namespace,
+        payload,
+        messageId: urnMessageId(),
+        relatesTo: pending?.relatesTo,
+      });
+      logger.info(`Responding with ➡️  ${xml}`);
+      beforeWrite?.();
+    } catch (error) {
+      // The central system still gets an answer instead of waiting for its
+      // timeout, and the handler that responded does not crash the VCP.
+      logger.error(`${action} answer not sent: ${error}`);
+      this.sendCallError({
+        messageId,
+        errorCode: "InternalError",
+        errorDescription: String(error),
+      });
       return;
     }
-    const xml = encodeResponseEnvelope({
-      operation,
-      namespace: pending.namespace,
-      payload,
-      messageId: urnMessageId(),
-      relatesTo: pending.relatesTo,
-    });
-    logger.info(`Responding with ➡️  ${xml}`);
-    beforeWrite?.();
-    this.answer(pending, 200, xml);
+    const taken = this.takePending(messageId);
+    if (taken) {
+      this.answer(taken, 200, xml);
+    }
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
@@ -194,7 +207,9 @@ export class SoapTransport implements OcppTransport {
           "Accept-Encoding": "gzip, deflate",
         },
         body: xml,
-        signal: AbortSignal.timeout(this.options.requestTimeoutMs ?? 30_000),
+        // Longer than the central system's own wait for its backend, so a
+        // slow answer still arrives instead of orphaning what it created.
+        signal: AbortSignal.timeout(this.options.requestTimeoutMs ?? 45_000),
       });
       body = await response.text();
     } catch (error) {
@@ -212,28 +227,45 @@ export class SoapTransport implements OcppTransport {
       return;
     }
     logger.info(`Receive message ⬅️  ${body}`);
-    this.safely(() => {
-      const envelope = parseEnvelope(body);
-      if (envelope.fault) {
+    let envelope: ReturnType<typeof parseEnvelope>;
+    let decoded: ReturnType<typeof decodeBody> | undefined;
+    try {
+      envelope = parseEnvelope(body);
+      if (envelope.body) {
+        decoded = decodeBody(envelope.body);
+        if (
+          decoded.kind !== "response" ||
+          decoded.operation.action !== call.action ||
+          decoded.namespace !== this.options.namespace
+        ) {
+          throw new Ocpp12CodecError(
+            `Expected the ${call.action} response in ${this.options.namespace}, got ${decoded.operation.action} ${decoded.kind} in ${decoded.namespace}`,
+          );
+        }
+      }
+    } catch (error) {
+      logger.error(`${call.action} answer not understood: ${error}`);
+      this.safely(() =>
         handlers.onCallError({
           messageId: call.messageId,
-          errorCode: envelope.fault.subcode ?? envelope.fault.code,
-          errorDescription: envelope.fault.reason,
+          errorCode: "ProtocolError",
+          errorDescription: String(error),
+        }),
+      );
+      return;
+    }
+    const { fault } = envelope;
+    const result = decoded;
+    this.safely(() => {
+      if (fault || !result) {
+        handlers.onCallError({
+          messageId: call.messageId,
+          errorCode: fault?.subcode ?? fault?.code ?? "GenericError",
+          errorDescription: fault?.reason ?? "",
         });
         return;
       }
-      const decoded = decodeBody(
-        envelope.body as NonNullable<typeof envelope.body>,
-      );
-      if (
-        decoded.kind !== "response" ||
-        decoded.operation.action !== call.action
-      ) {
-        throw new Ocpp12CodecError(
-          `Expected the ${call.action} response, got ${decoded.operation.action} ${decoded.kind}`,
-        );
-      }
-      handlers.onCallResult(call.messageId, decoded.payload);
+      handlers.onCallResult(call.messageId, result.payload);
     });
   }
 
@@ -289,6 +321,13 @@ export class SoapTransport implements OcppTransport {
           `<${envelope.body.name}> is not a ChargePointService request`,
         );
       }
+      // A box speaks one WSDL generation (spec §8.8): a command in another
+      // namespace is a central system bug, not something to translate.
+      if (decoded.namespace !== this.options.namespace) {
+        throw new Ocpp12CodecError(
+          `Command in the ${decoded.namespace} namespace, this box speaks ${this.options.namespace}`,
+        );
+      }
     } catch (error) {
       fault("Sender", "ProtocolError", String(error));
       return;
@@ -329,7 +368,13 @@ export class SoapTransport implements OcppTransport {
       if (pending) {
         this.pending.delete(messageId);
         clearTimeout(pending.timer);
-        fault("Receiver", "NotSupported", String(error), relatesTo);
+        const notImplemented = String(error).includes("not implemented");
+        fault(
+          "Receiver",
+          notImplemented ? "NotSupported" : "InternalError",
+          String(error),
+          relatesTo,
+        );
       }
     }
   }

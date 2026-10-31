@@ -181,6 +181,20 @@ npx tsx admin/v16/Transaction/startTransaction.ts
 npx tsx admin/v16/Transaction/stopTransaction.ts
 ```
 
+### Remote start without a transaction
+
+To test how a CSMS times out a remote start the station accepted but never followed with a transaction
+(the driver did not plug in), arm the next remote start through the admin port:
+
+```bash
+curl -XPOST localhost:9999/remote-start/accept-without-transaction    # arm
+curl -XDELETE localhost:9999/remote-start/accept-without-transaction  # disarm, if it was not used
+```
+
+The next `RemoteStartTransaction` (1.6) or `RequestStartTransaction` (2.0.1, 2.1) is answered `Accepted`, but no
+`StartTransaction` / `TransactionEvent` follows and the connector stays free. Only that one request is affected;
+later ones start transactions as usual. A request the VCP would reject anyway is still rejected and leaves it armed.
+
 ---
 
 ## Contributing

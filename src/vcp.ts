@@ -90,6 +90,9 @@ export class VCP {
         return c.text("OK");
       });
       adminApi.delete("/remote-start/accept-without-transaction", (c) => {
+        logger.info(
+          `Remote start without transaction disarmed (was ${this.acceptNextRemoteStartWithoutTransaction ? "armed" : "not armed"})`,
+        );
         this.acceptNextRemoteStartWithoutTransaction = false;
         return c.text("OK");
       });

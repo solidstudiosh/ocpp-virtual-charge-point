@@ -41,6 +41,15 @@ class GetDiagnosticsOcppMessage extends OcppIncoming<
   };
 }
 
+/** A malformed escape (a bare "%") is taken as it is rather than failing the upload. */
+const decodeUserinfo = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
 const asyncUploadDiagnostics = async (
   vcp: VCP,
   call: OcppCall<z.infer<GetDiagnosticsReqType>>,
@@ -79,8 +88,8 @@ const asyncUploadDiagnostics = async (
       host: ftpUrl.hostname,
       port: ftpUrl.port ? Number.parseInt(ftpUrl.port, 10) : 21,
       // URL userinfo is percent-encoded; the FTP server expects the plain credentials.
-      user: decodeURIComponent(ftpUrl.username) || "anonymous",
-      password: decodeURIComponent(ftpUrl.password) || "guest",
+      user: decodeUserinfo(ftpUrl.username) || "anonymous",
+      password: decodeUserinfo(ftpUrl.password) || "guest",
       secure: false,
     });
 

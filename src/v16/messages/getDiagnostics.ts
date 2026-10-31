@@ -78,8 +78,9 @@ const asyncUploadDiagnostics = async (
     await ftpClient.access({
       host: ftpUrl.hostname,
       port: ftpUrl.port ? Number.parseInt(ftpUrl.port, 10) : 21,
-      user: ftpUrl.username || "anonymous",
-      password: ftpUrl.password || "guest",
+      // URL userinfo is percent-encoded; the FTP server expects the plain credentials.
+      user: decodeURIComponent(ftpUrl.username) || "anonymous",
+      password: decodeURIComponent(ftpUrl.password) || "guest",
       secure: false,
     });
 

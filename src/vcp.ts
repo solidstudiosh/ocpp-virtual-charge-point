@@ -53,6 +53,8 @@ export class VCP {
 
   transactionManager = new TransactionManager();
 
+  private acceptNextRemoteStartWithoutTransaction = false;
+
   constructor(private vcpOptions: VCPOptions) {
     this.messageHandler = resolveMessageHandler(vcpOptions.ocppVersion);
     if (vcpOptions.adminPort) {
@@ -80,11 +82,32 @@ export class VCP {
           return c.text("OK");
         },
       );
+      adminApi.post("/remote-start/accept-without-transaction", (c) => {
+        this.acceptNextRemoteStartWithoutTransaction = true;
+        logger.info(
+          "The next remote start will be accepted without starting a transaction",
+        );
+        return c.text("OK");
+      });
+      adminApi.delete("/remote-start/accept-without-transaction", (c) => {
+        this.acceptNextRemoteStartWithoutTransaction = false;
+        return c.text("OK");
+      });
       this.adminServer = serve({
         fetch: adminApi.fetch,
         port: vcpOptions.adminPort,
       });
     }
+  }
+
+  /**
+   * True once after the admin API armed it: the caller accepts the remote start but never starts the
+   * transaction, like a station whose driver does not plug in.
+   */
+  takeRemoteStartWithoutTransaction(): boolean {
+    const armed = this.acceptNextRemoteStartWithoutTransaction;
+    this.acceptNextRemoteStartWithoutTransaction = false;
+    return armed;
   }
 
   async connect(): Promise<void> {

@@ -56,6 +56,12 @@ class RemoteStartTransactionOcppMessage extends OcppIncoming<
       return;
     }
     vcp.respond(this.response(call, { status: "Accepted" }));
+    if (vcp.takeRemoteStartWithoutTransaction()) {
+      logger.info(
+        `RemoteStartTransaction accepted on connector ${call.payload.connectorId} without starting a transaction`,
+      );
+      return;
+    }
     vcp.send(
       startTransactionOcppMessage.request({
         connectorId: call.payload.connectorId,

@@ -119,24 +119,28 @@ export class VCP {
       ? { ...ocppCall, payload: beforeSend(this, ocppCall.payload) }
       : ocppCall;
     ocppOutbox.enqueue(resolvedCall);
-    // Validation only logs, so it runs after the message is on its way and
-    // its warnings follow the logged message.
-    transport.sendCall(resolvedCall);
-    validateOcppOutgoingRequest(
-      this.vcpOptions.ocppVersion,
-      resolvedCall.action,
-      JSON.parse(JSON.stringify(resolvedCall.payload)),
+    transport.sendCall(resolvedCall, () =>
+      validateOcppOutgoingRequest(
+        this.vcpOptions.ocppVersion,
+        resolvedCall.action,
+        JSON.parse(JSON.stringify(resolvedCall.payload)),
+      ),
     );
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   respond(result: OcppCallResult<any>) {
     const transport = this.connectedTransport();
-    transport.sendCallResult(result.messageId, result.action, result.payload);
-    validateOcppIncomingResponse(
-      this.vcpOptions.ocppVersion,
+    transport.sendCallResult(
+      result.messageId,
       result.action,
-      JSON.parse(JSON.stringify(result.payload)),
+      result.payload,
+      () =>
+        validateOcppIncomingResponse(
+          this.vcpOptions.ocppVersion,
+          result.action,
+          JSON.parse(JSON.stringify(result.payload)),
+        ),
     );
   }
 

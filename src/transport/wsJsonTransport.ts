@@ -53,7 +53,7 @@ export class WsJsonTransport implements OcppTransport {
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
-  sendCall(call: OcppCall<any>) {
+  sendCall(call: OcppCall<any>, beforeWrite?: () => void) {
     const jsonMessage = JSON.stringify([
       2,
       call.messageId,
@@ -61,13 +61,20 @@ export class WsJsonTransport implements OcppTransport {
       call.payload,
     ]);
     logger.info(`Sending message ➡️  ${jsonMessage}`);
+    beforeWrite?.();
     this.socket().send(jsonMessage);
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
-  sendCallResult(messageId: string, _action: string, payload: any) {
+  sendCallResult(
+    messageId: string,
+    _action: string,
+    // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+    payload: any,
+    beforeWrite?: () => void,
+  ) {
     const jsonMessage = JSON.stringify([3, messageId, payload]);
     logger.info(`Responding with ➡️  ${jsonMessage}`);
+    beforeWrite?.();
     this.socket().send(jsonMessage);
   }
 

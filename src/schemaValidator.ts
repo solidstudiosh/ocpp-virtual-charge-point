@@ -1,6 +1,10 @@
 import { logger } from "./logger";
 import { OcppVersion } from "./ocppVersion";
 import {
+  ocppIncomingMessages as ocppIncomingMessages12,
+  ocppOutgoingMessages as ocppOutgoingMessages12,
+} from "./v12/messageHandler";
+import {
   ocppIncomingMessages as ocppIncomingMessages16,
   ocppOutgoingMessages as ocppOutgoingMessages16,
 } from "./v16/messageHandler";
@@ -17,6 +21,8 @@ const SCHEMA_VALIDATION_ENABLED = true;
 
 const getOcppIncomingMessages = (ocppVersion: OcppVersion) => {
   switch (ocppVersion) {
+    case OcppVersion.OCPP_1_2:
+      return ocppIncomingMessages12;
     case OcppVersion.OCPP_1_6:
       return ocppIncomingMessages16;
     case OcppVersion.OCPP_2_0_1:
@@ -30,6 +36,8 @@ const getOcppIncomingMessages = (ocppVersion: OcppVersion) => {
 
 export const getOcppOutgoingMessages = (ocppVersion: OcppVersion) => {
   switch (ocppVersion) {
+    case OcppVersion.OCPP_1_2:
+      return ocppOutgoingMessages12;
     case OcppVersion.OCPP_1_6:
       return ocppOutgoingMessages16;
     case OcppVersion.OCPP_2_0_1:

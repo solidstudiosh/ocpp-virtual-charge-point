@@ -8,7 +8,7 @@ import type { VCP } from "../../vcp";
 import { ChargePointStatusSchema, ConnectorIdSchema } from "./_common";
 
 // 1.2 has no Charging/Preparing/Finishing: a connector in use is Occupied and
-// the gateway derives the 1.6 status from the transaction state.
+// the central system derives finer states from the transaction.
 const StatusNotificationReqSchema = z.object({
   connectorId: ConnectorIdSchema,
   status: ChargePointStatusSchema,

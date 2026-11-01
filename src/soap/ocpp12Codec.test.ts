@@ -227,7 +227,7 @@ describe("OCPP 1.2 codec", () => {
     assert.throws(() => read("2010/08"), /Unexpected element .*connectorId/);
   });
 
-  it("reads a request the way the gateway writes it: prefixed namespaces, any field order", () => {
+  it("reads a request with prefixed namespaces in any field order", () => {
     const { envelope, decoded } =
       roundTrip(`<?xml version="1.0" encoding="UTF-8"?>
       <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">

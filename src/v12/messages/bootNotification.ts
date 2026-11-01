@@ -28,8 +28,8 @@ const BootNotificationResSchema = z.object({
 });
 type BootNotificationResType = typeof BootNotificationResSchema;
 
-// A 1.2 box without an interval still has to show it is alive: the gateway
-// closes the central system socket of a box that stays silent (idle close).
+// Used when the BootNotification response has no interval: a box that never
+// sends anything may be treated as offline by the central system.
 const DEFAULT_HEARTBEAT_INTERVAL_SEC = 60;
 
 class BootNotificationOcppMessage extends OcppOutgoing<

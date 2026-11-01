@@ -7,7 +7,7 @@ import {
 import type { VCP } from "../../vcp";
 import { ConnectorIdSchema, MeterValueSchema } from "./_common";
 
-// No transactionId in 1.2: the central system (the gateway) links the values
+// No transactionId in 1.2: the central system links the values
 // to the connector's ongoing transaction.
 const MeterValuesReqSchema = z.object({
   connectorId: ConnectorIdSchema,

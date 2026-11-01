@@ -24,7 +24,7 @@ import {
 import { findOperation, type Ocpp12Namespace } from "./ocpp12Schema";
 
 export interface SoapTransportOptions {
-  /** CentralSystemService URL, e.g. http://gateway:8080/ocpp/CentralSystemService */
+  /** CentralSystemService URL, e.g. http://central-system:8080/ocpp/CentralSystemService */
   centralSystemUrl: string;
   chargePointId: string;
   namespace: Ocpp12Namespace;

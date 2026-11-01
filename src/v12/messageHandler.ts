@@ -26,7 +26,7 @@ import { statusNotificationOcppMessage } from "./messages/statusNotification";
 import { stopTransactionOcppMessage } from "./messages/stopTransaction";
 import { unlockConnectorOcppMessage } from "./messages/unlockConnector";
 
-// GetConfiguration is not a 1.2 message: the gateway answers it itself.
+// GetConfiguration is not an OCPP 1.2 message.
 export const ocppIncomingMessages: {
   [key: string]: OcppIncoming<z.ZodTypeAny, z.ZodTypeAny>;
 } = {

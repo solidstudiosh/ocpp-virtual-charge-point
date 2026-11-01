@@ -6,8 +6,7 @@ import { ConnectorIdSchema } from "./_common";
 const UnlockConnectorReqSchema = z.object({ connectorId: ConnectorIdSchema });
 type UnlockConnectorReqType = typeof UnlockConnectorReqSchema;
 
-// 1.2 answers Accepted/Rejected; the gateway maps them to 1.6
-// Unlocked/UnlockFailed.
+// 1.2 answers Accepted/Rejected (1.6 uses Unlocked/UnlockFailed).
 const UnlockConnectorResSchema = z.object({
   status: z.enum(["Accepted", "Rejected"]),
 });

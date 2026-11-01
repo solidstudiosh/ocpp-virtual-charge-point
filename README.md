@@ -56,7 +56,7 @@ SOAP_ADVERTISED_URL - ChargePointService URL the central system can reach, sent 
 ```
 
 ```bash
-SOAP_CS_URL=http://gateway:8080/ocpp/CentralSystemService CP_ID=BOX-1 OCPP12_NS=2010_10 \
+SOAP_CS_URL=http://central-system:8080/ocpp/CentralSystemService CP_ID=BOX-1 OCPP12_NS=2010_10 \
 SOAP_ADVERTISED_URL=http://vcp:9100/ocpp/ChargePointService/BOX-1 npx tsx index_12.ts
 ```
 

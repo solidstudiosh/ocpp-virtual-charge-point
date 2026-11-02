@@ -65,17 +65,11 @@ Press these keys during runtime:
 | `h` / `?` | — | Show hotkey help |
 | `q` | — | Graceful shutdown |
 
-## Integration with OCPP proxy demo
+## Running against a local CSMS
 
-This simulator is designed to work with the OCPP proxy from `base-emobility-ocpp-proxy`. To run a full demo:
+Point the simulator at any OCPP-J endpoint (CSMS or OCPP proxy) listening locally:
 
 ```bash
-# 1. Start the proxy (in base-emobility-ocpp-proxy)
-cd ../base-emobility-ocpp-proxy/demo
-docker compose up -d
-
-# 2. Run the simulator against the proxy
-cd ../../ocpp-virtual-charge-point
 WS_URL=ws://localhost:3000 STATION_COUNT=100 npx tsx demo/simulate-network.ts
 ```
 

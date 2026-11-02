@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import { logger } from "../../logger";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
@@ -46,6 +47,14 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
           status: "Rejected",
         }),
       );
+      return;
+    }
+
+    if (vcp.takeRemoteStartWithoutTransaction()) {
+      logger.info(
+        `RequestStartTransaction accepted on EVSE ${transactionEvseId} without starting a transaction`,
+      );
+      vcp.respond(this.response(call, { status: "Accepted" }));
       return;
     }
 

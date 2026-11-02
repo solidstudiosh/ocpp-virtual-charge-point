@@ -25,12 +25,24 @@ import { TransactionManager } from "./transactionManager";
 import { heartbeatOcppMessage } from "./v16/messages/heartbeat";
 import { close } from "./close";
 
-interface VCPOptions {
+export interface VCPHooks {
+  onClose?: (code?: number, reason?: string) => void;
+  onError?: (error: Error) => void;
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  onSend?: (call: OcppCall<any>) => void;
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  onCallResult?: (call: OcppCall<any>, result: OcppCallResult<any>) => void;
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  onCallError?: (error: OcppCallError<any>) => void;
+}
+
+export interface VCPOptions {
   ocppVersion: OcppVersion;
   endpoint: string;
   chargePointId: string;
   basicAuthPassword?: string;
   adminPort?: number;
+  hooks?: VCPHooks;
 }
 
 interface LogEntry {
@@ -117,6 +129,10 @@ export class VCP {
         this._onClose(code, reason),
       );
       this.ws.on("error", (error: Error) => {
+        if (this.vcpOptions.hooks?.onError) {
+          this.vcpOptions.hooks.onError(error);
+          return;
+        }
         logger.error("Websocket error:");
         logger.error(error);
         close(this);
@@ -138,6 +154,7 @@ export class VCP {
       ? { ...ocppCall, payload: beforeSend(this, ocppCall.payload) }
       : ocppCall;
     ocppOutbox.enqueue(resolvedCall);
+    this.vcpOptions.hooks?.onSend?.(resolvedCall);
     const jsonMessage = JSON.stringify([
       2,
       resolvedCall.messageId,
@@ -184,6 +201,10 @@ export class VCP {
     this.ws.send(jsonMessage);
   }
 
+  dropConnection() {
+    this.ws?.terminate();
+  }
+
   configureHeartbeat(interval: number) {
     if (this.heartbeatIntervalId) {
       clearInterval(this.heartbeatIntervalId);
@@ -200,6 +221,7 @@ export class VCP {
       );
     }
     this.isFinishing = true;
+    this.transactionManager.stopAllTransactions();
     if (this.heartbeatIntervalId) {
       clearInterval(this.heartbeatIntervalId);
       this.heartbeatIntervalId = undefined;
@@ -297,19 +319,14 @@ export class VCP {
         enqueuedCall.action,
         payload,
       );
-      this.messageHandler.handleCallResult(this, enqueuedCall, {
-        messageId,
-        payload,
-        action: enqueuedCall.action,
-      });
+      const result = { messageId, payload, action: enqueuedCall.action };
+      this.vcpOptions.hooks?.onCallResult?.(enqueuedCall, result);
+      this.messageHandler.handleCallResult(this, enqueuedCall, result);
     } else if (type === 4) {
       const [messageId, errorCode, errorDescription, errorDetails] = rest;
-      this.messageHandler.handleCallError(this, {
-        messageId,
-        errorCode,
-        errorDescription,
-        errorDetails,
-      });
+      const error = { messageId, errorCode, errorDescription, errorDetails };
+      this.vcpOptions.hooks?.onCallError?.(error);
+      this.messageHandler.handleCallError(this, error);
     } else {
       throw new Error(`Unrecognized message type ${type}`);
     }
@@ -320,6 +337,10 @@ export class VCP {
       return;
     }
     logger.info(`Connection closed. code=${code}, reason=${reason}`);
+    if (this.vcpOptions.hooks?.onClose) {
+      this.vcpOptions.hooks.onClose(code, reason);
+      return;
+    }
     close(this);
   }
 }

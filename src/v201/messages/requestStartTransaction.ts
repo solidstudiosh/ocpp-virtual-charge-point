@@ -83,7 +83,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
                 timestamp: new Date().toISOString(),
                 sampledValue: [
                   {
-                    value: transactionStatus.meterValue,
+                    value: transactionStatus.meterValue / 1000,
                     measurand: "Energy.Active.Import.Register",
                     unitOfMeasure: {
                       unit: "Wh",

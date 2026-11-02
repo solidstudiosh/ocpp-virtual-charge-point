@@ -28,7 +28,18 @@ import { close } from "./close";
 import type { OcppTransport } from "./transport/ocppTransport";
 import { WsJsonTransport } from "./transport/wsJsonTransport";
 
-interface VCPOptions {
+export interface VCPHooks {
+  onClose?: (code?: number, reason?: string) => void;
+  onError?: (error: Error) => void;
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  onSend?: (call: OcppCall<any>) => void;
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  onCallResult?: (call: OcppCall<any>, result: OcppCallResult<any>) => void;
+  // biome-ignore lint/suspicious/noExplicitAny: ocpp types
+  onCallError?: (error: OcppCallError<any>) => void;
+}
+
+export interface VCPOptions {
   ocppVersion: OcppVersion;
   endpoint: string;
   chargePointId: string;
@@ -42,6 +53,8 @@ interface VCPOptions {
     /** ChargePointService URL the central system can reach (wsa:From). */
     advertisedUrl: string;
   };
+  /** For a process that embeds the VCP: it observes the connection instead of the VCP exiting. */
+  hooks?: VCPHooks;
 }
 
 interface LogEntry {
@@ -132,9 +145,18 @@ export class VCP {
       onCall: (ocppCall) => this._onCall(ocppCall),
       onCallResult: (messageId, payload) =>
         this._onCallResult(messageId, payload),
-      onCallError: (error) => this.messageHandler.handleCallError(this, error),
+      onCallError: (error) => {
+        this.vcpOptions.hooks?.onCallError?.(error);
+        this.messageHandler.handleCallError(this, error);
+      },
       onClose: (code, reason) => this._onClose(code, reason),
-      onError: () => close(this),
+      onError: (error) => {
+        if (this.vcpOptions.hooks?.onError) {
+          this.vcpOptions.hooks.onError(error);
+          return;
+        }
+        close(this);
+      },
     });
   }
 
@@ -170,6 +192,7 @@ export class VCP {
       ? { ...ocppCall, payload: beforeSend(this, ocppCall.payload) }
       : ocppCall;
     ocppOutbox.enqueue(resolvedCall);
+    this.vcpOptions.hooks?.onSend?.(resolvedCall);
     transport.sendCall(resolvedCall, () =>
       validateOcppOutgoingRequest(
         this.vcpOptions.ocppVersion,
@@ -200,6 +223,15 @@ export class VCP {
     this.connectedTransport().sendCallError(error);
   }
 
+  /** Drops the connection the way a lost network would: no closing handshake where the transport can avoid one. */
+  dropConnection() {
+    if (this.transport?.drop) {
+      this.transport.drop();
+    } else {
+      this.transport?.close();
+    }
+  }
+
   configureHeartbeat(interval: number) {
     if (this.heartbeatIntervalId) {
       clearInterval(this.heartbeatIntervalId);
@@ -216,6 +248,7 @@ export class VCP {
       );
     }
     this.isFinishing = true;
+    this.transactionManager.stopAllTransactions();
     if (this.heartbeatIntervalId) {
       clearInterval(this.heartbeatIntervalId);
       this.heartbeatIntervalId = undefined;
@@ -309,11 +342,9 @@ export class VCP {
       enqueuedCall.action,
       payload,
     );
-    this.messageHandler.handleCallResult(this, enqueuedCall, {
-      messageId,
-      payload,
-      action: enqueuedCall.action,
-    });
+    const result = { messageId, payload, action: enqueuedCall.action };
+    this.vcpOptions.hooks?.onCallResult?.(enqueuedCall, result);
+    this.messageHandler.handleCallResult(this, enqueuedCall, result);
   }
 
   private _onClose(code: number, reason: string) {
@@ -321,6 +352,10 @@ export class VCP {
       return;
     }
     logger.info(`Connection closed. code=${code}, reason=${reason}`);
+    if (this.vcpOptions.hooks?.onClose) {
+      this.vcpOptions.hooks.onClose(code, reason);
+      return;
+    }
     close(this);
   }
 }

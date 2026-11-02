@@ -77,6 +77,12 @@ export class TransactionManager {
     return this.transactions.keys().next().value;
   }
 
+  stopAllTransactions() {
+    for (const transactionId of Array.from(this.transactions.keys())) {
+      this.stopTransaction(transactionId);
+    }
+  }
+
   stopTransaction(transactionId: TransactionId) {
     const transaction = this.transactions.get(transactionId);
     if (transaction?.meterValuesTimer) {

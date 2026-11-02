@@ -55,12 +55,16 @@ const generateOCMFData = (input: OCMFInput) => {
   };
 };
 
+// Next to this package, not the process's working directory: an embedding process (vcp-orchestrator) runs
+// from its own directory, where a cwd-relative ./cert does not exist and every remote stop failed.
+const certPath = (file: string) => path.resolve(__dirname, "..", "cert", file);
+
 const generateOCMFSignature = (data: string) => {
   const sign = crypto.createSign("sha256");
   sign.update(data);
   const signature = sign
     .sign({
-      key: fs.readFileSync(path.resolve("./cert/vcp.pem"), "utf8"),
+      key: fs.readFileSync(certPath("vcp.pem"), "utf8"),
     })
     .toString("hex");
   return { SA: "ECDSA-secp256k1-SHA256", SD: signature };
@@ -73,5 +77,5 @@ export const generateOCMF = (input: OCMFInput) => {
 };
 
 export const getOCMFPublicKey = () => {
-  return fs.readFileSync(path.resolve("./cert/vcp.pub"));
+  return fs.readFileSync(certPath("vcp.pub"));
 };

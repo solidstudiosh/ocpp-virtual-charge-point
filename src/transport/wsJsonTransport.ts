@@ -96,6 +96,10 @@ export class WsJsonTransport implements OcppTransport {
     this.ws = undefined;
   }
 
+  drop() {
+    this.ws?.terminate();
+  }
+
   private socket(): WebSocket {
     if (!this.ws) {
       throw new Error("Websocket not initialized. Call connect() first");

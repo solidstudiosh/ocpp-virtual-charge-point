@@ -39,4 +39,6 @@ export interface OcppTransport {
   // biome-ignore lint/suspicious/noExplicitAny: ocpp types
   sendCallError(error: OcppCallError<any>): void;
   close(): void;
+  /** Optional: cut the connection without a closing handshake, as a lost network would. */
+  drop?(): void;
 }

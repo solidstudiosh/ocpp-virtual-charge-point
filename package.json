@@ -12,6 +12,7 @@
     "format": "biome format src",
     "format:check": "biome ci --linter-enabled=false --organize-imports-enabled=false src",
     "typecheck": "tsc --noEmit --esModuleInterop --skipLibCheck src/**/*.ts",
+    "test": "tsx --test $(find src -name '*.test.ts')",
     "check": "npm run lint && npm run format:check && npm run typecheck"
   },
   "author": "Solidstudio",
@@ -23,6 +24,7 @@
     "basic-ftp": "^5.2.0",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
+    "fast-xml-parser": "^5.11.2",
     "hono": "^4.12.2",
     "typescript": "^5.8.2",
     "uuid": "^10.0.0",

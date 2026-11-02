@@ -58,7 +58,7 @@ for (const [version, handler] of [
   ["2.1", messageHandlerV21],
 ] as const) {
   describe(`OCPP ${version} periodic meter value`, () => {
-    it("reports the energy charged so far in Wh, as the Ended event does", async () => {
+    it("reports the energy charged so far in Wh", async () => {
       const { vcp, sent, periodic } = fakeVcp();
       await remoteStart(handler, vcp);
 

@@ -1,5 +1,6 @@
 import type { OcppCall, OcppCallError, OcppCallResult } from "./ocppMessage";
 import { OcppVersion } from "./ocppVersion";
+import { messageHandlerV12 } from "./v12/messageHandler";
 import { messageHandlerV16 } from "./v16/messageHandler";
 import { messageHandlerV21 } from "./v21/messageHandler";
 import { messageHandlerV201 } from "./v201/messageHandler";
@@ -26,6 +27,9 @@ export interface OcppMessageHandler {
 export const resolveMessageHandler = (
   ocppVersion: OcppVersion,
 ): OcppMessageHandler => {
+  if (ocppVersion === OcppVersion.OCPP_1_2) {
+    return messageHandlerV12;
+  }
   if (ocppVersion === OcppVersion.OCPP_1_6) {
     return messageHandlerV16;
   }

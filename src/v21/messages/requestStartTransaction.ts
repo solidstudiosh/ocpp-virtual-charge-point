@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
+import { logger } from "../../logger";
 import { type OcppCall, OcppIncoming } from "../../ocppMessage";
 import type { VCP } from "../../vcp";
 import {
@@ -49,6 +50,14 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
       return;
     }
 
+    if (vcp.takeRemoteStartWithoutTransaction()) {
+      logger.info(
+        `RequestStartTransaction accepted on EVSE ${transactionEvseId} without starting a transaction`,
+      );
+      vcp.respond(this.response(call, { status: "Accepted" }));
+      return;
+    }
+
     const transactionId = uuidv4();
     vcp.transactionManager.startTransaction(vcp, {
       transactionId: transactionId,
@@ -77,7 +86,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
                     value: transactionStatus.meterValue / 1000,
                     measurand: "Energy.Active.Import.Register",
                     unitOfMeasure: {
-                      unit: "kWh",
+                      unit: "Wh",
                     },
                   },
                 ],
@@ -123,7 +132,7 @@ class RequestStartTransactionOcppIncoming extends OcppIncoming<
                 value: 0,
                 measurand: "Energy.Active.Import.Register",
                 unitOfMeasure: {
-                  unit: "kWh",
+                  unit: "Wh",
                 },
               },
             ],

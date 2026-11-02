@@ -19,6 +19,7 @@ COPY --from=builder --chown=vcp:nodejs /app/node_modules ./node_modules
 
 # Copy source files from builder stage
 COPY --from=builder --chown=vcp:nodejs /app/src ./src
+COPY --from=builder --chown=vcp:nodejs /app/index_12.ts ./
 COPY --from=builder --chown=vcp:nodejs /app/index_16.ts ./
 COPY --from=builder --chown=vcp:nodejs /app/index_201.ts ./
 COPY --from=builder --chown=vcp:nodejs /app/index_21.ts ./

@@ -44,9 +44,21 @@ export class WsJsonTransport implements OcppTransport {
       this.ws.on("close", (code: number, reason: string) =>
         handlers.onClose(code, reason),
       );
-      this.ws.on("error", (error: Error) => {
-        logger.error("Websocket error:");
-        logger.error(error);
+      // A refused handshake (e.g. 401 from a proxy) would otherwise surface
+      // only as "Unexpected server response: 401"; keep the status text too.
+      let handshakeError: Error | undefined;
+      const ws = this.ws;
+      ws.on("unexpected-response", (_request, response) => {
+        const status =
+          `${response.statusCode} ${response.statusMessage ?? ""}`.trim();
+        handshakeError = new Error(`Unexpected server response: ${status}`);
+        response.resume();
+        // Aborts the request; ws then emits "error" and "close" as before.
+        ws.terminate();
+      });
+      this.ws.on("error", (wsError: Error) => {
+        const error = handshakeError ?? wsError;
+        logger.error(`Websocket error: ${describeError(error)}`);
         handlers.onError(error);
       });
     });
@@ -136,4 +148,17 @@ export class WsJsonTransport implements OcppTransport {
       throw new Error(`Unrecognized message type ${type}`);
     }
   }
+}
+
+/**
+ * The text of a connection error. Node reports a refused connection as an
+ * AggregateError with an empty message, so fall back to the error code.
+ */
+export function describeError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return String(error);
+  }
+  const code = (error as NodeJS.ErrnoException).code;
+  const message = error.message || code || error.name;
+  return code && !message.includes(code) ? `${message} (${code})` : message;
 }
